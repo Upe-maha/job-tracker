@@ -1,239 +1,199 @@
-// src/components/applications/KanbanBoard.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
-import type { DropAnimation } from '@dnd-kit/core'
+import { useState } from 'react'
 import {
   DndContext,
   DragEndEvent,
   DragOverEvent,
   DragOverlay,
   DragStartEvent,
-  PointerSensor,
-  useSensor,
   useSensors,
-  closestCorners,
+  useSensor,
+  PointerSensor,
+  KeyboardSensor,
+  UniqueIdentifier,
+  closestCenter,
   useDroppable,
-  defaultDropAnimationSideEffects,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+} from '@dnd-kit/core';
+
+import { SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
+
 import { IApplication, ApplicationStatus } from '@/types'
 import ApplicationCard from './ApplicationCard'
 import DraggableCard from './DraggableCard'
 import { useQueryClient } from '@tanstack/react-query'
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
 const statusColumns = [
-  {
-    key: 'wishlist' as const,
-    label: 'Wishlist',
-    color: 'text-muted-foreground',
-    dotColor: 'bg-muted-foreground',
-    emptyBorder: 'border-border',
-  },
-  {
-    key: 'applied' as const,
-    label: 'Applied',
-    color: 'text-blue-500',
-    dotColor: 'bg-blue-500',
-    emptyBorder: 'border-blue-500/20',
-  },
-  {
-    key: 'interview' as const,
-    label: 'Interview',
-    color: 'text-yellow-500',
-    dotColor: 'bg-yellow-500',
-    emptyBorder: 'border-yellow-500/20',
-  },
-  {
-    key: 'offer' as const,
-    label: 'Offer',
-    color: 'text-green-500',
-    dotColor: 'bg-green-500',
-    emptyBorder: 'border-green-500/20',
-  },
-  {
-    key: 'rejected' as const,
-    label: 'Rejected',
-    color: 'text-red-500',
-    dotColor: 'bg-red-500',
-    emptyBorder: 'border-red-500/20',
-  },
+  { key: 'wishlist', label: 'Wishlist', dotColor: 'bg-muted-foreground', emptyBorder: 'border-border' },
+  { key: 'applied', label: 'Applied', dotColor: 'bg-blue-500', emptyBorder: 'border-blue-500/20' },
+  { key: 'interview', label: 'Interview', dotColor: 'bg-yellow-500', emptyBorder: 'border-yellow-500/20' },
+  { key: 'offer', label: 'Offer', dotColor: 'bg-green-500', emptyBorder: 'border-green-500/20' },
+  { key: 'rejected', label: 'Rejected', dotColor: 'bg-red-500', emptyBorder: 'border-red-500/20' },
 ] as const
 
-const dropAnimation: DropAnimation = {
-  duration: 0,
-  easing: 'linear',
-  sideEffects: defaultDropAnimationSideEffects({
-    styles: {
-      active: { opacity: '0' },
-    },
-  }),
-}
+type GroupedApps = Record<ApplicationStatus, IApplication[]>
 
-interface KanbanBoardProps {
-  applications: IApplication[]
-}
-
-export default function KanbanBoard({ applications: initial }: KanbanBoardProps) {
+export default function KanbanBoard({ applications: initial }: { applications: IApplication[] }) {
   const queryClient = useQueryClient()
-  const [applications, setApplications] = useState<IApplication[]>(initial)
+  const [columns, setColumns] = useState<GroupedApps>(() => {
+    const grouped = initial.reduce((acc, app) => {
+      if (!acc[app.status]) acc[app.status] = []
+      acc[app.status].push(app)
+      return acc
+    }, {} as GroupedApps)
+    for (const col of statusColumns) {
+      if (!grouped[col.key]) grouped[col.key] = []
+    }
+    return grouped
+  })
   const [activeCard, setActiveCard] = useState<IApplication | null>(null)
 
-  useEffect(() => {
-    if (!activeCard) {
-      setApplications(initial)
+  const sensors = useSensors(useSensor(PointerSensor,
+    {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5
+      }
     }
-  }, [initial, activeCard])
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    })
-  )
-
-  const getGrouped = (apps: IApplication[]) => {
-    return statusColumns.reduce((acc, col) => {
-      acc[col.key] = apps.filter(app => app.status === col.key)
-      return acc
-    }, {} as Record<ApplicationStatus, IApplication[]>)
+  ), useSensor(KeyboardSensor, {
+    coordinateGetter: sortableKeyboardCoordinates
   }
+  ))
 
-  const grouped = getGrouped(applications)
+  function findColumnId(itemId: string): ApplicationStatus | undefined {
+    for (const [status, apps] of Object.entries(columns)) {
+      if (apps.some(app => app._id === itemId)) return status as ApplicationStatus
+    }
+    if (statusColumns.some(col => col.key === itemId)) return itemId as ApplicationStatus
+    return undefined
+  }
 
   function onDragStart(event: DragStartEvent) {
-    const card = applications.find(a => a._id === event.active.id)
-    if (card) setActiveCard(card)
+    const id = event.active.id as string
+    const app = Object.values(columns).flat().find(a => a._id === id)
+    if (app) setActiveCard(app)
   }
 
-  // ─── onDragOver – ONLY update status for live preview ───
   function onDragOver(event: DragOverEvent) {
     const { active, over } = event
     if (!over) return
 
     const activeId = active.id as string
     const overId = over.id as string
+    const activeColumnId = findColumnId(activeId)
+    const overColumnId = findColumnId(overId)
+
+    if (!activeColumnId || !overColumnId || activeColumnId === overColumnId) return
     if (activeId === overId) return
 
-    const activeApp = applications.find(a => a._id === activeId)
+    const activeApp = columns[activeColumnId]?.find(app => app._id === activeId)
     if (!activeApp) return
 
-    const overIsColumn = statusColumns.some(col => col.key === overId)
-    let targetStatus: ApplicationStatus
+    setColumns(prev => {
+      const sourceApps = prev[activeColumnId].filter(app => app._id !== activeId)
+      const updatedApp = { ...activeApp, status: overColumnId }
+      const targetApps = prev[overColumnId]
+      let insertIndex = targetApps.length
 
-    if (overIsColumn) {
-      targetStatus = overId as ApplicationStatus
-    } else {
-      const overApp = applications.find(a => a._id === overId)
-      if (!overApp) return
-      targetStatus = overApp.status
-    }
+      if (overId !== overColumnId) {
+        const overIndex = targetApps.findIndex(app => app._id === overId)
+        if (overIndex !== -1) insertIndex = overIndex
+      }
 
-    // Only change status – no reordering here
-    if (activeApp.status !== targetStatus) {
-      setApplications(prev =>
-        prev.map(app =>
-          app._id === activeId ? { ...app, status: targetStatus } : app
-        )
-      )
-    }
+      const newTarget = [
+        ...targetApps.slice(0, insertIndex),
+        updatedApp,
+        ...targetApps.slice(insertIndex),
+      ]
+
+      return {
+        ...prev,
+        [activeColumnId]: sourceApps,
+        [overColumnId]: newTarget,
+      }
+    })
   }
 
-  // ─── onDragEnd – rebuild the entire array with correct order ───
   async function onDragEnd(event: DragEndEvent) {
     const { active, over } = event
     setActiveCard(null)
 
-    if (!over) {
-      setApplications(initial)
-      return
-    }
+    if (!over) return
 
     const activeId = active.id as string
-    const activeApp = applications.find(a => a._id === activeId)
+    const overId = over.id as string
+    const activeColumnId = findColumnId(activeId)
+    const overColumnId = findColumnId(overId)
+
+    if (!activeColumnId || !overColumnId) return
+
+    const activeApp = columns[activeColumnId]?.find(app => app._id === activeId)
     if (!activeApp) return
 
-    const originalStatus = initial.find(a => a._id === activeId)?.status
-
-    // Determine final status
-    const overId = over.id as string
-    const overIsColumn = statusColumns.some(col => col.key === overId)
-    let finalStatus: ApplicationStatus
-
-    if (overIsColumn) {
-      finalStatus = overId as ApplicationStatus
-    } else {
-      const overApp = applications.find(a => a._id === overId)
-      if (!overApp) {
-        finalStatus = activeApp.status
+    // Update state
+    setColumns(prev => {
+      if (activeColumnId === overColumnId) {
+        // Same column – reorder
+        const apps = prev[activeColumnId]
+        const activeIndex = apps.findIndex(app => app._id === activeId)
+        let overIndex = apps.findIndex(app => app._id === overId)
+        if (overIndex === -1) overIndex = apps.length - 1
+        const newOrder = arrayMove(apps, activeIndex, overIndex)
+        return { ...prev, [activeColumnId]: newOrder }
       } else {
-        finalStatus = overApp.status
-      }
-    }
-
-    // Rebuild the array by iterating over columns in order
-    const withoutActive = applications.filter(a => a._id !== activeId)
-    const updatedActive = { ...activeApp, status: finalStatus }
-    const newArray: IApplication[] = []
-
-    for (const col of statusColumns) {
-      // Get all cards for this column (excluding the active card)
-      const columnCards = withoutActive.filter(a => a.status === col.key)
-
-      if (col.key === finalStatus) {
-        // This is the target column – insert the active card at the correct spot
-        let insertIndex = columnCards.length // default: end of column
-
-        if (!overIsColumn) {
-          // Over is a specific card – insert before it
-          const overCard = withoutActive.find(a => a._id === overId)
-          if (overCard && overCard.status === finalStatus) {
-            const idx = columnCards.findIndex(a => a._id === overId)
-            if (idx !== -1) {
-              insertIndex = idx
-            }
-          }
+        // Cross column
+        const sourceApps = prev[activeColumnId].filter(app => app._id !== activeId)
+        const updatedApp = { ...activeApp, status: overColumnId }
+        const targetApps = prev[overColumnId]
+        let insertIndex = targetApps.length
+        if (overId !== overColumnId) {
+          const overIndex = targetApps.findIndex(app => app._id === overId)
+          if (overIndex !== -1) insertIndex = overIndex
         }
-
-        // Insert the card
-        columnCards.splice(insertIndex, 0, updatedActive)
+        const newTarget = [
+          ...targetApps.slice(0, insertIndex),
+          updatedApp,
+          ...targetApps.slice(insertIndex),
+        ]
+        return {
+          ...prev,
+          [activeColumnId]: sourceApps,
+          [overColumnId]: newTarget,
+        }
       }
+    })
 
-      newArray.push(...columnCards)
-    }
-
-    // Update state with the correctly ordered array
-    setApplications(newArray)
-
-    // Only call API if status actually changed
-    if (activeApp.status === originalStatus) return
-
-    try {
-      const res = await fetch(`/api/applications/${activeId}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: finalStatus }),
-      })
-
-      if (!res.ok) {
-        setApplications(initial)
-        return
+    // API call for status change
+    const originalStatus = initial.find(app => app._id === activeId)?.status
+    if (activeApp.status !== originalStatus) {
+      try {
+        await fetch(`/api/applications/${activeId}/status`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: overColumnId }),
+        })
+        queryClient.invalidateQueries({ queryKey: ['applications'] })
+      } catch (error) {
+        console.error('Status update failed:', error)
+        // Optionally revert to initial
+        const grouped = initial.reduce((acc, app) => {
+          if (!acc[app.status]) acc[app.status] = []
+          acc[app.status].push(app)
+          return acc
+        }, {} as GroupedApps)
+        for (const col of statusColumns) {
+          if (!grouped[col.key]) grouped[col.key] = []
+        }
+        setColumns(grouped)
       }
-
-      queryClient.invalidateQueries({ queryKey: ['applications'] })
-    } catch (error) {
-      console.error('Status update failed:', error)
-      setApplications(initial)
     }
   }
 
   return (
     <DndContext
       sensors={sensors}
-      collisionDetection={closestCorners}
+      collisionDetection={closestCenter}
       onDragStart={onDragStart}
       onDragOver={onDragOver}
       onDragEnd={onDragEnd}
@@ -241,17 +201,13 @@ export default function KanbanBoard({ applications: initial }: KanbanBoardProps)
       <ScrollArea className="w-full">
         <div className="flex gap-4 pb-4" style={{ minWidth: 'max-content' }}>
           {statusColumns.map(col => (
-            <KanbanColumn
-              key={col.key}
-              column={col}
-              cards={grouped[col.key]}
-            />
+            <KanbanColumn key={col.key} column={col} cards={columns[col.key] || []} />
           ))}
         </div>
         <ScrollBar orientation="horizontal" />
       </ScrollArea>
 
-      <DragOverlay dropAnimation={dropAnimation}>
+      <DragOverlay>
         {activeCard ? (
           <div className="rotate-1 shadow-2xl">
             <ApplicationCard application={activeCard} />
@@ -262,46 +218,26 @@ export default function KanbanBoard({ applications: initial }: KanbanBoardProps)
   )
 }
 
-// ── Column and DroppableColumn remain unchanged ──
-// ... (they are the same as before)
-
-// ── Column ───────────────────────────────────────────
-interface KanbanColumnProps {
-  column: typeof statusColumns[number]
-  cards: IApplication[]
-}
-
-function KanbanColumn({ column, cards }: KanbanColumnProps) {
+// --- Subcomponents ---
+function KanbanColumn({ column, cards }: { column: typeof statusColumns[number], cards: IApplication[] }) {
   return (
     <div className="w-[280px] flex flex-col shrink-0">
       <div className="flex items-center gap-2 mb-3 px-1">
         <span className={`w-2 h-2 rounded-full shrink-0 ${column.dotColor}`} />
-        <span className={`font-semibold text-sm ${column.color}`}>
-          {column.label}
-        </span>
+        <span className="font-semibold text-sm">{column.label}</span>
         <span className="ml-auto text-xs font-medium bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
           {cards.length}
         </span>
       </div>
-
       <DroppableColumn columnId={column.key}>
-        <SortableContext
-          items={cards.map(c => c._id)}
-          strategy={verticalListSortingStrategy}
-        >
+        <SortableContext items={cards.map(c => c._id)} strategy={verticalListSortingStrategy}>
           {cards.length === 0 ? (
-            <div className={`
-              border-2 border-dashed rounded-lg
-              flex items-center justify-center
-              min-h-[120px] ${column.emptyBorder}
-            `}>
+            <div className={`border-2 border-dashed rounded-lg flex items-center justify-center min-h-[120px] ${column.emptyBorder}`}>
               <p className="text-muted-foreground/40 text-xs">Drop here</p>
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {cards.map(app => (
-                <DraggableCard key={app._id} application={app} />
-              ))}
+              {cards.map(app => <DraggableCard key={app._id} application={app} />)}
             </div>
           )}
         </SortableContext>
@@ -310,25 +246,13 @@ function KanbanColumn({ column, cards }: KanbanColumnProps) {
   )
 }
 
-// ── Droppable Column ─────────────────────────────────
-function DroppableColumn({
-  columnId,
-  children,
-}: {
-  columnId: string
-  children: React.ReactNode
-}) {
+function DroppableColumn({ columnId, children }: { columnId: string; children: React.ReactNode }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId })
-
   return (
     <div
       ref={setNodeRef}
-      className={`
-        flex flex-col gap-3 flex-1
-        rounded-xl p-3 min-h-[200px]
-        transition-colors duration-150
-        ${isOver ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/30'}
-      `}
+      className={`flex flex-col gap-3 flex-1 rounded-xl p-3 min-h-[200px] transition-colors duration-150 ${isOver ? 'bg-primary/10 ring-1 ring-primary/30' : 'bg-muted/30'
+        }`}
     >
       {children}
     </div>

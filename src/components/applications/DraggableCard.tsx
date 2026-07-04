@@ -22,7 +22,7 @@ export default function DraggableCard({ application }: DraggableCardProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition: isDragging ? 'none' : transition, // use dnd-kit's transition
+    transition// use dnd-kit's transition
   }
 
   return (
@@ -31,7 +31,7 @@ export default function DraggableCard({ application }: DraggableCardProps) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`touch-none select-none ${isDragging ? 'opacity-0' : 'opacity-100'}`}
+      className={`touch-none select-none ${isDragging ? 'z-10 opacity-50 shadow-md' : ''}`}
     >
       <ApplicationCard application={application} />
     </div>
