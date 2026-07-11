@@ -209,7 +209,7 @@ export default function KanbanBoard({ applications: initial }: { applications: I
 
       <DragOverlay>
         {activeCard ? (
-          <div className="rotate-1 shadow-2xl">
+          <div className="rotate-1 cursor-grab shadow-lg">
             <ApplicationCard application={activeCard} />
           </div>
         ) : null}

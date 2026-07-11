@@ -2,9 +2,10 @@
 'use client'
 
 import { IApplication } from '@/types'
-import { MapPin, ExternalLink, FileText, Calendar, Banknote } from 'lucide-react'
+import { MapPin, ExternalLink, FileText, Calendar, Banknote, Link, ArrowRight, } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
 
 interface ApplicationCardProps {
   application: IApplication
@@ -14,8 +15,8 @@ interface ApplicationCardProps {
 }
 
 const workModeColors: Record<string, string> = {
-  remote:    'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
-  hybrid:    'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
+  remote: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
+  hybrid: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
   'on-site': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
 }
 
@@ -23,13 +24,17 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
   const router = useRouter()
   const noteCount = application.notes?.length ?? 0
 
-  function handleClick() {
+
+  function handleViewDetails(e: React.MouseEvent) {
+    // Stop event from bubbling to drag listeners
+    e.stopPropagation()
+    e.preventDefault()
     router.push(`/applications/${application._id}`)
   }
 
   return (
     <div
-      onClick={handleClick}
+      onClick={handleViewDetails}
       className="
         bg-card border border-border rounded-lg p-4
         hover:border-primary/40 hover:shadow-sm
@@ -79,9 +84,8 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}
-          <div className={`flex items-center gap-1 ${
-            noteCount > 0 ? 'text-primary' : 'text-muted-foreground/30'
-          }`}>
+          <div className={`flex items-center gap-1 ${noteCount > 0 ? 'text-primary' : 'text-muted-foreground/30'
+            }`}>
             <FileText className="w-3.5 h-3.5" />
             {noteCount > 0 && (
               <span className="text-xs font-medium">{noteCount}</span>
@@ -145,6 +149,21 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           </div>
         )}
       </div>
+       {/*<div className="pt-1 border-t border-border mt-auto">
+        <Button
+          onClick={handleViewDetails}
+          variant="ghost"
+          size="sm"
+          className="
+            w-full h-8 text-xs
+            text-muted-foreground hover:text-foreground
+            hover:bg-muted justify-between
+          "
+        >
+          View Details
+          <ArrowRight className="w-3.5 h-3.5" />
+        </Button> 
+      </div> */}
     </div>
   )
 }
