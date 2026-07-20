@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import AvatarUpload from '@/components/profile/AvatarUpload'
 
 async function fetchProfile() {
   const res = await fetch('/api/user/profile')
@@ -34,6 +35,7 @@ export default function ProfilePage() {
   const queryClient = useQueryClient()
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [photo, setPhoto] = useState('')
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['profile'],
@@ -64,6 +66,7 @@ export default function ProfilePage() {
         currency: profile.currency ?? 'USD',
         jobSearchStatus: profile.jobSearchStatus ?? 'actively_looking',
       })
+      setPhoto(profile.photo ?? '')
     }
   }, [profile])
 
@@ -78,7 +81,7 @@ export default function ProfilePage() {
       await fetch('/api/user/profile', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, photo }),
       })
       queryClient.invalidateQueries({ queryKey: ['profile'] })
       setSaved(true)
@@ -108,7 +111,7 @@ export default function ProfilePage() {
       </div>
 
       {/* Avatar section */}
-      <div className="bg-card border border-border rounded-xl p-6">
+      {/* <div className="bg-card border border-border rounded-xl p-6">
         <div className="flex items-center gap-4">
           <div className="
             w-16 h-16 rounded-full bg-primary
@@ -130,18 +133,25 @@ export default function ProfilePage() {
               ${form.jobSearchStatus === 'actively_looking'
                 ? 'bg-green-500/10 text-green-500 border-green-500/20'
                 : form.jobSearchStatus === 'open'
-                ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                : 'bg-muted text-muted-foreground border-border'
+                  ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                  : 'bg-muted text-muted-foreground border-border'
               }
             `}>
               {form.jobSearchStatus === 'actively_looking'
                 ? 'Actively Looking'
                 : form.jobSearchStatus === 'open'
-                ? 'Open to Offers'
-                : 'Not Looking'}
+                  ? 'Open to Offers'
+                  : 'Not Looking'}
             </span>
           </div>
         </div>
+      </div> */}
+      <div className="bg-card border border-border rounded-xl p-6 flex justify-center">
+        <AvatarUpload
+          currentPhoto={photo}
+          name={form.name}
+          onUpload={(url) => setPhoto(url)}
+        />
       </div>
 
       {/* Profile form */}

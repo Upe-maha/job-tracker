@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AddApplicationModal, KanbanBoard } from '@/components/applications'
 import { IApplication } from '@/types'
+import { PrepFilesTab } from '@/components/applications/detail'
+import { IPrepFile } from '@/types'
 
 async function fetchApplications(): Promise<IApplication[]> {
   const res = await fetch('/api/applications')

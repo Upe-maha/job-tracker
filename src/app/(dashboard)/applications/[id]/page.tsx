@@ -12,9 +12,10 @@ import {
   InterviewTab,
   ExperienceTab,
   ContactsTab,
+  PrepFilesTab,
 } from '@/components/applications/detail'
 import ExperienceLogPrompt from '@/components/notes/ExperienceLogPrompt'
-import { IApplication, INote, ApplicationStatus } from '@/types'
+import { IApplication, INote, ApplicationStatus, IPrepFile } from '@/types'
 
 async function fetchApplication(id: string): Promise<IApplication> {
   const res = await fetch(`/api/applications/${id}`)
@@ -96,6 +97,29 @@ export default function ApplicationDetailPage() {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contactId }),
+    })
+    invalidate()
+  }
+
+  // ── Prep file handlers ─────────────────────────────
+  async function handleAddPrepFile(file: {
+    name: string
+    type: string
+    url: string
+  }) {
+    await fetch(`/api/applications/${id}/prep-files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(file),
+    })
+    invalidate()
+  }
+
+  async function handleDeletePrepFile(fileId: string) {
+    await fetch(`/api/applications/${id}/prep-files`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileId }),
     })
     invalidate()
   }
@@ -194,6 +218,15 @@ export default function ApplicationDetailPage() {
             )}
           </TabsTrigger>
 
+          <TabsTrigger value="prep" className="data-[state=active]:bg-background">
+            Prep Files
+            {application.prepFiles.length > 0 && (
+              <span className="ml-1.5 text-xs bg-muted-foreground/20 text-muted-foreground px-1.5 py-0.5 rounded-full">
+                {application.prepFiles.length}
+              </span>
+            )}
+          </TabsTrigger>
+
         </TabsList>
 
         <TabsContent value="notes">
@@ -225,6 +258,15 @@ export default function ApplicationDetailPage() {
             contacts={application.contacts}
             onAdd={handleAddContact}
             onDelete={handleDeleteContact}
+          />
+        </TabsContent>
+
+        <TabsContent value="prep">
+          <PrepFilesTab
+            files={application.prepFiles}
+            applicationId={id}
+            onAdd={handleAddPrepFile}
+            onDelete={handleDeletePrepFile}
           />
         </TabsContent>
 
