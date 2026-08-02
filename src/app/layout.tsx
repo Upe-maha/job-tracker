@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
+// @ts-expect-error Next.js global CSS side-effect import
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
