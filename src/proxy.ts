@@ -10,15 +10,20 @@ export async function proxy(req: NextRequest) {
   })
 
   const isLoggedIn = !!token
+  const path = req.nextUrl.pathname
+
+  if (path === '/') {
+    return NextResponse.redirect(new URL(isLoggedIn ? '/dashboard' : '/login', req.url))
+  }
 
   const isAuthPage =
-    req.nextUrl.pathname.startsWith('/login') ||
-    req.nextUrl.pathname.startsWith('/register')
+    path.startsWith('/login') ||
+    path.startsWith('/register')
 
   const isDashboard =
-    req.nextUrl.pathname.startsWith('/dashboard') ||
-    req.nextUrl.pathname.startsWith('/applications') ||
-    req.nextUrl.pathname.startsWith('/profile')
+    path.startsWith('/dashboard') ||
+    path.startsWith('/applications') ||
+    path.startsWith('/profile')
 
   if (!isLoggedIn && isDashboard) {
     return NextResponse.redirect(new URL('/login', req.url))

@@ -1,4 +1,3 @@
-
 // ─── Note ─────────────────────────────────────────────
 export type NoteType =
   | 'interview_question'
@@ -20,8 +19,8 @@ export interface INote {
   _id: string
   type: NoteType
   content: string
-  interviewRound?: InterviewRound
-  outcome?: NoteOutcome
+  interviewRound?: InterviewRound | null
+  outcome?: NoteOutcome | null
   whatWentWrong?: string
   whatToImprove?: string
   createdAt: string
@@ -36,6 +35,7 @@ export interface IPrepFile {
   url: string
   scrapedContent?: string
   createdAt: string
+  updatedAt: string
 }
 
 // ─── Contact ──────────────────────────────────────────
@@ -66,7 +66,7 @@ export type JobType =
 
 export interface IApplication {
   _id: string
-  user: string
+  user: string // User ID string
   company: string
   role: string
   companyLogo?: string
@@ -76,12 +76,12 @@ export interface IApplication {
   location?: string
   workMode?: WorkMode
   jobType?: JobType
-  salaryMin?: number
-  salaryMax?: number
+  salaryMin?: number | null
+  salaryMax?: number | null
   salaryCurrency?: string
-  appliedDate?: string
-  deadline?: string
-  followUpDate?: string
+  appliedDate?: string | null
+  deadline?: string | null
+  followUpDate?: string | null
   notes: INote[]
   prepFiles: IPrepFile[]
   contacts: IContact[]
@@ -90,9 +90,10 @@ export interface IApplication {
   updatedAt: string
 }
 
-
-
-
+// Utility type for when Mongoose populates the user field
+export interface IApplicationPopulated extends Omit<IApplication, 'user'> {
+  user: Pick<IUser, '_id' | 'name' | 'email' | 'photo'>
+}
 
 // ─── User ─────────────────────────────────────────────
 export type JobSearchStatus =

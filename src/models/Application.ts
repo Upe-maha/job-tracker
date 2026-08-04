@@ -1,4 +1,3 @@
-
 import mongoose from 'mongoose'
 
 // ─── Note Schema ─────────────────────────────────────
@@ -6,18 +5,10 @@ const NoteSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: [
-        'interview_question',   // question asked during interview
-        'personal_experience',  // personal feeling or observation
-        'experience_log',       // post-failure reflection
-        'general'               // any other note
-      ],
+      enum: ['interview_question', 'personal_experience', 'experience_log', 'general'],
       default: 'general'
     },
-
     content: { type: String, required: true },
-
-    // Interview specific fields
     interviewRound: {
       type: String,
       enum: ['round_1', 'round_2', 'hr', 'technical', 'final', 'other'],
@@ -28,8 +19,6 @@ const NoteSchema = new mongoose.Schema(
       enum: ['passed', 'failed', 'waiting'],
       default: null
     },
-
-    // Experience log specific fields
     whatWentWrong: { type: String, default: '' },
     whatToImprove: { type: String, default: '' },
   },
@@ -45,8 +34,8 @@ const PrepFileSchema = new mongoose.Schema(
       enum: ['pdf', 'link'],
       required: true
     },
-    url: { type: String, required: true },    // Cloudinary URL or raw link
-    scrapedContent: { type: String, default: '' }, // extracted text for RAG
+    url: { type: String, required: true },
+    scrapedContent: { type: String, default: '' },
   },
   { timestamps: true }
 )
@@ -54,7 +43,7 @@ const PrepFileSchema = new mongoose.Schema(
 // ─── Contact Schema ───────────────────────────────────
 const ContactSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  role: { type: String, default: '' },      // "HR Manager", "Tech Lead"
+  role: { type: String, default: '' },
   email: { type: String, default: '' },
   phone: { type: String, default: '' },
   linkedIn: { type: String, default: '' },
@@ -68,11 +57,9 @@ const ApplicationSchema = new mongoose.Schema(
       ref: 'User',
       required: true
     },
-
-    // ── Core fields ──────────────────────────────────
-    company: { type: String, required: true },
-    role: { type: String, required: true },
-    companyLogo: { type: String, default: '' },  // Cloudinary URL
+    company: { type: String, required: true, trim: true },
+    role: { type: String, required: true, trim: true },
+    companyLogo: { type: String, default: '' },
 
     status: {
       type: String,
@@ -80,7 +67,6 @@ const ApplicationSchema = new mongoose.Schema(
       default: 'wishlist'
     },
 
-    // ── Job details ──────────────────────────────────
     jobUrl: { type: String, default: '' },
     jobDescription: { type: String, default: '' },
     location: { type: String, default: '' },
@@ -97,26 +83,26 @@ const ApplicationSchema = new mongoose.Schema(
       default: ''
     },
 
-    // ── Salary ───────────────────────────────────────
     salaryMin: { type: Number, default: null },
     salaryMax: { type: Number, default: null },
     salaryCurrency: { type: String, default: 'USD' },
 
-    // ── Dates ────────────────────────────────────────
     appliedDate: { type: Date, default: null },
     deadline: { type: Date, default: null },
     followUpDate: { type: Date, default: null },
 
-    // ── Notes, Files, Contacts ───────────────────────
     notes: [NoteSchema],
     prepFiles: [PrepFileSchema],
     contacts: [ContactSchema],
 
-    // ── Tags ─────────────────────────────────────────
     tags: [{ type: String }],
   },
   { timestamps: true }
 )
+
+//Performance Indexes for Fast Queries
+ApplicationSchema.index({ user: 1, createdAt: -1 })
+ApplicationSchema.index({ user: 1, status: 1 })
 
 export default mongoose.models.Application ||
   mongoose.model('Application', ApplicationSchema)
