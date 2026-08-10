@@ -1,12 +1,13 @@
-// src/proxy.ts
+// src/middleware.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 
-export async function proxy(req: NextRequest) {
+export async function middleware(req: NextRequest) {
   const token = await getToken({
     req,
-    secret: process.env.NEXTAUTH_SECRET
+    secret: process.env.AUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === 'production',
   })
 
   const isLoggedIn = !!token
@@ -23,7 +24,10 @@ export async function proxy(req: NextRequest) {
   const isDashboard =
     path.startsWith('/dashboard') ||
     path.startsWith('/applications') ||
-    path.startsWith('/profile')
+    path.startsWith('/profile') ||
+    path.startsWith('/notes') ||
+    path.startsWith('/analytics') ||
+    path.startsWith('/settings')
 
   if (!isLoggedIn && isDashboard) {
     return NextResponse.redirect(new URL('/login', req.url))
