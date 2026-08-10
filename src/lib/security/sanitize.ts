@@ -1,44 +1,30 @@
 // src/lib/security/sanitize.ts
 
-// Strips MongoDB operators from user input
-// Prevents NoSQL injection attacks like { $gt: "" }
-export function sanitizeInput(input: unknown): unknown {
-  if (typeof input === 'string') {
-    // Remove MongoDB operator patterns
-    return input
-      .replace(/\$where/gi, '')
-      .replace(/\$gt/gi, '')
-      .replace(/\$lt/gi, '')
-      .replace(/\$gte/gi, '')
-      .replace(/\$lte/gi, '')
-      .replace(/\$ne/gi, '')
-      .replace(/\$in/gi, '')
-      .replace(/\$nin/gi, '')
-      .replace(/\$or/gi, '')
-      .replace(/\$and/gi, '')
-      .replace(/\$not/gi, '')
-      .replace(/\$nor/gi, '')
-      .replace(/\$exists/gi, '')
-      .replace(/\$regex/gi, '')
-      .trim()
-  }
+const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
+// Strips MongoDB operator keys and dotted-path keys from objects.
+// Prevents NoSQL injection attacks like { $gt: "" } and prototype pollution.
+// Only object/array KEYS are touched — string content passes through untouched,
+// since the threat model is keys, never string content (a job description
+// containing "$gte" is legitimate text, not an operator).
+export function sanitizeInput<T>(input: T, depth = 0): T {
+  if (depth > 12) return null as T // cap pathological nesting
+
+  if (input === null || typeof input !== 'object') return input
+  if (input instanceof Date) return input
 
   if (Array.isArray(input)) {
-    return input.map(sanitizeInput)
+    return input.map(v => sanitizeInput(v, depth + 1)) as T
   }
 
-  if (input !== null && typeof input === 'object') {
-    const sanitized: Record<string, unknown> = {}
-    for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
-      // Block keys that start with $ (MongoDB operators)
-      if (!key.startsWith('$')) {
-        sanitized[key] = sanitizeInput(value)
-      }
-    }
-    return sanitized
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(input as Record<string, unknown>)) {
+    if (key.startsWith('$')) continue // Mongo operators
+    if (key.includes('.')) continue // dotted-path writes, e.g. "user.role"
+    if (BLOCKED_KEYS.has(key)) continue // prototype pollution
+    out[key] = sanitizeInput(value, depth + 1)
   }
-
-  return input
+  return out as T
 }
 
 // Validate email format
@@ -48,32 +34,26 @@ export function isValidEmail(email: string): boolean {
 }
 
 // Validate password strength
-export function validatePassword(password: string): {
+export function validatePassword(password: unknown): {
   valid: boolean
   message?: string
 } {
-  if (password.length < 8) {
-    return { valid: false, message: 'Password must be at least 8 characters' }
+  if (typeof password !== 'string') {
+    return { valid: false, message: 'Password is required' }
+  }
+  if (password.length < 6) {
+    return { valid: false, message: 'Password must be at least 6 characters' }
   }
   if (password.length > 128) {
     return { valid: false, message: 'Password too long' }
-  }
-  if (!/[A-Z]/.test(password)) {
-    return {
-      valid: false,
-      message: 'Password must contain at least one uppercase letter',
-    }
-  }
-  if (!/[0-9]/.test(password)) {
-    return {
-      valid: false,
-      message: 'Password must contain at least one number',
-    }
   }
   return { valid: true }
 }
 
 // Sanitize a string for safe display (prevent XSS)
+// Unused by design — React already escapes on render; entity-encoding at the
+// storage layer just puts "&amp;#x27;" in the database. Kept for callers that
+// render into a non-React sink (e.g. an email template) in a later step.
 export function sanitizeString(str: string): string {
   return str
     .replace(/&/g, '&amp;')
