@@ -1,150 +1,137 @@
+// src/app/api/applications/[id]/notes/route.ts
+import mongoose from 'mongoose'
+import { NextResponse } from 'next/server'
+import { connectDB } from '@/lib/db'
+import Application from '@/models/Application'
+import { guard } from '@/lib/api/guard'
+import { readJsonBody, toObjectId } from '@/lib/api/validate'
+import { fail, serverError } from '@/lib/api/respond'
 
-import {NextResponse} from "next/server";
-import {auth} from "@/lib/auth";
-import {connectDB} from "@/lib/db";
-import Application from "@/models/Application";
+const NOTE_TYPES = ['interview_question', 'personal_experience', 'experience_log', 'general']
+const INTERVIEW_ROUNDS = ['round_1', 'round_2', 'hr', 'technical', 'final', 'other']
+const OUTCOMES = ['passed', 'failed', 'waiting']
+const MAX_CONTENT_LENGTH = 20000
+const MAX_FEEDBACK_LENGTH = 5000
 
-// Get- fetch all the appplication[id] notes 
+// GET — fetch all notes for the application
 export async function GET(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    try{
-        const session = await auth()
-        if(!session){
-            return NextResponse.json({error: "Unauthorized"}, {status: 401})
-        }
+  const g = await guard(req)
+  if (!g.ok) return g.response
 
-        const { id } = await params
-        await connectDB()
+  const { id } = await params
+  const oid = toObjectId(id)
+  if (!oid) return fail(404, 'Application not found')
 
-        const application = await Application.findOne(
-            {
-                _id: id,
-                user: session.user.id
-            })
-
-        if(!application){
-            return NextResponse.json({error: "Application not found"}, {status: 404})
-        }
-
-        return NextResponse.json(application.notes, {status: 200})
-    }
-    catch (error){
-        console.error("Error fetching application notes:", error)
-        return NextResponse.json({error: "Internal Server Error"}, {status: 500})
-    }
-}
-
-
-// POST- add a new note to the application[id]
-export async function POST(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
-){
-    try {
-        const session = await auth()
-        if(!session){
-            return NextResponse.json({error: "Unauthorized"}, {status: 401})
-        }
-
-        const {id} = await params
-        
-        const body = await req.json()
-
-        const {
-            type,
-            content,
-            interviewRound,
-            outcome,
-            whatWentWrong,
-            WhatToImprove,
-        } = body
-
-        if(!content){
-            return NextResponse.json({error: "Content is required"}, {status: 400})
-        }
-
-        await connectDB()
-
-        const application = await Application.findOneAndUpdate(
-            {
-                _id: id,
-                user: session.user.id
-            },
-            {
-                $push: {
-                    notes: {
-                        type: type ?? 'general',
-                        content,
-                        interviewRound: interviewRound ?? null,
-                        outcome: outcome ?? null,
-                        whatWentWrong: whatWentWrong ?? '',
-                        WhatToImprove: WhatToImprove ?? '',
-                    }
-                }
-            },
-            { new: true }
-        )
-
-        if(!application){
-            return NextResponse.json({error: "Application not found"}, {status: 404})
-        }
-
-        const newNote = application.notes[application.notes.length - 1]
-
-        return NextResponse.json(newNote, {status: 201})
-    } 
-    catch( error ){
-        console.error("Error adding note to application:", error)
-        return NextResponse.json({error: "Internal Server Error"}, {status: 500})
-    }
-}
-
-
-// DELETE- delete a note from the application[id]
-export async function DELETE(
-    req: Request,
-    { params }: { params: Promise<{ id: string }> }
-){
-    try {
-        const session = await auth()
-        if(!session){
-            return NextResponse.json({error: "Unauthorized"}, {status: 401})
-        }
-
-        const {id} = await params
-        
-        const { noteId } = await req.json()
-        
-        if(!noteId){
-            return NextResponse.json({error: "Note ID is required"}, {status: 400})
-        }  
-
-        await connectDB()
-
-        const application = await Application.findOneAndUpdate(
-            {
-                _id: id,
-                user: session.user.id
-            },
-            {
-                $pull: {
-                    notes: {
-                        _id: noteId
-                    }
-                }
-            },
-            { new: true }
-        )
-
-        if(!application){
-            return NextResponse.json({error: "Application not found"}, {status: 404})
-        }
-
-        return NextResponse.json({message: "Note deleted successfully"}, {status: 200})
+  try {
+    await connectDB()
+    const application = await Application.findOne({ _id: oid, user: g.session.user.id })
+    if (!application) return fail(404, 'Application not found')
+    return NextResponse.json(application.notes)
   } catch (error) {
-        console.error("Deleting note Error:", error)
-        return NextResponse.json({error: "Internal Server Error"}, {status: 500})
+    return serverError('notes.GET', error)
+  }
+}
+
+// POST — add a new note to the application
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
+  const { id } = await params
+  const oid = toObjectId(id)
+  if (!oid) return fail(404, 'Application not found')
+
+  const body = await readJsonBody(req)
+  if (!body.ok) return body.response
+  const { type, content, interviewRound, outcome, whatWentWrong, whatToImprove } = body.data
+
+  if (typeof content !== 'string' || !content.trim() || content.length > MAX_CONTENT_LENGTH) {
+    return fail(400, 'Content is required')
+  }
+  if (type !== undefined && (typeof type !== 'string' || !NOTE_TYPES.includes(type))) {
+    return fail(400, 'Invalid note type')
+  }
+  if (interviewRound != null && (typeof interviewRound !== 'string' || !INTERVIEW_ROUNDS.includes(interviewRound))) {
+    return fail(400, 'Invalid interview round')
+  }
+  if (outcome != null && (typeof outcome !== 'string' || !OUTCOMES.includes(outcome))) {
+    return fail(400, 'Invalid outcome')
+  }
+  if (whatWentWrong !== undefined && (typeof whatWentWrong !== 'string' || whatWentWrong.length > MAX_FEEDBACK_LENGTH)) {
+    return fail(400, 'Invalid value for whatWentWrong')
+  }
+  if (whatToImprove !== undefined && (typeof whatToImprove !== 'string' || whatToImprove.length > MAX_FEEDBACK_LENGTH)) {
+    return fail(400, 'Invalid value for whatToImprove')
+  }
+
+  try {
+    await connectDB()
+
+    const application = await Application.findOneAndUpdate(
+      { _id: oid, user: g.session.user.id },
+      {
+        $push: {
+          notes: {
+            type: type ?? 'general',
+            content: content.trim(),
+            interviewRound: interviewRound ?? null,
+            outcome: outcome ?? null,
+            whatWentWrong: whatWentWrong ?? '',
+            whatToImprove: whatToImprove ?? '',
+          }
+        }
+      },
+      { new: true, runValidators: true }
+    )
+
+    if (!application) return fail(404, 'Application not found')
+
+    const newNote = application.notes[application.notes.length - 1]
+    return NextResponse.json(newNote, { status: 201 })
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      return fail(400, 'Invalid field value')
+    }
+    return serverError('notes.POST', error)
+  }
+}
+
+// DELETE — delete a note from the application
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
+  const { id } = await params
+  const oid = toObjectId(id)
+  if (!oid) return fail(404, 'Application not found')
+
+  const body = await readJsonBody(req)
+  if (!body.ok) return body.response
+
+  const noteId = toObjectId(body.data.noteId)
+  if (!noteId) return fail(400, 'Invalid note id')
+
+  try {
+    await connectDB()
+
+    const application = await Application.findOneAndUpdate(
+      { _id: oid, user: g.session.user.id },
+      { $pull: { notes: { _id: noteId } } },
+      { new: true }
+    )
+
+    if (!application) return fail(404, 'Application not found')
+    return NextResponse.json({ message: 'Note deleted successfully' })
+  } catch (error) {
+    return serverError('notes.DELETE', error)
   }
 }
