@@ -1,5 +1,9 @@
 #Step A — Security Layer
 
+**Status: Complete.** All 15 sub-steps below landed as separate commits on `main`, each verified
+end-to-end against a live test account before committing. See CLAUDE.md's "Auth and route protection"
+and "Uploads" sections for the resulting shape.
+
 ## Context
 
 This is the first of eight planned steps (A–H) hardening and finishing the job-tracker app. Steps B–H
