@@ -1,54 +1,67 @@
-import { connectDB } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { connectDB } from "@/lib/db";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
-
+import { guard } from "@/lib/api/guard";
+import { readJsonBody } from "@/lib/api/validate";
+import { fail, serverError } from "@/lib/api/respond";
+import { isValidEmail, validatePassword } from "@/lib/security/sanitize";
 
 export async function POST(req: Request) {
-    try {
-        const { email, password, name } = await req.json();
+  // IP-keyed on purpose: keying this on email instead would let an attacker
+  // exhaust a victim's registration budget rather than their own.
+  const g = await guard(req, { auth: false, rateLimit: "register" });
+  if (!g.ok) return g.response;
 
-        if (!email || !password || !name) {
-            return NextResponse.json(
-                { error: "Missing required fields" },
-                { status: 400 });
-        }
+  const body = await readJsonBody(req);
+  if (!body.ok) return body.response;
 
-        if (password.length < 6) {
-            return NextResponse.json(
-                { error: "Password must be at least 6 characters" },
-                { status: 400 }
-            );
-        }
+  const { email, password, name } = body.data;
 
-        await connectDB();
+  if (typeof email !== "string" || typeof password !== "string" || typeof name !== "string") {
+    return fail(400, "Missing required fields");
+  }
 
-        const existing = await User.findOne({ email: email.toLowerCase()});
-        if (existing) {
-            return NextResponse.json(
-                { error: "Account with this Email already in use" },
-                { status: 409 }
-            );
-        }
+  const trimmedEmail = email.toLowerCase().trim();
+  const trimmedName = name.trim();
 
-        const hashedPassword = await bcrypt.hash(password, 12);
+  if (!trimmedEmail || !isValidEmail(trimmedEmail)) {
+    return fail(400, "Please enter a valid email address");
+  }
+  if (!trimmedName || trimmedName.length > 100) {
+    return fail(400, "Name must be between 1 and 100 characters");
+  }
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) {
+    return fail(400, passwordCheck.message ?? "Invalid password");
+  }
 
-        const user = await User.create({
-            name,
-            email: email.toLowerCase(),
-            password: hashedPassword,
-        })
+  try {
+    await connectDB();
 
-        return NextResponse.json(
-            { message: 'Account created successfully', userId: user._id, userName: user.name },
-            { status: 201 }
-        )
-
-    }catch (error) {
-        console.error('Register error:', error);
-        return NextResponse.json(
-            { error: 'Internal Server Error' },
-            { status: 500 }
-        );
+    const existing = await User.findOne({ email: trimmedEmail });
+    if (existing) {
+      return fail(409, "Account with this Email already in use");
     }
+
+    const hashedPassword = await bcrypt.hash(password, 12);
+
+    const user = await User.create({
+      name: trimmedName,
+      email: trimmedEmail,
+      password: hashedPassword,
+    });
+
+    return NextResponse.json(
+      { message: "Account created successfully", userName: user.name },
+      { status: 201 }
+    );
+  } catch (error: unknown) {
+    // Closes the check-then-create race: two concurrent registrations for
+    // the same email both pass the findOne check, but only one insert wins.
+    if ((error as { code?: number }).code === 11000) {
+      return fail(409, "Account with this Email already in use");
+    }
+    return serverError("auth.register", error);
+  }
 }
