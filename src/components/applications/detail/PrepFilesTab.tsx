@@ -62,6 +62,7 @@ export default function PrepFilesTab({
 
       const res = await fetch('/api/upload', {
         method: 'POST',
+        headers: { 'x-upload-request': '1' },
         body: formData,
       })
 
