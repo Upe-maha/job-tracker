@@ -1,20 +1,20 @@
 // src/app/api/dashboard/route.ts
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import Application from '@/models/Application'
+import { guard } from '@/lib/api/guard'
+import { serverError } from '@/lib/api/respond'
+import type { INote } from '@/types'
 
-export async function GET() {
+export async function GET(req: Request) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
   try {
-    const session = await auth()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
     await connectDB()
 
     const applications = await Application.find({
-      user: session.user.id
+      user: g.session.user.id
     }).sort({ createdAt: -1 })
 
     const now = new Date()
@@ -68,7 +68,7 @@ export async function GET() {
     // Flatten all notes from all applications
     const notesFeed = applications
       .flatMap(a =>
-        (a.notes ?? []).map((note: any) => ({
+        (a.notes ?? []).map((note: INote) => ({
           noteId: note._id.toString(),
           applicationId: a._id.toString(),
           company: a.company,
@@ -104,10 +104,6 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Dashboard API error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch dashboard data' },
-      { status: 500 }
-    )
+    return serverError('dashboard.GET', error)
   }
 }
