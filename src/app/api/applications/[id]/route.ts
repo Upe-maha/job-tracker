@@ -1,43 +1,61 @@
 // src/app/api/applications/[id]/route.ts
+import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
 import { connectDB } from '@/lib/db'
 import Application from '@/models/Application'
+import { guard } from '@/lib/api/guard'
+import { readJsonBody, pickAllowed, toObjectId } from '@/lib/api/validate'
+import { fail, serverError } from '@/lib/api/respond'
+
+// Deliberately excludes user, _id, createdAt/updatedAt, and the subdocument
+// arrays (notes/prepFiles/contacts) — those have dedicated routes, and letting
+// PUT replace them wholesale would both lose data and bypass their schemas.
+const APPLICATION_UPDATABLE = [
+  'company', 'role', 'companyLogo', 'status', 'jobUrl', 'jobDescription',
+  'location', 'workMode', 'jobType', 'salaryMin', 'salaryMax', 'salaryCurrency',
+  'appliedDate', 'deadline', 'followUpDate', 'tags',
+] as const
+
+const DATE_FIELDS = new Set(['appliedDate', 'deadline', 'followUpDate'])
+const NUMBER_FIELDS = new Set(['salaryMin', 'salaryMax'])
+
+function coerceUpdate(picked: Partial<Record<string, unknown>>) {
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(picked)) {
+    if (DATE_FIELDS.has(key)) {
+      out[key] = value ? new Date(value as string) : null
+    } else if (NUMBER_FIELDS.has(key)) {
+      out[key] = typeof value === 'number' ? value : null
+    } else if (key === 'tags') {
+      out[key] = Array.isArray(value) ? value.filter(t => typeof t === 'string').slice(0, 50) : []
+    } else {
+      out[key] = value
+    }
+  }
+  return out
+}
 
 // GET — fetch single application
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
+  const { id } = await params
+  const oid = toObjectId(id)
+  // Invalid id and "not found" return the identical response, so a malformed
+  // id and someone else's real id are indistinguishable.
+  if (!oid) return fail(404, 'Application not found')
+
   try {
-    const session = await auth()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { id } = await params
     await connectDB()
-
-    const application = await Application.findOne({
-      _id: id,
-      user: session.user.id
-    })
-
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      )
-    }
-
+    const application = await Application.findOne({ _id: oid, user: g.session.user.id })
+    if (!application) return fail(404, 'Application not found')
     return NextResponse.json(application)
-
   } catch (error) {
-    console.error('GET /api/applications/[id] error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch application' },
-      { status: 500 }
-    )
+    return serverError('applications.GET', error)
   }
 }
 
@@ -46,37 +64,35 @@ export async function PUT(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
+  const { id } = await params
+  const oid = toObjectId(id)
+  if (!oid) return fail(404, 'Application not found')
+
+  const body = await readJsonBody(req)
+  if (!body.ok) return body.response
+
+  const picked = pickAllowed(body.data, APPLICATION_UPDATABLE)
+  if (Object.keys(picked).length === 0) return fail(400, 'No valid fields to update')
+
+  const update = coerceUpdate(picked)
+
   try {
-    const session = await auth()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { id } = await params
-    const body = await req.json()
     await connectDB()
-
     const application = await Application.findOneAndUpdate(
-      { _id: id, user: session.user.id },
-      { $set: body },
-      { new: true }
+      { _id: oid, user: g.session.user.id },
+      { $set: update },
+      { new: true, runValidators: true }
     )
-
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json(application, {status: 200, statusText: 'Application updated successfully'})
-
+    if (!application) return fail(404, 'Application not found')
+    return NextResponse.json(application)
   } catch (error) {
-    console.error('PUT /api/applications/[id] error:', error)
-    return NextResponse.json(
-      { error: 'Failed to update application' },
-      { status: 500 }
-    )
+    if (error instanceof mongoose.Error.ValidationError) {
+      return fail(400, 'Invalid field value')
+    }
+    return serverError('applications.PUT', error)
   }
 }
 
@@ -85,34 +101,19 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const g = await guard(req)
+  if (!g.ok) return g.response
+
+  const { id } = await params
+  const oid = toObjectId(id)
+  if (!oid) return fail(404, 'Application not found')
+
   try {
-    const session = await auth()
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const { id } = await params
     await connectDB()
-
-    const application = await Application.findOneAndDelete({
-      _id: id,
-      user: session.user.id
-    })
-
-    if (!application) {
-      return NextResponse.json(
-        { error: 'Application not found' },
-        { status: 404 }
-      )
-    }
-
+    const application = await Application.findOneAndDelete({ _id: oid, user: g.session.user.id })
+    if (!application) return fail(404, 'Application not found')
     return NextResponse.json({ message: 'Application deleted' })
-
   } catch (error) {
-    console.error('DELETE /api/applications/[id] error:', error)
-    return NextResponse.json(
-      { error: 'Failed to delete application' },
-      { status: 500 }
-    )
+    return serverError('applications.DELETE', error)
   }
 }
