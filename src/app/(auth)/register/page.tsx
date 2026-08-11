@@ -18,7 +18,7 @@ export default function RegisterPage() {
         password: ''
     })
 
-    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault()
         setError('')
         setIsLoading(true)

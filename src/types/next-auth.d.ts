@@ -8,6 +8,9 @@ declare module "next-auth" {
       photo?: string;
     } & DefaultSession["user"];
   }
+  interface User {
+    photo?: string;
+  }
 }
 declare module "next-auth/jwt" {
   interface JWT {

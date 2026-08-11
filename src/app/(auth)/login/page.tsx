@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { loginErrorMessage } from '@/lib/security/loginErrors'
 
 
 export default function LoginPage() {
@@ -23,7 +24,7 @@ export default function LoginPage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setIsLoading(true);
         setError("");
@@ -36,7 +37,7 @@ export default function LoginPage() {
             })
 
             if (result?.error) {
-                setError("Invalid email or password");
+                setError(loginErrorMessage(result.code));
                 return;
             }
 
