@@ -29,7 +29,7 @@ export async function PUT(req: Request) {
     }
 
     await connectDB()
-    const user = await User.findById(session.user.id)
+    const user = await User.findById(session.user.id).select('+password')
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 })
     }

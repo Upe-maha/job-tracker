@@ -114,6 +114,9 @@ export interface IUser {
   resume?: string
   currency?: string
   jobSearchStatus?: JobSearchStatus
+  failedLoginAttempts?: number
+  lockUntil?: string | null
+  passwordChangedAt?: string | null
   createdAt: string
   updatedAt: string
 }

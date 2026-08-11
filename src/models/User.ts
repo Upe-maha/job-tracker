@@ -6,7 +6,10 @@ const UserSchema = new mongoose.Schema(
     // Auth
     name: { type: String, required: true, trim: true },
     email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
+    failedLoginAttempts: { type: Number, default: 0 },
+    lockUntil: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
 
     // Profile
     photo: { type: String, default: '' },        // Cloudinary URL

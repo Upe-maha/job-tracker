@@ -22,7 +22,7 @@ const config = {
 
         const user = await User.findOne({
           email: (credentials.email as string).toLowerCase()
-        })
+        }).select('+password')
 
 
 

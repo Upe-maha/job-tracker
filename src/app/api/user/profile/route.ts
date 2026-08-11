@@ -12,7 +12,7 @@ export async function GET() {
     }
 
     await connectDB();
-    const user = await User.findById(session.user.id).select("-password");
+    const user = await User.findById(session.user.id).select("-password -failedLoginAttempts -lockUntil");
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
@@ -67,7 +67,7 @@ export async function PUT(req: Request) {
         },
       },
       { new: true },
-    ).select("-password");
+    ).select("-password -failedLoginAttempts -lockUntil");
 
     return NextResponse.json(user);
   } catch (error) {
