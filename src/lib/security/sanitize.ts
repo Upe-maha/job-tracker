@@ -33,33 +33,80 @@ export function isValidEmail(email: string): boolean {
   return emailRegex.test(email) && email.length <= 254
 }
 
+const MAX_URL_LENGTH = 2048
+
+// Absolute-URL check for any value that ends up in an `<a href>` or an
+// `<img src>`. The point is the protocol allowlist: it rejects `javascript:`
+// (which really does execute from an href), plus `data:`, `file:` and anything
+// unparseable. Empty string passes so a field can be cleared.
+//
+// httpsOnly is for values rendered as images — a bare http: image on an https:
+// page is blocked as mixed content anyway, so allowing it only yields a broken
+// icon. Plain links keep http:, matching the prep-files rule, since the client
+// accepts a bare http:// URL as typed.
+export function isSafeUrl(value: unknown, { httpsOnly = false } = {}): boolean {
+  if (typeof value !== 'string') return false
+  if (value === '') return true
+  if (value.length > MAX_URL_LENGTH) return false
+
+  try {
+    const { protocol } = new URL(value)
+    return httpsOnly ? protocol === 'https:' : protocol === 'https:' || protocol === 'http:'
+  } catch {
+    return false
+  }
+}
+
+// Hosts allowed to serve a user's avatar. Cloudinary is our own upload
+// pipeline; the other two are the OAuth providers' avatar CDNs, which is the
+// only reason they're here — a Google/GitHub sign-in hands back an avatar on
+// its own domain, and Step B stores that URL as-is rather than mirroring every
+// new user's picture into Cloudinary.
+const ALLOWED_IMAGE_HOSTS = new Set([
+  'res.cloudinary.com',
+  'lh3.googleusercontent.com',
+  'avatars.githubusercontent.com',
+])
+
+// For values rendered into an <img src> that must come from a host we trust,
+// not merely from a safe protocol. Empty string passes so a photo can be
+// cleared.
+export function isAllowedImageUrl(value: unknown): boolean {
+  if (!isSafeUrl(value, { httpsOnly: true })) return false
+  if (value === '') return true
+
+  try {
+    return ALLOWED_IMAGE_HOSTS.has(new URL(value as string).hostname)
+  } catch {
+    return false
+  }
+}
+
+// Exported so the Zod password field in @/lib/schemas/common builds the same
+// bounds from one place instead of re-hardcoding 6 and 128.
+export const PASSWORD_MIN_LENGTH = 6
+export const PASSWORD_MAX_LENGTH = 128
+
+export const PASSWORD_MESSAGES = {
+  required: 'Password is required',
+  tooShort: `Password must be at least ${PASSWORD_MIN_LENGTH} characters`,
+  tooLong: 'Password too long',
+} as const
+
 // Validate password strength
 export function validatePassword(password: unknown): {
   valid: boolean
   message?: string
 } {
   if (typeof password !== 'string') {
-    return { valid: false, message: 'Password is required' }
+    return { valid: false, message: PASSWORD_MESSAGES.required }
   }
-  if (password.length < 6) {
-    return { valid: false, message: 'Password must be at least 6 characters' }
+  if (password.length < PASSWORD_MIN_LENGTH) {
+    return { valid: false, message: PASSWORD_MESSAGES.tooShort }
   }
-  if (password.length > 128) {
-    return { valid: false, message: 'Password too long' }
+  if (password.length > PASSWORD_MAX_LENGTH) {
+    return { valid: false, message: PASSWORD_MESSAGES.tooLong }
   }
   return { valid: true }
 }
 
-// Sanitize a string for safe display (prevent XSS)
-// Unused by design — React already escapes on render; entity-encoding at the
-// storage layer just puts "&amp;#x27;" in the database. Kept for callers that
-// render into a non-React sink (e.g. an email template) in a later step.
-export function sanitizeString(str: string): string {
-  return str
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;')
-    .trim()
-}
