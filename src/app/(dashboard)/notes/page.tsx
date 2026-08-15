@@ -2,76 +2,30 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useNotesFeed } from '@/hooks/useQueries'
 import { format } from 'date-fns'
 import Link from 'next/link'
-import {
-  MessageSquare,
-  Brain,
-  BookOpen,
-  FileText,
-  ArrowRight,
-  Filter,
-} from 'lucide-react'
+import { ArrowRight, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { NOTE_FILTERS, NOTE_TYPE_META, type NoteFilterKey } from '@/lib/display'
 
-const noteTypeConfig = {
-  interview_question: {
-    label: 'Interview Question',
-    icon: MessageSquare,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10 border-blue-500/20',
-    dot: 'bg-blue-500',
-  },
-  personal_experience: {
-    label: 'Personal Experience',
-    icon: Brain,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10 border-purple-500/20',
-    dot: 'bg-purple-500',
-  },
-  experience_log: {
-    label: 'Experience Log',
-    icon: BookOpen,
-    color: 'text-orange-500',
-    bg: 'bg-orange-500/10 border-orange-500/20',
-    dot: 'bg-orange-500',
-  },
-  general: {
-    label: 'General Note',
-    icon: FileText,
-    color: 'text-muted-foreground',
-    bg: 'bg-muted border-border',
-    dot: 'bg-muted-foreground',
-  },
-}
 
-const filters = [
-  { key: 'all', label: 'All Notes' },
-  { key: 'interview_question', label: 'Interview Questions' },
-  { key: 'personal_experience', label: 'Experiences' },
-  { key: 'experience_log', label: 'Experience Logs' },
-  { key: 'general', label: 'General' },
-]
-
-async function fetchNotes() {
-  const res = await fetch('/api/dashboard')
-  if (!res.ok) throw new Error('Failed to fetch')
-  const data = await res.json()
-  return data.notesFeed
-}
 
 export default function NotesPage() {
-  const [activeFilter, setActiveFilter] = useState('all')
+  // Filtering is a query param rather than an Array.filter: the page is
+  // paginated, so filtering client-side would only ever search the pages
+  // already loaded.
+  const [activeFilter, setActiveFilter] = useState<NoteFilterKey>('all')
 
-  const { data: notes = [], isLoading } = useQuery({
-    queryKey: ['notes-feed'],
-    queryFn: fetchNotes,
-  })
+  const {
+    data,
+    isLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useNotesFeed(activeFilter)
 
-  const filtered = activeFilter === 'all'
-    ? notes
-    : notes.filter((n: any) => n.noteType === activeFilter)
+  const notes = data?.pages.flatMap(page => page.notes) ?? []
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -87,7 +41,7 @@ export default function NotesPage() {
       {/* Filter pills */}
       <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-        {filters.map(f => (
+        {NOTE_FILTERS.map(f => (
           <button
             key={f.key}
             onClick={() => setActiveFilter(f.key)}
@@ -113,7 +67,7 @@ export default function NotesPage() {
       )}
 
       {/* Empty */}
-      {!isLoading && filtered.length === 0 && (
+      {!isLoading && notes.length === 0 && (
         <div className="
           border-2 border-dashed border-border rounded-xl
           flex flex-col items-center justify-center h-40 gap-2
@@ -128,12 +82,11 @@ export default function NotesPage() {
       )}
 
       {/* Notes list */}
-      {!isLoading && filtered.length > 0 && (
+      {!isLoading && notes.length > 0 && (
         <div className="space-y-3">
-          {filtered.map((item: any) => {
+          {notes.map(item => {
             const config =
-              noteTypeConfig[item.noteType as keyof typeof noteTypeConfig]
-              ?? noteTypeConfig.general
+              NOTE_TYPE_META[item.noteType] ?? NOTE_TYPE_META.general
             const Icon = config.icon
 
             return (
@@ -156,6 +109,8 @@ export default function NotesPage() {
                     ">
                       {item.companyLogo ? (
                         <img
+                          referrerPolicy="no-referrer"
+                          loading="lazy"
                           src={item.companyLogo}
                           alt={item.company}
                           className="w-9 h-9 rounded-lg object-cover"
@@ -204,6 +159,20 @@ export default function NotesPage() {
               </Link>
             )
           })}
+        </div>
+      )}
+
+      {/* Load more */}
+      {hasNextPage && (
+        <div className="flex justify-center pt-1">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? 'Loading...' : 'Load more'}
+          </Button>
         </div>
       )}
 

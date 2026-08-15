@@ -9,15 +9,8 @@ import {
   ExternalLink,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { IApplication, ApplicationStatus } from '@/types'
-
-const statusColors: Record<ApplicationStatus, string> = {
-  wishlist:  'bg-muted text-muted-foreground border-border',
-  applied:   'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  interview: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  offer:     'bg-green-500/10 text-green-500 border-green-500/20',
-  rejected:  'bg-red-500/10 text-red-500 border-red-500/20',
-}
+import { IApplication } from '@/types'
+import { APPLICATION_STATUS_META } from '@/lib/display'
 
 interface DetailHeaderProps {
   application: IApplication
@@ -38,6 +31,8 @@ export default function DetailHeader({ application }: DetailHeaderProps) {
           ">
             {application.companyLogo ? (
               <img
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 src={application.companyLogo}
                 alt={application.company}
                 className="w-14 h-14 rounded-xl object-cover"
@@ -61,7 +56,7 @@ export default function DetailHeader({ application }: DetailHeaderProps) {
               <span className={`
                 text-xs px-2.5 py-1 rounded-full border
                 font-medium capitalize
-                ${statusColors[application.status]}
+                ${APPLICATION_STATUS_META[application.status].badge}
               `}>
                 {application.status}
               </span>

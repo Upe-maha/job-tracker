@@ -1,17 +1,24 @@
-// src/components/dashboard/AddApplicationModal.tsx
+// src/components/applications/AddApplicationModal.tsx
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useForm } from 'react-hook-form'
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 import {
   Select,
   SelectContent,
@@ -19,14 +26,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  applicationFormSchema,
+  type ApplicationFormOutput,
+  type ApplicationFormValues,
+} from '@/lib/schemas/application'
+import {
+  APPLICATION_STATUS_OPTIONS,
+  CURRENCIES,
+  JOB_TYPE_OPTIONS,
+  WORK_MODE_OPTIONS,
+} from '@/lib/display'
+import { useCreateApplication } from '@/hooks/useMutations'
 
 interface AddApplicationModalProps {
   open: boolean
   onClose: () => void
-  onSuccess: () => void
 }
 
-const defaultForm = {
+// z.input, not z.output: the form holds what the controls produce — a date
+// input gives '' or 'YYYY-MM-DD', a number input gives a string — and the
+// schema coerces those on submit. Both types are exported for exactly this.
+const defaultValues: ApplicationFormValues = {
   company: '',
   role: '',
   jobUrl: '',
@@ -41,262 +62,323 @@ const defaultForm = {
   deadline: '',
 }
 
+const inputClass =
+  'bg-input border-input text-foreground placeholder:text-muted-foreground h-9'
+const labelClass = 'text-muted-foreground text-xs'
+
 export default function AddApplicationModal({
   open,
   onClose,
-  onSuccess,
 }: AddApplicationModalProps) {
-  const router = useRouter()
-  const [form, setForm] = useState(defaultForm)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const createApplication = useCreateApplication()
 
-  function updateForm(field: string, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+  // Three generics: values in, context, values out. Needed because the input
+  // and output types genuinely differ here (see defaultValues above).
+  const form = useForm<ApplicationFormValues, unknown, ApplicationFormOutput>({
+    resolver: standardSchemaResolver(applicationFormSchema),
+    defaultValues,
+  })
+
+  async function onSubmit(values: ApplicationFormOutput) {
+    await createApplication.mutateAsync(values)
+    form.reset(defaultValues)
+    onClose()
   }
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      const res = await fetch('/api/applications', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          salaryMin: form.salaryMin ? Number(form.salaryMin) : null,
-          salaryMax: form.salaryMax ? Number(form.salaryMax) : null,
-          appliedDate: form.appliedDate || null,
-          deadline: form.deadline || null,
-        }),
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error)
-        return
-      }
-
-      // Reset form
-      setForm(defaultForm)
-      onSuccess()
-      onClose()
-      router.refresh()
-
-    } catch (err) {
-      setError('Something went wrong. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  function handleOpenChange(isOpen: boolean) {
+    if (isOpen) return
+    // Reset on close too — previously only a successful submit cleared the
+    // form, so cancelling and reopening showed the abandoned draft.
+    form.reset(defaultValues)
+    onClose()
   }
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => {
-      if (!isOpen) onClose()
-    }}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent
         className="bg-card border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto"
-        onPointerDownOutside={(e) => {
-          e.preventDefault()
-        }}
-        onInteractOutside={(e) => {
-          e.preventDefault()
-        }}
+        onPointerDownOutside={e => e.preventDefault()}
+        onInteractOutside={e => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle className="text-foreground">Add Job Application</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
 
-          {/* Company + Role */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Company *</Label>
-              <Input
-                placeholder="Google"
-                value={form.company}
-                onChange={e => updateForm('company', e.target.value)}
-                className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
-                required
+            {/* Company + Role */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="company"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Company *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Google" className={inputClass} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Role *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Frontend Developer"
+                        className={inputClass}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Role *</Label>
-              <Input
-                placeholder="Frontend Developer"
-                value={form.role}
-                onChange={e => updateForm('role', e.target.value)}
-                className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
-                required
-              />
-            </div>
-          </div>
 
-          {/* Job URL */}
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Job URL</Label>
-            <Input
-              placeholder="https://careers.google.com/..."
-              value={form.jobUrl}
-              onChange={e => updateForm('jobUrl', e.target.value)}
-              className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
+            {/* Job URL */}
+            <FormField
+              control={form.control}
+              name="jobUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className={labelClass}>Job URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://careers.google.com/..."
+                      className={inputClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {/* Status + Location */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Status</Label>
-              <Select
-                value={form.status}
-                onValueChange={v => updateForm('status', v)}
+            {/* Status + Location */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Status</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {APPLICATION_STATUS_OPTIONS.map(({ value, label }) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Location</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Remote / Kathmandu" className={inputClass} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Work mode + Job type */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="workMode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Work Mode</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {WORK_MODE_OPTIONS.map(({ value, label }) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="jobType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Job Type</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Select..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {JOB_TYPE_OPTIONS.map(({ value, label }) => (
+                          <SelectItem key={value} value={value}>
+                            {label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Salary */}
+            <div className="grid grid-cols-[1fr_1fr_auto] gap-3">
+              <FormField
+                control={form.control}
+                name="salaryMin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Salary Min</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="50000"
+                        className={inputClass}
+                        {...field}
+                        value={field.value == null ? '' : String(field.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="salaryMax"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Salary Max</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="80000"
+                        className={inputClass}
+                        {...field}
+                        value={field.value == null ? '' : String(field.value)}
+                      />
+                    </FormControl>
+                    {/* The min <= max rule reports itself here. */}
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="salaryCurrency"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Currency</FormLabel>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <FormControl>
+                        <SelectTrigger className={`${inputClass} w-24`}>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover border-border text-popover-foreground">
+                        {CURRENCIES.map(({ code }) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Dates */}
+            <div className="grid grid-cols-2 gap-3">
+              <FormField
+                control={form.control}
+                name="appliedDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Applied Date</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        className={inputClass}
+                        {...field}
+                        value={typeof field.value === 'string' ? field.value : ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="deadline"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className={labelClass}>Deadline</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="date"
+                        className={inputClass}
+                        {...field}
+                        value={typeof field.value === 'string' ? field.value : ''}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => handleOpenChange(false)}
+                disabled={form.formState.isSubmitting}
               >
-                <SelectTrigger className="bg-input border-input text-foreground h-9">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-popover-foreground">
-                  <SelectItem value="wishlist">Wishlist</SelectItem>
-                  <SelectItem value="applied">Applied</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                  <SelectItem value="offer">Offer</SelectItem>
-                  <SelectItem value="rejected">Rejected</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Location</Label>
-              <Input
-                placeholder="Kathmandu / Remote"
-                value={form.location}
-                onChange={e => updateForm('location', e.target.value)}
-                className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
-              />
-            </div>
-          </div>
-
-          {/* Work Mode + Job Type */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Work Mode</Label>
-              <Select
-                value={form.workMode}
-                onValueChange={v => updateForm('workMode', v)}
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={form.formState.isSubmitting}
+                className="bg-brand hover:bg-brand-hover text-primary-foreground"
               >
-                <SelectTrigger className="bg-input border-input text-foreground h-9">
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-popover-foreground">
-                  <SelectItem value="remote">Remote</SelectItem>
-                  <SelectItem value="hybrid">Hybrid</SelectItem>
-                  <SelectItem value="on-site">On-site</SelectItem>
-                </SelectContent>
-              </Select>
+                {form.formState.isSubmitting ? 'Adding...' : 'Add Application'}
+              </Button>
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Job Type</Label>
-              <Select
-                value={form.jobType}
-                onValueChange={v => updateForm('jobType', v)}
-              >
-                <SelectTrigger className="bg-input border-input text-foreground h-9">
-                  <SelectValue placeholder="Select..." />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-popover-foreground">
-                  <SelectItem value="full-time">Full-time</SelectItem>
-                  <SelectItem value="part-time">Part-time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Salary */}
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Salary Range (optional)</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                placeholder="Min"
-                type="number"
-                value={form.salaryMin}
-                onChange={e => updateForm('salaryMin', e.target.value)}
-                className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
-              />
-              <span className="text-muted-foreground text-sm">to</span>
-              <Input
-                placeholder="Max"
-                type="number"
-                value={form.salaryMax}
-                onChange={e => updateForm('salaryMax', e.target.value)}
-                className="bg-input border-input text-foreground placeholder:text-muted-foreground h-9"
-              />
-              <Select
-                value={form.salaryCurrency}
-                onValueChange={v => updateForm('salaryCurrency', v)}
-              >
-                <SelectTrigger className="bg-input border-input text-foreground h-9 w-24">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border text-popover-foreground">
-                  <SelectItem value="USD">USD</SelectItem>
-                  <SelectItem value="NPR">NPR</SelectItem>
-                  <SelectItem value="EUR">EUR</SelectItem>
-                  <SelectItem value="GBP">GBP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Dates */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Applied Date</Label>
-              <Input
-                type="date"
-                value={form.appliedDate}
-                onChange={e => updateForm('appliedDate', e.target.value)}
-                className="bg-input border-input text-foreground h-9"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">Deadline</Label>
-              <Input
-                type="date"
-                value={form.deadline}
-                onChange={e => updateForm('deadline', e.target.value)}
-                className="bg-input border-input text-foreground h-9"
-              />
-            </div>
-          </div>
-
-          {error && (
-            <p className="text-destructive text-sm">{error}</p>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              className="flex-1 border-border text-muted-foreground hover:bg-muted"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={loading}
-              className="flex-1 bg-brand hover:bg-brand-hover text-primary-foreground"
-            >
-              {loading ? 'Adding...' : 'Add Job'}
-            </Button>
-          </div>
-
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   )

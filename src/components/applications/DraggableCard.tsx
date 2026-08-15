@@ -4,8 +4,9 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IApplication } from '@/types'
+import { cn } from '@/lib/utils'
 import ApplicationCard from './ApplicationCard'
-import { Grip } from 'lucide-react';
+import { Grip } from 'lucide-react'
 
 interface DraggableCardProps {
   application: IApplication
@@ -23,15 +24,19 @@ export default function DraggableCard({ application }: DraggableCardProps) {
 
   const style = {
     transform: CSS.Transform.toString(transform),
-    transition,// use dnd-kit's transition,
-    className: isDragging ? 'z-10 opacity-50 shadow-md cursor-grabbing' : '',
+    transition, // use dnd-kit's transition
   }
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="relative group"
+      // The drag styles used to sit on a `className` key inside `style`, where
+      // React silently dropped them — the card never dimmed while dragging.
+      className={cn(
+        'relative group',
+        isDragging && 'z-10 opacity-50 shadow-md cursor-grabbing'
+      )}
     >
       <div 
       {...attributes}

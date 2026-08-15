@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { format, differenceInDays } from 'date-fns'
-import { Calendar, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface DeadlineItem {
   _id: string
@@ -93,6 +93,8 @@ function DeadlineRow({
           ">
             {item.companyLogo ? (
               <img
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 src={item.companyLogo}
                 alt={item.company}
                 className="w-7 h-7 rounded-md object-cover"

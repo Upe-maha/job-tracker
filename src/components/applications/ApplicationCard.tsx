@@ -2,10 +2,9 @@
 'use client'
 
 import { IApplication } from '@/types'
-import { MapPin, ExternalLink, FileText, Calendar, Banknote, Link, ArrowRight, } from 'lucide-react'
+import { MapPin, ExternalLink, FileText, Calendar, Banknote, } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 
 interface ApplicationCardProps {
   application: IApplication
@@ -51,6 +50,8 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           ">
             {application.companyLogo ? (
               <img
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 src={application.companyLogo}
                 alt={application.company}
                 className="w-8 h-8 rounded-md object-cover"

@@ -2,37 +2,22 @@
 'use client'
 
 import { useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { AddApplicationModal, KanbanBoard } from '@/components/applications'
-import { IApplication } from '@/types'
-
-async function fetchApplications(): Promise<IApplication[]> {
-  const res = await fetch('/api/applications')
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
-}
+import { useApplications } from '@/hooks/useQueries'
 
 export default function ApplicationsPage() {
-  const queryClient = useQueryClient()
   const [modalOpen, setModalOpen] = useState(false)
   const [search, setSearch] = useState('')
 
-  const { data: applications = [], isLoading } = useQuery({
-    queryKey: ['applications'],
-    queryFn: fetchApplications,
-  })
+  const { data: applications = [], isLoading } = useApplications()
 
   const filtered = applications.filter(app =>
     app.company.toLowerCase().includes(search.toLowerCase()) ||
     app.role.toLowerCase().includes(search.toLowerCase())
   )
-
-  function handleSuccess() {
-    queryClient.invalidateQueries({ queryKey: ['applications'] })
-  }
 
   return (
     <div className="flex flex-col gap-6 h-full bg-background">
@@ -93,7 +78,7 @@ export default function ApplicationsPage() {
       <AddApplicationModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSuccess={handleSuccess}
+        
       />
 
     </div>

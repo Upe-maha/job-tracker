@@ -1,7 +1,8 @@
 // src/app/(dashboard)/analytics/page.tsx
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useDashboard } from '@/hooks/useQueries'
+import { APPLICATION_STATUS_OPTIONS } from '@/lib/display'
 import {
   BarChart,
   Bar,
@@ -15,22 +16,14 @@ import {
   Legend,
 } from 'recharts'
 
-async function fetchAnalytics() {
-  const res = await fetch('/api/dashboard')
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
-}
-
-const statusColors: Record<string, string> = {
-  wishlist:  '#64748b',
-  applied:   '#3b82f6',
-  interview: '#eab308',
-  offer:     '#22c55e',
-  rejected:  '#ef4444',
-}
-
 // ─── Custom Tooltip ──────────────────────────────────
-function CustomTooltip({ active, payload }: any) {
+interface TooltipEntry {
+  name?: string
+  value?: number
+  payload?: { name?: string }
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) {
   if (active && payload && payload.length) {
     const entry = payload[0]
     // For bar charts, the category is in entry.payload.name
@@ -49,12 +42,9 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 export default function AnalyticsPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: fetchAnalytics,
-  })
+  const { data, isLoading } = useDashboard()
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-muted-foreground text-sm">Loading analytics...</p>
@@ -64,13 +54,13 @@ export default function AnalyticsPage() {
 
   const { stats } = data
 
-  const barData = [
-    { name: 'Wishlist',  value: stats.wishlist },
-    { name: 'Applied',   value: stats.applied },
-    { name: 'Interview', value: stats.interview },
-    { name: 'Offer',     value: stats.offer },
-    { name: 'Rejected',  value: stats.rejected },
-  ]
+  // Derived from the enum, and each datum carries its own colour so the chart
+  // never has to map a rendered label back to a status key.
+  const barData = APPLICATION_STATUS_OPTIONS.map(({ value, label, hex }) => ({
+    name: label,
+    value: stats[value] ?? 0,
+    fill: hex,
+  }))
 
   const pieData = barData.filter(d => d.value > 0)
 
@@ -151,7 +141,7 @@ export default function AnalyticsPage() {
                   {barData.map(entry => (
                     <Cell
                       key={entry.name}
-                      fill={statusColors[entry.name.toLowerCase()]}
+                      fill={entry.fill}
                     />
                   ))}
                 </Bar>
@@ -182,7 +172,7 @@ export default function AnalyticsPage() {
                   {pieData.map(entry => (
                     <Cell
                       key={entry.name}
-                      fill={statusColors[entry.name.toLowerCase()]}
+                      fill={entry.fill}
                     />
                   ))}
                 </Pie>
@@ -225,7 +215,7 @@ export default function AnalyticsPage() {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${pct}%`,
-                      backgroundColor: statusColors[item.name.toLowerCase()],
+                      backgroundColor: item.fill,
                     }}
                   />
                 </div>

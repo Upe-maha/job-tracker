@@ -1,8 +1,25 @@
 // src/app/(dashboard)/profile/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
+import { useProfile } from '@/hooks/useQueries'
+import { useUpdateProfile } from '@/hooks/useMutations'
+import { profileFormSchema, type ProfileFormValues } from '@/lib/schemas/user'
+import {
+  CURRENCIES,
+  DEFAULT_CURRENCY,
+  JOB_SEARCH_STATUS_OPTIONS,
+} from '@/lib/display'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   User,
   MapPin,
@@ -14,7 +31,6 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
@@ -25,70 +41,54 @@ import {
 } from '@/components/ui/select'
 import AvatarUpload from '@/components/profile/AvatarUpload'
 
-async function fetchProfile() {
-  const res = await fetch('/api/user/profile')
-  if (!res.ok) throw new Error('Failed to fetch profile')
-  return res.json()
+const EMPTY_PROFILE: ProfileFormValues = {
+  name: '',
+  bio: '',
+  location: '',
+  phone: '',
+  linkedIn: '',
+  portfolio: '',
+  currency: DEFAULT_CURRENCY,
+  jobSearchStatus: 'actively_looking',
 }
 
 export default function ProfilePage() {
-  const queryClient = useQueryClient()
-  const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
+  // photo is managed by AvatarUpload outside the form and merged in at submit
+  // time — exactly the split profileFormSchema documents.
   const [photo, setPhoto] = useState('')
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['profile'],
-    queryFn: fetchProfile,
+  const { data: profile, isLoading } = useProfile()
+  const updateProfile = useUpdateProfile()
+
+  const form = useForm<ProfileFormValues>({
+    resolver: standardSchemaResolver(profileFormSchema),
+    defaultValues: EMPTY_PROFILE,
   })
 
-  const [form, setForm] = useState({
-    name: '',
-    bio: '',
-    location: '',
-    phone: '',
-    linkedIn: '',
-    portfolio: '',
-    currency: 'USD',
-    jobSearchStatus: 'actively_looking',
-  })
-
-  // Populate form when profile loads
-  useEffect(() => {
-    if (profile) {
-      setForm({
-        name: profile.name ?? '',
-        bio: profile.bio ?? '',
-        location: profile.location ?? '',
-        phone: profile.phone ?? '',
-        linkedIn: profile.linkedIn ?? '',
-        portfolio: profile.portfolio ?? '',
-        currency: profile.currency ?? 'USD',
-        jobSearchStatus: profile.jobSearchStatus ?? 'actively_looking',
-      })
-      setPhoto(profile.photo ?? '')
-    }
-  }, [profile])
-
-  function update(field: string, value: string) {
-    setForm(prev => ({ ...prev, [field]: value }))
+  // Hydrate from the server once loaded. reset() during render is RHF's
+  // supported way to do this; the previous useEffect+setState version is what
+  // the set-state-in-effect lint error pointed at.
+  const loadedId = profile?._id ?? null
+  const [hydratedId, setHydratedId] = useState<string | null>(null)
+  if (profile && loadedId !== hydratedId) {
+    setHydratedId(loadedId)
+    form.reset({
+      name: profile.name ?? '',
+      bio: profile.bio ?? '',
+      location: profile.location ?? '',
+      phone: profile.phone ?? '',
+      linkedIn: profile.linkedIn ?? '',
+      portfolio: profile.portfolio ?? '',
+      currency: profile.currency ?? DEFAULT_CURRENCY,
+      jobSearchStatus: profile.jobSearchStatus ?? 'actively_looking',
+    })
+    setPhoto(profile.photo ?? '')
   }
 
-  async function handleSave(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    try {
-      await fetch('/api/user/profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, photo }),
-      })
-      queryClient.invalidateQueries({ queryKey: ['profile'] })
-      setSaved(true)
-      setTimeout(() => setSaved(false), 2000)
-    } finally {
-      setSaving(false)
-    }
+  async function handleSave(values: ProfileFormValues) {
+    // Failures now surface as a toast from the mutation. Previously res.ok was
+    // never checked, so a 400 still rendered "Saved!".
+    await updateProfile.mutateAsync({ ...values, photo })
   }
 
   if (isLoading) {
@@ -110,52 +110,18 @@ export default function ProfilePage() {
         </p>
       </div>
 
-      {/* Avatar section */}
-      {/* <div className="bg-card border border-border rounded-xl p-6">
-        <div className="flex items-center gap-4">
-          <div className="
-            w-16 h-16 rounded-full bg-primary
-            flex items-center justify-center
-            text-primary-foreground font-bold text-2xl
-            shrink-0
-          ">
-            {form.name?.[0]?.toUpperCase() ?? 'U'}
-          </div>
-          <div>
-            <p className="text-foreground font-semibold text-lg">
-              {form.name || 'Your Name'}
-            </p>
-            <p className="text-muted-foreground text-sm">
-              {profile?.email}
-            </p>
-            <span className={`
-              text-xs px-2 py-0.5 rounded-full border mt-1 inline-block
-              ${form.jobSearchStatus === 'actively_looking'
-                ? 'bg-green-500/10 text-green-500 border-green-500/20'
-                : form.jobSearchStatus === 'open'
-                  ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                  : 'bg-muted text-muted-foreground border-border'
-              }
-            `}>
-              {form.jobSearchStatus === 'actively_looking'
-                ? 'Actively Looking'
-                : form.jobSearchStatus === 'open'
-                  ? 'Open to Offers'
-                  : 'Not Looking'}
-            </span>
-          </div>
-        </div>
-      </div> */}
+      {/* Avatar */}
       <div className="bg-card border border-border rounded-xl p-6 flex justify-center">
         <AvatarUpload
           currentPhoto={photo}
-          name={form.name}
+          name={form.watch('name')}
           onUpload={(url) => setPhoto(url)}
         />
       </div>
 
       {/* Profile form */}
-      <form onSubmit={handleSave} className="space-y-6">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleSave)} className="space-y-6">
 
         {/* Personal info */}
         <div className="bg-card border border-border rounded-xl p-6 space-y-4">
@@ -165,76 +131,113 @@ export default function ProfilePage() {
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5 col-span-2">
-              <Label className="text-muted-foreground text-xs">Full Name</Label>
-              <Input
-                value={form.name}
-                onChange={e => update('name', e.target.value)}
-                placeholder="Your full name"
-                className="bg-background border-border text-foreground"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel className="text-muted-foreground text-xs">Full Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Your full name"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5 col-span-2">
-              <Label className="text-muted-foreground text-xs">Bio</Label>
-              <Textarea
-                value={form.bio}
-                onChange={e => update('bio', e.target.value)}
-                placeholder="Brief description about yourself..."
-                className="
-                  bg-background border-border text-foreground
-                  min-h-[80px] resize-none
-                "
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="bio"
+              render={({ field }) => (
+                <FormItem className="col-span-2">
+                  <FormLabel className="text-muted-foreground text-xs">Bio</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Brief description about yourself..."
+                      className="bg-background border-border text-foreground min-h-[80px] resize-none"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> Location
-              </Label>
-              <Input
-                value={form.location}
-                onChange={e => update('location', e.target.value)}
-                placeholder="Kathmandu, Nepal"
-                className="bg-background border-border text-foreground"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-muted-foreground text-xs flex items-center gap-1"><MapPin className="w-3 h-3" /> Location</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Kathmandu, Nepal"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                <Phone className="w-3 h-3" /> Phone
-              </Label>
-              <Input
-                value={form.phone}
-                onChange={e => update('phone', e.target.value)}
-                placeholder="+977 98XXXXXXXX"
-                className="bg-background border-border text-foreground"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-muted-foreground text-xs flex items-center gap-1"><Phone className="w-3 h-3" /> Phone</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="+977 98XXXXXXXX"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                <Link className="w-3 h-3" /> LinkedIn
-              </Label>
-              <Input
-                value={form.linkedIn}
-                onChange={e => update('linkedIn', e.target.value)}
-                placeholder="https://linkedin.com/in/..."
-                className="bg-background border-border text-foreground"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="linkedIn"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-muted-foreground text-xs flex items-center gap-1"><Link className="w-3 h-3" /> LinkedIn</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://linkedin.com/in/..."
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs flex items-center gap-1">
-                <Globe className="w-3 h-3" /> Portfolio
-              </Label>
-              <Input
-                value={form.portfolio}
-                onChange={e => update('portfolio', e.target.value)}
-                placeholder="https://yourportfolio.com"
-                className="bg-background border-border text-foreground"
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="portfolio"
+              render={({ field }) => (
+                <FormItem className="">
+                  <FormLabel className="text-muted-foreground text-xs flex items-center gap-1"><Globe className="w-3 h-3" /> Portfolio</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="https://yourportfolio.com"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
 
@@ -246,61 +249,66 @@ export default function ProfilePage() {
           </h2>
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">
-                Job Search Status
-              </Label>
-              <Select
-                value={form.jobSearchStatus}
-                onValueChange={v => update('jobSearchStatus', v)}
-              >
-                <SelectTrigger className="bg-background border-border text-foreground">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  <SelectItem value="actively_looking">
-                    Actively Looking
-                  </SelectItem>
-                  <SelectItem value="open">Open to Offers</SelectItem>
-                  <SelectItem value="not_looking">Not Looking</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField
+              control={form.control}
+              name="jobSearchStatus"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground text-xs">Job Search Status</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="bg-background border-border text-foreground">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-popover border-border">
+                      {JOB_SEARCH_STATUS_OPTIONS.map(({ value, label }) => (
+                        <SelectItem key={value} value={value}>{label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-            <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">
-                Preferred Currency
-              </Label>
-              <Select
-                value={form.currency}
-                onValueChange={v => update('currency', v)}
-              >
-                <SelectTrigger className="bg-background border-border text-foreground">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border-border">
-                  <SelectItem value="USD">USD — US Dollar</SelectItem>
-                  <SelectItem value="NPR">NPR — Nepali Rupee</SelectItem>
-                  <SelectItem value="EUR">EUR — Euro</SelectItem>
-                  <SelectItem value="GBP">GBP — British Pound</SelectItem>
-                  <SelectItem value="INR">INR — Indian Rupee</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <FormField
+              control={form.control}
+              name="currency"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground text-xs">Preferred Currency</FormLabel>
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <FormControl>
+                      <SelectTrigger className="bg-background border-border text-foreground">
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-popover border-border">
+                      {CURRENCIES.map(({ code, name }) => (
+                        <SelectItem key={code} value={code}>{code} — {name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
         </div>
 
         {/* Save button */}
         <Button
           type="submit"
-          disabled={saving}
+          disabled={form.formState.isSubmitting}
           className="w-full bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
         >
           <Save className="w-4 h-4" />
-          {saving ? 'Saving...' : saved ? 'Saved!' : 'Save Profile'}
+          {form.formState.isSubmitting ? 'Saving...' : 'Save Profile'}
         </Button>
 
-      </form>
+        </form>
+      </Form>
     </div>
   )
 }

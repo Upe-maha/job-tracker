@@ -3,7 +3,7 @@
 
 import { signOut } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
-import { useQuery } from '@tanstack/react-query'
+import { useProfile } from '@/hooks/useQueries'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -35,22 +35,11 @@ interface HeaderProps {
   }
 }
 
-async function fetchProfile() {
-  const res = await fetch('/api/user/profile')
-  if (!res.ok) return null
-  return res.json()
-}
-
 export default function Header({ user }: HeaderProps) {
   const pathname = usePathname()
 
   // Fetch fresh profile so photo updates without re-login
-  const { data: profile } = useQuery({
-    queryKey: ['profile'],
-    queryFn: fetchProfile,
-    // Use session data as placeholder until profile loads
-    staleTime: 30 * 1000,
-  })
+  const { data: profile } = useProfile()
 
   const title =
     pageTitles[pathname] ??

@@ -3,58 +3,20 @@
 
 import { INote } from '@/types'
 import { format } from 'date-fns'
-import { Trash2, MessageSquare, Brain, BookOpen, FileText } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Trash2 } from 'lucide-react'
+import {
+  INTERVIEW_ROUND_LABELS,
+  NOTE_OUTCOME_BADGES,
+  NOTE_TYPE_META,
+} from '@/lib/display'
 
 interface NoteCardProps {
   note: INote
   onDelete: (noteId: string) => void
 }
 
-const noteTypeConfig = {
-  interview_question: {
-    label: 'Interview Question',
-    icon: MessageSquare,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10 border-blue-500/20',
-  },
-  personal_experience: {
-    label: 'Personal Experience',
-    icon: Brain,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10 border-purple-500/20',
-  },
-  experience_log: {
-    label: 'Experience Log',
-    icon: BookOpen,
-    color: 'text-orange-500',
-    bg: 'bg-orange-500/10 border-orange-500/20',
-  },
-  general: {
-    label: 'General Note',
-    icon: FileText,
-    color: 'text-muted-foreground',
-    bg: 'bg-muted border-border',
-  },
-}
-
-const outcomeConfig = {
-  passed: 'bg-green-500/10 text-green-500 border-green-500/20',
-  failed: 'bg-red-500/10 text-red-500 border-red-500/20',
-  waiting: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-}
-
-const roundLabels: Record<string, string> = {
-  round_1: 'Round 1',
-  round_2: 'Round 2',
-  hr: 'HR Round',
-  technical: 'Technical',
-  final: 'Final Round',
-  other: 'Other',
-}
-
 export default function NoteCard({ note, onDelete }: NoteCardProps) {
-  const config = noteTypeConfig[note.type] ?? noteTypeConfig.general
+  const config = NOTE_TYPE_META[note.type] ?? NOTE_TYPE_META.general
   const Icon = config.icon
 
   return (
@@ -76,7 +38,7 @@ export default function NoteCard({ note, onDelete }: NoteCardProps) {
               text-xs px-2 py-0.5 rounded-full border
               bg-muted text-muted-foreground border-border
             ">
-              {roundLabels[note.interviewRound]}
+              {INTERVIEW_ROUND_LABELS[note.interviewRound]}
             </span>
           )}
 
@@ -84,7 +46,7 @@ export default function NoteCard({ note, onDelete }: NoteCardProps) {
           {note.outcome && (
             <span className={`
               text-xs px-2 py-0.5 rounded-full border capitalize
-              ${outcomeConfig[note.outcome]}
+              ${NOTE_OUTCOME_BADGES[note.outcome]}
             `}>
               {note.outcome}
             </span>

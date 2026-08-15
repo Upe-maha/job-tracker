@@ -1,8 +1,8 @@
 // src/app/(dashboard)/dashboard/page.tsx
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { FileText, Calendar, Clock, Briefcase } from 'lucide-react'
+import { useDashboard } from '@/hooks/useQueries'
+import { FileText, Calendar, Briefcase } from 'lucide-react'
 import {
   StatsGrid,
   NotesFeed,
@@ -10,21 +10,10 @@ import {
   RecentApplications,
 } from '@/components/dashboard'
 
-async function fetchDashboard() {
-  const res = await fetch('/api/dashboard')
-  if (!res.ok) throw new Error('Failed to fetch dashboard')
-  return res.json()
-}
-
 export default function DashboardPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: fetchDashboard,
-    // Refetch every 5 minutes
-    refetchInterval: 5 * 60 * 1000,
-  })
+  const { data, isLoading } = useDashboard()
 
-  if (isLoading) {
+  if (isLoading || !data) {
     return (
       <div className="flex items-center justify-center h-64">
         <p className="text-muted-foreground text-sm">Loading dashboard...</p>
