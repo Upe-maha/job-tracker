@@ -1,6 +1,8 @@
 #Step B — OAuth Login (Google + GitHub)
 
-**Status: Planned.** Written before implementation, per the convention in `md/roadmap.md`.
+**Status: Complete.** Written before implementation, per the convention in `md/roadmap.md`.
+The account lookup, provider linking and lockout interaction were corrected after an audit —
+see the `fix(auth)` commit for what changed and why.
 
 ## Context
 
