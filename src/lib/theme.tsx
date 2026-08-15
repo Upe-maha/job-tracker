@@ -2,21 +2,19 @@
 
 import {
     createContext,
+    useCallback,
     useContext,
     useEffect,
-    useState,
+    useSyncExternalStore,
 } from 'react';
-
 
 type Theme = 'light' | 'dark';
 
-interface ThemeContextValue{
+interface ThemeContextValue {
     theme: Theme,
     toggleTheme: () => void,
     isDark: boolean,
-
 }
-
 
 const ThemeContext = createContext<ThemeContextValue>({
     theme: 'dark',
@@ -24,46 +22,65 @@ const ThemeContext = createContext<ThemeContextValue>({
     isDark: true,
 });
 
-export function ThemeProvider({children}: {children: React.ReactNode}){
-    const [theme, setTheme] = useState<Theme>('dark');
+const STORAGE_KEY = 'theme';
 
+// localStorage is an external store, so it is read through
+// useSyncExternalStore rather than copied into state by an effect. The old
+// version called setState inside an effect body, which triggers a cascading
+// re-render on every mount (and is what react-hooks/set-state-in-effect
+// flags).
+const listeners = new Set<() => void>();
+
+function emit() {
+    for (const listener of listeners) listener();
+}
+
+function subscribe(listener: () => void) {
+    listeners.add(listener);
+    // Keeps two tabs in step: `storage` fires in every *other* tab.
+    window.addEventListener('storage', listener);
+    return () => {
+        listeners.delete(listener);
+        window.removeEventListener('storage', listener);
+    };
+}
+
+function getSnapshot(): Theme {
+    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+}
+
+// Dark is the default, and the server has no localStorage to consult.
+function getServerSnapshot(): Theme {
+    return 'dark';
+}
+
+function applyTheme(theme: Theme) {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+}
+
+export function ThemeProvider({ children }: { children: React.ReactNode }) {
+    const theme = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+    // Pushing React's state out to the DOM — the direction an effect is for.
     useEffect(() => {
-        const storedTheme = localStorage.getItem('theme') as Theme | null;
-        if (storedTheme) {
-            setTheme(storedTheme);
-            applyTheme(storedTheme);
-        }
-        else {
-            applyTheme('dark');
-        }
+        applyTheme(theme);
+    }, [theme]);
+
+    const toggleTheme = useCallback(() => {
+        const next: Theme = getSnapshot() === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(STORAGE_KEY, next);
+        emit();
     }, []);
 
-    function applyTheme(theme: Theme){
-        const root = document.documentElement;
-        if (theme === 'dark') {
-            root.classList.add('dark');
-        }
-        else {
-            root.classList.remove('dark');
-        }
-    };
-
-    function toggleTheme() {
-        const newTheme = theme === 'dark'? 'light': 'dark';
-            setTheme(newTheme);
-            applyTheme(newTheme);
-            localStorage.setItem('theme', newTheme);
-    };
-
     return (
-        <ThemeContext.Provider 
-            value={{theme, toggleTheme, isDark: theme === 'dark'}}
+        <ThemeContext.Provider
+            value={{ theme, toggleTheme, isDark: theme === 'dark' }}
         >
             {children}
         </ThemeContext.Provider>
     )
 }
 
-export function useTheme(){
+export function useTheme() {
     return useContext(ThemeContext);
 }

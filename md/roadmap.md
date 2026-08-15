@@ -60,4 +60,13 @@ Step H — Security — Session Management
   └── Remember me option on login
 
 ## Status
-- Step A: in progress — see `md/step-a-security.md`
+- Step A: complete — see `md/step-a-security.md`
+- Step B: in progress — see `md/step-b-oauth.md`
+
+Interleaved with the steps above, a separate refactoring pass (security follow-ups, then database
+performance) has also landed:
+- R1 — trusted-proxy client IP, security headers, external-URL validation: complete
+- R2 — paginated `/api/notes` + `lib/dal/`, dashboard aggregation/projection: complete
+- R3 — DAL with React `cache()`, Server Actions + Zod, RSC page loads: not started
+- R4 — Cloudinary lifecycle (`publicId`, signed delivery, upload rate limit): not started, overlaps Step D
+- R5 — Vitest suite for the security helpers, GitHub Actions CI: not started
