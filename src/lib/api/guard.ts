@@ -18,7 +18,7 @@ interface GuardOptionsPublic {
 }
 
 type GuardResult<S> =
-  | { ok: true; session: S; ip: string }
+  | { ok: true; session: S }
   | { ok: false; response: NextResponse }
 
 // Shared route preamble: CSRF -> auth -> rate limit, in that order (CSRF is
@@ -48,10 +48,10 @@ export async function guard(
     return { ok: false, response: fail(401, 'Unauthorized') }
   }
 
-  const ip = getClientIP(req)
-
   if (rateLimitType) {
-    const key = session?.user?.id ? `user:${session.user.id}` : `ip:${ip}`
+    const key = session?.user?.id
+      ? `user:${session.user.id}`
+      : `ip:${getClientIP(req)}`
     try {
       const result = await checkRateLimit(key, rateLimitType)
       if (!result.allowed) {
@@ -72,5 +72,5 @@ export async function guard(
     }
   }
 
-  return { ok: true, session: session ?? null, ip }
+  return { ok: true, session: session ?? null }
 }

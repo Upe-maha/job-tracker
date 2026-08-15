@@ -1,6 +1,7 @@
 // src/app/api/upload/route.ts
 import { v2 as cloudinary } from 'cloudinary'
 import { guard } from '@/lib/api/guard'
+import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
 import { fail, serverError } from '@/lib/api/respond'
 import { NextResponse } from 'next/server'
 
@@ -10,7 +11,6 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 })
 
-const MAX_FILE_BYTES = 5 * 1024 * 1024 // 5MB
 
 const ALLOWED_FOLDERS = ['avatars', 'prep-files'] as const
 type AllowedFolder = (typeof ALLOWED_FOLDERS)[number]
@@ -59,17 +59,20 @@ export async function POST(req: Request) {
   try {
     const formData = await req.formData()
     const file = formData.get('file')
+    // Fail closed. Falling back to 'prep-files' meant a caller intending
+    // 'avatars' that mistyped the field silently got the PDF-permitting
+    // bucket and a 200. Both callers always send a valid folder.
     const folderRaw = formData.get('folder')
-    const folder: AllowedFolder =
-      typeof folderRaw === 'string' && (ALLOWED_FOLDERS as readonly string[]).includes(folderRaw)
-        ? (folderRaw as AllowedFolder)
-        : 'prep-files'
+    if (typeof folderRaw !== 'string' || !(ALLOWED_FOLDERS as readonly string[]).includes(folderRaw)) {
+      return fail(400, 'Invalid upload folder')
+    }
+    const folder = folderRaw as AllowedFolder
 
     if (!(file instanceof File)) {
       return fail(400, 'No file provided')
     }
 
-    if (file.size > MAX_FILE_BYTES) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       return fail(400, 'File too large. Max 5MB.')
     }
 

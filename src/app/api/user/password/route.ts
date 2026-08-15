@@ -4,9 +4,9 @@ import { connectDB } from '@/lib/db'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
 import { guard } from '@/lib/api/guard'
-import { readJsonBody } from '@/lib/api/validate'
+import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
-import { validatePassword } from '@/lib/security/sanitize'
+import { passwordChangeSchema } from '@/lib/schemas/user'
 
 export async function PUT(req: Request) {
   // This is an authenticated password oracle, so it gets the same 5/15min
@@ -14,28 +14,26 @@ export async function PUT(req: Request) {
   const g = await guard(req, { rateLimit: 'login' })
   if (!g.ok) return g.response
 
-  const body = await readJsonBody(req)
+  // The schema applies the strength policy to newPassword only — currentPassword
+  // is an existing secret, possibly created under an older rule — and rejects a
+  // no-op change.
+  const body = await parseBody(req, passwordChangeSchema)
   if (!body.ok) return body.response
 
   const { currentPassword, newPassword } = body.data
-
-  if (typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
-    return fail(400, 'Both fields are required')
-  }
-
-  const passwordCheck = validatePassword(newPassword)
-  if (!passwordCheck.valid) {
-    return fail(400, passwordCheck.message ?? 'Invalid password')
-  }
-
-  if (newPassword === currentPassword) {
-    return fail(400, 'New password must be different from the current password')
-  }
 
   try {
     await connectDB()
     const user = await User.findById(g.session.user.id).select('+password')
     if (!user) return fail(404, 'User not found')
+
+    // OAuth-only accounts have no password (User.password is optional since
+    // Step B). Without this, bcrypt.compare(x, undefined) throws and the
+    // handler answers 500 instead of telling the caller what is wrong. No
+    // enumeration concern — this is the caller's own authenticated account.
+    if (!user.password) {
+      return fail(400, 'This account has no password. Sign in with your linked provider instead.')
+    }
 
     const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) return fail(400, 'Current password is incorrect')
