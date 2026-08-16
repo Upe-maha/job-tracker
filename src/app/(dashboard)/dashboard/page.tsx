@@ -1,120 +1,84 @@
 // src/app/(dashboard)/dashboard/page.tsx
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
-import { FileText, Calendar, Clock, Briefcase } from 'lucide-react'
+import { useDashboard } from '@/hooks/useQueries'
+import { FileText, Calendar, Briefcase } from 'lucide-react'
 import {
   StatsGrid,
   NotesFeed,
   DeadlinesList,
   RecentApplications,
 } from '@/components/dashboard'
+import PageShell, { PageGrid } from '@/components/common/PageShell'
+import ErrorState from '@/components/common/ErrorState'
+import { DashboardSkeleton } from '@/components/common/Skeletons'
 
-async function fetchDashboard() {
-  const res = await fetch('/api/dashboard')
-  if (!res.ok) throw new Error('Failed to fetch dashboard')
-  return res.json()
+function SectionHeading({
+  icon: Icon,
+  title,
+  count,
+}: {
+  icon: typeof Calendar
+  title: string
+  count: number
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <Icon className="w-4 h-4 text-muted-foreground" />
+      <h2 className="text-foreground font-semibold text-sm">{title}</h2>
+      <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full ml-auto">
+        {count}
+      </span>
+    </div>
+  )
 }
 
 export default function DashboardPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: fetchDashboard,
-    // Refetch every 5 minutes
-    refetchInterval: 5 * 60 * 1000,
-  })
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard()
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Loading dashboard...</p>
-      </div>
-    )
-  }
-
-  const {
-    stats,
-    deadlinesThisWeek,
-    followUpsThisWeek,
-    notesFeed,
-    recentApplications,
-  } = data
-
+  // The shell renders on the first frame regardless of the query, so a
+  // navigation here paints immediately. Only the body below swaps.
   return (
-    <div className="space-y-8 max-w-6xl mx-auto">
+    <PageShell>
+      {isLoading ? (
+        <DashboardSkeleton />
+      ) : isError || !data ? (
+        // Previously `isLoading || !data` meant a failed request left this
+        // page showing "Loading..." with no error and no way out.
+        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+      ) : (
+        <>
+          <StatsGrid stats={data.stats} />
 
-      {/* Welcome */}
-      <div>
-        <h1 className="text-foreground text-2xl font-bold">
-          Dashboard
-        </h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Your job search at a glance
-        </p>
-      </div>
+          <PageGrid>
+            <section className="md:col-span-6 space-y-3">
+              <SectionHeading
+                icon={Calendar}
+                title="This Week"
+                count={data.deadlinesThisWeek.length + data.followUpsThisWeek.length}
+              />
+              <DeadlinesList
+                deadlines={data.deadlinesThisWeek}
+                followUps={data.followUpsThisWeek}
+              />
+            </section>
 
-      {/* Stats */}
-      <StatsGrid stats={stats} />
+            <section className="md:col-span-6 space-y-3">
+              <SectionHeading
+                icon={Briefcase}
+                title="Recent Applications"
+                count={data.recentApplications.length}
+              />
+              <RecentApplications applications={data.recentApplications} />
+            </section>
+          </PageGrid>
 
-      {/* Middle row — deadlines + recent */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-        {/* Upcoming deadlines + follow-ups */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <h2 className="text-foreground font-semibold text-sm">
-              This Week
-            </h2>
-            <span className="
-              text-xs bg-muted text-muted-foreground
-              px-2 py-0.5 rounded-full ml-auto
-            ">
-              {deadlinesThisWeek.length + followUpsThisWeek.length}
-            </span>
-          </div>
-          <DeadlinesList
-            deadlines={deadlinesThisWeek}
-            followUps={followUpsThisWeek}
-          />
-        </section>
-
-        {/* Recent applications */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Briefcase className="w-4 h-4 text-muted-foreground" />
-            <h2 className="text-foreground font-semibold text-sm">
-              Recent Applications
-            </h2>
-            <span className="
-              text-xs bg-muted text-muted-foreground
-              px-2 py-0.5 rounded-full ml-auto
-            ">
-              {recentApplications.length}
-            </span>
-          </div>
-          <RecentApplications applications={recentApplications} />
-        </section>
-
-      </div>
-
-      {/* Notes feed */}
-      <section className="space-y-3">
-        <div className="flex items-center gap-2">
-          <FileText className="w-4 h-4 text-muted-foreground" />
-          <h2 className="text-foreground font-semibold text-sm">
-            Notes Feed
-          </h2>
-          <span className="
-            text-xs bg-muted text-muted-foreground
-            px-2 py-0.5 rounded-full ml-auto
-          ">
-            {notesFeed.length}
-          </span>
-        </div>
-        <NotesFeed notes={notesFeed} />
-      </section>
-
-    </div>
+          <section className="space-y-3">
+            <SectionHeading icon={FileText} title="Notes Feed" count={data.notesFeed.length} />
+            <NotesFeed notes={data.notesFeed} />
+          </section>
+        </>
+      )}
+    </PageShell>
   )
 }

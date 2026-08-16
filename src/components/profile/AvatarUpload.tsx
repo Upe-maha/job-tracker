@@ -2,6 +2,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
+import { useUpload } from '@/hooks/useMutations'
+import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
 import { Camera, Loader2 } from 'lucide-react'
 
 interface AvatarUploadProps {
@@ -15,6 +17,7 @@ export default function AvatarUpload({
   name,
   onUpload,
 }: AvatarUploadProps) {
+  const upload = useUpload()
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -32,6 +35,13 @@ export default function AvatarUpload({
       return
     }
 
+    // Matches the server's cap, so an oversized image fails here instead of
+    // after a full round trip.
+    if (file.size > MAX_UPLOAD_BYTES) {
+      setError('Image too large. Max 5MB.')
+      return
+    }
+
     // Show preview immediately
     const reader = new FileReader()
     reader.onload = () => setPreview(reader.result as string)
@@ -40,27 +50,10 @@ export default function AvatarUpload({
     // Upload to Cloudinary
     setUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('folder', 'avatars')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'x-upload-request': '1' },
-        body: formData,
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error)
-        setPreview(null)
-        return
-      }
-
-      onUpload(data.url)
-
-    } catch (err) {
+      const { url } = await upload.mutateAsync({ file, folder: 'avatars' })
+      onUpload(url)
+    } catch {
+      // useUpload reports the real reason as a toast.
       setError('Upload failed. Please try again.')
       setPreview(null)
     } finally {

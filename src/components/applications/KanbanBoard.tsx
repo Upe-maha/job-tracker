@@ -11,7 +11,6 @@ import {
   useSensor,
   PointerSensor,
   KeyboardSensor,
-  UniqueIdentifier,
   closestCenter,
   useDroppable,
 } from '@dnd-kit/core';
@@ -19,35 +18,60 @@ import {
 import { SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
 import { IApplication, ApplicationStatus } from '@/types'
+import { APPLICATION_STATUS_OPTIONS } from '@/lib/display'
 import ApplicationCard from './ApplicationCard'
 import DraggableCard from './DraggableCard'
-import { useQueryClient } from '@tanstack/react-query'
+import { useUpdateApplicationStatus } from '@/hooks/useMutations'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
 
-const statusColumns = [
-  { key: 'wishlist', label: 'Wishlist', dotColor: 'bg-muted-foreground', emptyBorder: 'border-border' },
-  { key: 'applied', label: 'Applied', dotColor: 'bg-blue-500', emptyBorder: 'border-blue-500/20' },
-  { key: 'interview', label: 'Interview', dotColor: 'bg-yellow-500', emptyBorder: 'border-yellow-500/20' },
-  { key: 'offer', label: 'Offer', dotColor: 'bg-green-500', emptyBorder: 'border-green-500/20' },
-  { key: 'rejected', label: 'Rejected', dotColor: 'bg-red-500', emptyBorder: 'border-red-500/20' },
-] as const
+// One column per status, in enum order, so a new status cannot appear on the
+// board without its label and colours existing.
+const statusColumns = APPLICATION_STATUS_OPTIONS.map(({ value, label, dot, emptyBorder }) => ({
+  key: value,
+  label,
+  dotColor: dot,
+  emptyBorder,
+}))
 
 type GroupedApps = Record<ApplicationStatus, IApplication[]>
 
+function groupByStatus(apps: IApplication[]): GroupedApps {
+  const grouped = apps.reduce((acc, app) => {
+    if (!acc[app.status]) acc[app.status] = []
+    acc[app.status].push(app)
+    return acc
+  }, {} as GroupedApps)
+  for (const col of statusColumns) {
+    if (!grouped[col.key]) grouped[col.key] = []
+  }
+  return grouped
+}
+
+// Identity of the incoming list, ignoring array identity. The parent rebuilds
+// `applications` on every keystroke of its search box, so resyncing on the
+// reference would fight every optimistic drag; resyncing on content means a
+// filter change or a refetch updates the board while a local drag (which
+// changes `columns` but not the props) is left alone.
+function signatureOf(apps: IApplication[]): string {
+  return apps.map(a => `${a._id}:${a.status}`).join('|')
+}
+
 export default function KanbanBoard({ applications: initial }: { applications: IApplication[] }) {
-  const queryClient = useQueryClient()
-  const [columns, setColumns] = useState<GroupedApps>(() => {
-    const grouped = initial.reduce((acc, app) => {
-      if (!acc[app.status]) acc[app.status] = []
-      acc[app.status].push(app)
-      return acc
-    }, {} as GroupedApps)
-    for (const col of statusColumns) {
-      if (!grouped[col.key]) grouped[col.key] = []
-    }
-    return grouped
-  })
+  const updateStatus = useUpdateApplicationStatus()
+  const [columns, setColumns] = useState<GroupedApps>(() => groupByStatus(initial))
   const [activeCard, setActiveCard] = useState<IApplication | null>(null)
+
+  // Adjusting state during render rather than in an effect — React's
+  // documented pattern for derived-from-props state, and it avoids the
+  // cascading re-render an effect would cause. Previously this state was
+  // seeded once and never resynced, so filtering the list left the board
+  // showing every card.
+  const signature = signatureOf(initial)
+  const [prevSignature, setPrevSignature] = useState(signature)
+  if (signature !== prevSignature) {
+    setPrevSignature(signature)
+    setColumns(groupByStatus(initial))
+  }
 
   const sensors = useSensors(useSensor(PointerSensor,
     {
@@ -164,28 +188,14 @@ export default function KanbanBoard({ applications: initial }: { applications: I
       }
     })
 
-    // API call for status change
+    // Persist the move. The local state above is the optimistic update; on
+    // failure the mutation reports it and the board rolls back to the props.
     const originalStatus = initial.find(app => app._id === activeId)?.status
     if (activeApp.status !== originalStatus) {
       try {
-        await fetch(`/api/applications/${activeId}/status`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ status: overColumnId }),
-        })
-        queryClient.invalidateQueries({ queryKey: ['applications'] })
-      } catch (error) {
-        console.error('Status update failed:', error)
-        // Optionally revert to initial
-        const grouped = initial.reduce((acc, app) => {
-          if (!acc[app.status]) acc[app.status] = []
-          acc[app.status].push(app)
-          return acc
-        }, {} as GroupedApps)
-        for (const col of statusColumns) {
-          if (!grouped[col.key]) grouped[col.key] = []
-        }
-        setColumns(grouped)
+        await updateStatus.mutateAsync({ id: activeId, status: overColumnId })
+      } catch {
+        setColumns(groupByStatus(initial))
       }
     }
   }
@@ -209,7 +219,7 @@ export default function KanbanBoard({ applications: initial }: { applications: I
 
       <DragOverlay>
         {activeCard ? (
-          <div className="rotate-1 cursor-grab shadow-lg">
+          <div className="rotate-1 cursor-grab shadow-lg rounded-xl drag-glow">
             <ApplicationCard application={activeCard} />
           </div>
         ) : null}

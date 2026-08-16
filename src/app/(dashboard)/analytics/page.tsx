@@ -1,7 +1,11 @@
 // src/app/(dashboard)/analytics/page.tsx
 'use client'
 
-import { useQuery } from '@tanstack/react-query'
+import { useDashboard } from '@/hooks/useQueries'
+import { APPLICATION_STATUS_OPTIONS } from '@/lib/display'
+import PageShell, { PageGrid } from '@/components/common/PageShell'
+import ErrorState from '@/components/common/ErrorState'
+import { AnalyticsSkeleton } from '@/components/common/Skeletons'
 import {
   BarChart,
   Bar,
@@ -15,22 +19,14 @@ import {
   Legend,
 } from 'recharts'
 
-async function fetchAnalytics() {
-  const res = await fetch('/api/dashboard')
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
-}
-
-const statusColors: Record<string, string> = {
-  wishlist:  '#64748b',
-  applied:   '#3b82f6',
-  interview: '#eab308',
-  offer:     '#22c55e',
-  rejected:  '#ef4444',
-}
-
 // ─── Custom Tooltip ──────────────────────────────────
-function CustomTooltip({ active, payload }: any) {
+interface TooltipEntry {
+  name?: string
+  value?: number
+  payload?: { name?: string }
+}
+
+function CustomTooltip({ active, payload }: { active?: boolean; payload?: TooltipEntry[] }) {
   if (active && payload && payload.length) {
     const entry = payload[0]
     // For bar charts, the category is in entry.payload.name
@@ -49,28 +45,33 @@ function CustomTooltip({ active, payload }: any) {
 }
 
 export default function AnalyticsPage() {
-  const { data, isLoading } = useQuery({
-    queryKey: ['dashboard'],
-    queryFn: fetchAnalytics,
-  })
+  const { data, isLoading, isError, error, refetch, isFetching } = useDashboard()
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Loading analytics...</p>
-      </div>
+      <PageShell>
+        <AnalyticsSkeleton />
+      </PageShell>
+    )
+  }
+
+  if (isError || !data) {
+    return (
+      <PageShell>
+        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+      </PageShell>
     )
   }
 
   const { stats } = data
 
-  const barData = [
-    { name: 'Wishlist',  value: stats.wishlist },
-    { name: 'Applied',   value: stats.applied },
-    { name: 'Interview', value: stats.interview },
-    { name: 'Offer',     value: stats.offer },
-    { name: 'Rejected',  value: stats.rejected },
-  ]
+  // Derived from the enum, and each datum carries its own colour so the chart
+  // never has to map a rendered label back to a status key.
+  const barData = APPLICATION_STATUS_OPTIONS.map(({ value, label, chart }) => ({
+    name: label,
+    value: stats[value] ?? 0,
+    fill: chart,
+  }))
 
   const pieData = barData.filter(d => d.value > 0)
 
@@ -82,44 +83,38 @@ export default function AnalyticsPage() {
     ? Math.round((stats.offer / stats.interview) * 100)
     : 0
 
-  return (
-    <div className="max-w-4xl mx-auto space-y-8">
+  return (<>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-foreground text-2xl font-bold">Analytics</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Insights into your job search performance
-        </p>
-      </div>
+    <h1 className="text-2xl font-bold">Application Analytics Overview</h1>
 
+    <PageShell>
       {/* Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <div className="bg-card border border-border rounded-xl p-5">
+      <PageGrid>
+        <div className="md:col-span-4 bg-card border border-border rounded-xl p-5">
           <p className="text-muted-foreground text-xs mb-1">Total Applications</p>
           <p className="text-foreground text-3xl font-bold">{stats.total}</p>
         </div>
-        <div className="bg-card border border-blue-500/20 rounded-xl p-5">
+        <div className="md:col-span-4 bg-card border border-stage-applied-fg/20 rounded-xl p-5">
           <p className="text-muted-foreground text-xs mb-1">Interview Rate</p>
-          <p className="text-blue-500 text-3xl font-bold">{conversionRate}%</p>
+          <p className="text-stage-applied-fg text-3xl font-bold">{conversionRate}%</p>
           <p className="text-muted-foreground/60 text-xs mt-1">
             of applied → interview
           </p>
         </div>
-        <div className="bg-card border border-green-500/20 rounded-xl p-5">
+        <div className="md:col-span-4 bg-card border border-stage-offer-fg/20 rounded-xl p-5">
           <p className="text-muted-foreground text-xs mb-1">Offer Rate</p>
-          <p className="text-green-500 text-3xl font-bold">{offerRate}%</p>
+          <p className="text-stage-offer-fg text-3xl font-bold">{offerRate}%</p>
           <p className="text-muted-foreground/60 text-xs mt-1">
             of interviews → offer
           </p>
         </div>
-      </div>
+      </PageGrid>
 
       {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <PageGrid>
 
         {/* Bar Chart */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="md:col-span-6 bg-card border border-border rounded-xl p-6">
           <h2 className="text-foreground font-semibold text-sm mb-6">
             Applications by Status
           </h2>
@@ -151,7 +146,7 @@ export default function AnalyticsPage() {
                   {barData.map(entry => (
                     <Cell
                       key={entry.name}
-                      fill={statusColors[entry.name.toLowerCase()]}
+                      fill={entry.fill}
                     />
                   ))}
                 </Bar>
@@ -161,7 +156,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-card border border-border rounded-xl p-6">
+        <div className="md:col-span-6 bg-card border border-border rounded-xl p-6">
           <h2 className="text-foreground font-semibold text-sm mb-6">
             Status Distribution
           </h2>
@@ -182,7 +177,7 @@ export default function AnalyticsPage() {
                   {pieData.map(entry => (
                     <Cell
                       key={entry.name}
-                      fill={statusColors[entry.name.toLowerCase()]}
+                      fill={entry.fill}
                     />
                   ))}
                 </Pie>
@@ -200,7 +195,7 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-      </div>
+      </PageGrid>
 
       {/* Breakdown Table */}
       <div className="bg-card border border-border rounded-xl p-6">
@@ -225,7 +220,7 @@ export default function AnalyticsPage() {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${pct}%`,
-                      backgroundColor: statusColors[item.name.toLowerCase()],
+                      backgroundColor: item.fill,
                     }}
                   />
                 </div>
@@ -235,7 +230,8 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-    </div>
+    </PageShell>
+  </>
   )
 }
 

@@ -1,90 +1,69 @@
 // src/components/layout/Sidebar.tsx
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import {
-  LayoutDashboard,
-  Briefcase,
-  User,
-  FileText,
-  Settings,
-  TrendingUp,
-} from 'lucide-react'
+import { NAV_ROUTES, isActiveRoute } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
-import ThemeToggle from './ThemeToggle'
+import { TooltipProvider } from '@/components/ui/tooltip'
+import NavLink from './NavLink'
+import {
+  useSidebar,
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_COLLAPSED,
+} from './SidebarContext'
 
-const navItems = [
-  { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { label: 'Applications', href: '/applications', icon: Briefcase },
-  { label: 'Notes', href: '/notes', icon: FileText },
-  { label: 'Analytics', href: '/analytics', icon: TrendingUp },
-  { label: 'Profile', href: '/profile', icon: User },
-  { label: 'Settings', href: '/settings', icon: Settings },
-]
-
+// A flex item beneath the full-width header, not a fixed overlay: the content
+// beside it takes the remaining space on its own, so nothing has to mirror
+// this width as a margin. The brand and the collapse toggle both live in the
+// header now.
 export default function Sidebar() {
   const pathname = usePathname()
+  const { collapsed } = useSidebar()
 
   return (
-    <aside className="
-      fixed left-0 top-0 h-full w-64 z-40
-      bg-sidebar border-r border-sidebar-border
-      flex flex-col
-    ">
-      {/* Logo */}
-      <div className="p-6 border-b border-sidebar-border">
-        <div className="flex items-center gap-3">
-          <div className="
-            w-8 h-8 rounded-lg
-            bg-primary
-            flex items-center justify-center
-          ">
-            <Briefcase className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <div>
-            <h1 className="text-sidebar-foreground font-semibold text-sm">
-              JobTracker
-            </h1>
-            <p className="text-muted-foreground text-xs">
-              Job Search Manager
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-1">
-        {navItems.map((item) => {
-          const Icon = item.icon
-          const isActive =
-            pathname === item.href ||
-            (item.href !== '/dashboard' && pathname.startsWith(item.href))
-
-          return (
-            <Link
+    <TooltipProvider>
+      <aside
+        className={cn(
+          'shrink-0 h-full bg-sidebar border-r border-sidebar-border flex flex-col',
+          'transition-[width] duration-200 ease-out motion-reduce:transition-none',
+          collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH
+        )}
+      >
+        <nav
+          className={cn(
+            'flex-1 space-y-1 overflow-y-auto overflow-x-hidden py-4',
+            collapsed ? 'px-2' : 'px-4'
+          )}
+        >
+          {NAV_ROUTES.map(item => (
+            <NavLink
               key={item.href}
               href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150',
-                isActive
-                  ? 'bg-primary text-primary-foreground'
-                  : 'text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent'
-              )}
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {item.label}
-            </Link>
-          )
-        })}
-      </nav>
+              label={item.label}
+              icon={item.icon}
+              isActive={isActiveRoute(pathname, item.href)}
+              collapsed={collapsed}
+            />
+          ))}
+        </nav>
 
-      {/* Bottom */}
-      <div className="p-4 border-t border-sidebar-border">
-        <p className="text-muted-foreground text-xs text-center">
-          JobTracker v1.0
-        </p>
-      </div>
-    </aside>
+        <div
+          className={cn(
+            'border-t border-sidebar-border shrink-0 py-3 overflow-hidden',
+            collapsed ? 'px-2' : 'px-4'
+          )}
+        >
+          <p
+            className={cn(
+              'text-sidebar-muted-foreground text-xs text-center whitespace-nowrap',
+              'transition-opacity duration-200 motion-reduce:transition-none',
+              collapsed ? 'opacity-0' : 'opacity-100'
+            )}
+          >
+            JobTracker v1.0
+          </p>
+        </div>
+      </aside>
+    </TooltipProvider>
   )
 }

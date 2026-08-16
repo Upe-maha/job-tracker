@@ -3,7 +3,6 @@
 
 import { useState, useRef } from 'react'
 import {
-  Plus,
   FileText,
   Link,
   Trash2,
@@ -16,20 +15,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { format } from 'date-fns'
 import { IPrepFile } from '@/types'
+import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
+import { useUpload } from '@/hooks/useMutations'
 
 interface PrepFilesTabProps {
   files: IPrepFile[]
-  applicationId: string
-  onAdd: (file: { name: string; type: string; url: string }) => Promise<void>
+  onAdd: (file: PrepFileCreateInput) => Promise<void>
   onDelete: (fileId: string) => Promise<void>
 }
 
 export default function PrepFilesTab({
   files,
-  applicationId,
   onAdd,
   onDelete,
 }: PrepFilesTabProps) {
+  const upload = useUpload()
   const [mode, setMode] = useState<'pdf' | 'link' | null>(null)
   const [linkForm, setLinkForm] = useState({ name: '', url: '' })
   const [uploading, setUploading] = useState(false)
@@ -56,32 +56,19 @@ export default function PrepFilesTab({
 
     setUploading(true)
     try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('folder', 'prep-files')
-
-      const res = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'x-upload-request': '1' },
-        body: formData,
-      })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setError(data.error)
-        return
-      }
+      const { url } = await upload.mutateAsync({ file, folder: 'prep-files' })
 
       await onAdd({
-        name: file.name.replace('.pdf', ''),
+        // Strip only a trailing .pdf — String.replace would remove the first
+        // occurrence anywhere, mangling a name like "cv.pdf.backup.pdf".
+        name: file.name.replace(/\.pdf$/i, ''),
         type: 'pdf',
-        url: data.url,
+        url,
       })
 
       setMode(null)
-
-    } catch (err) {
+    } catch {
+      // useUpload already reports the real reason as a toast.
       setError('Upload failed. Please try again.')
     } finally {
       setUploading(false)
@@ -112,7 +99,7 @@ export default function PrepFilesTab({
       setLinkForm({ name: '', url: '' })
       setMode(null)
 
-    } catch (err) {
+    } catch {
       setError('Failed to save link.')
     } finally {
       setLinkLoading(false)
@@ -269,8 +256,8 @@ function PrepFileRow({
         <div className={`
           w-8 h-8 rounded-lg flex items-center justify-center shrink-0
           ${isPdf
-            ? 'bg-red-500/10 text-red-500'
-            : 'bg-blue-500/10 text-blue-500'
+            ? 'bg-destructive/10 text-destructive'
+            : 'bg-stage-applied text-stage-applied-fg'
           }
         `}>
           {isPdf ? (

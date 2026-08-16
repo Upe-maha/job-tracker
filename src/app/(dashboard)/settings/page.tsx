@@ -1,74 +1,64 @@
 // src/app/(dashboard)/settings/page.tsx
 'use client'
 
-import { useState } from 'react'
 import { signOut } from 'next-auth/react'
+import { useForm } from 'react-hook-form'
+import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import { Lock, LogOut, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import {
+  passwordChangeFormSchema,
+  type PasswordChangeFormValues,
+} from '@/lib/schemas/user'
+import { useChangePassword } from '@/hooks/useMutations'
+import { ApiError } from '@/lib/api-client'
+import PageShell from '@/components/common/PageShell'
+
+const EMPTY: PasswordChangeFormValues = {
+  currentPassword: '',
+  newPassword: '',
+  confirmPassword: '',
+}
 
 export default function SettingsPage() {
-  const [passwords, setPasswords] = useState({
-    current: '',
-    new: '',
-    confirm: '',
+  const changePassword = useChangePassword()
+
+  // The schema owns all three rules the component used to hand-roll: the
+  // 6-character minimum, the confirm-match, and "must differ from current" —
+  // the last of which the client never checked, so it only ever surfaced as a
+  // 400 after a round trip.
+  const form = useForm<PasswordChangeFormValues>({
+    resolver: standardSchemaResolver(passwordChangeFormSchema),
+    defaultValues: EMPTY,
   })
-  const [pwError, setPwError] = useState('')
-  const [pwSuccess, setPwSuccess] = useState('')
-  const [pwLoading, setPwLoading] = useState(false)
 
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault()
-    setPwError('')
-    setPwSuccess('')
-
-    if (passwords.new !== passwords.confirm) {
-      setPwError('New passwords do not match')
-      return
-    }
-
-    if (passwords.new.length < 6) {
-      setPwError('Password must be at least 6 characters')
-      return
-    }
-
-    setPwLoading(true)
+  async function handleChangePassword(values: PasswordChangeFormValues) {
     try {
-      const res = await fetch('/api/user/password', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          currentPassword: passwords.current,
-          newPassword: passwords.new,
-        }),
+      await changePassword.mutateAsync({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
       })
-
-      const data = await res.json()
-
-      if (!res.ok) {
-        setPwError(data.error)
-        return
-      }
-
-      setPwSuccess('Password updated successfully')
-      setPasswords({ current: '', new: '', confirm: '' })
-
-    } finally {
-      setPwLoading(false)
+      form.reset(EMPTY)
+    } catch (error) {
+      // Server-side rejections ("Current password is incorrect") belong next
+      // to the field, not in a toast.
+      form.setError('currentPassword', {
+        message: error instanceof ApiError ? error.message : 'Something went wrong',
+      })
     }
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-
-      {/* Header */}
-      <div>
-        <h1 className="text-foreground text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Manage your account settings
-        </p>
-      </div>
+    <PageShell className="max-w-3xl">
 
       {/* Change password */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
@@ -77,70 +67,80 @@ export default function SettingsPage() {
           Change Password
         </h2>
 
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">
-              Current Password
-            </Label>
-            <Input
-              type="password"
-              value={passwords.current}
-              onChange={e =>
-                setPasswords(p => ({ ...p, current: e.target.value }))
-              }
-              placeholder="Enter current password"
-              className="bg-background border-border text-foreground"
-              required
-            />
-          </div>
+        {/* Step C made this confirm-first, so say so up front — otherwise the
+            form looks like it failed when the password still works afterwards. */}
+        <p className="text-muted-foreground text-xs">
+          We&apos;ll email you a link to confirm. Your password stays the same until you click it.
+        </p>
 
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">
-              New Password
-            </Label>
-            <Input
-              type="password"
-              value={passwords.new}
-              onChange={e =>
-                setPasswords(p => ({ ...p, new: e.target.value }))
-              }
-              placeholder="Min 6 characters"
-              className="bg-background border-border text-foreground"
-              required
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleChangePassword)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="currentPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground text-xs">Current Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Enter current password"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">
-              Confirm New Password
-            </Label>
-            <Input
-              type="password"
-              value={passwords.confirm}
-              onChange={e =>
-                setPasswords(p => ({ ...p, confirm: e.target.value }))
-              }
-              placeholder="Repeat new password"
-              className="bg-background border-border text-foreground"
-              required
+            <FormField
+              control={form.control}
+              name="newPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground text-xs">New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Min 6 characters"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          {pwError && (
-            <p className="text-destructive text-sm">{pwError}</p>
-          )}
-          {pwSuccess && (
-            <p className="text-green-500 text-sm">{pwSuccess}</p>
-          )}
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-muted-foreground text-xs">Confirm New Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Repeat new password"
+                      className="bg-background border-border text-foreground"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
           <Button
             type="submit"
-            disabled={pwLoading}
+            disabled={form.formState.isSubmitting}
             className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
           >
-            {pwLoading ? 'Updating...' : 'Update Password'}
+            {form.formState.isSubmitting ? 'Updating...' : 'Update Password'}
           </Button>
-        </form>
+          </form>
+        </Form>
       </div>
 
       {/* Sign out */}
@@ -181,6 +181,6 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-    </div>
+    </PageShell>
   )
 }

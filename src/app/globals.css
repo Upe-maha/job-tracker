@@ -11,6 +11,7 @@
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-accent: var(--sidebar-accent);
@@ -57,109 +58,147 @@
   --color-text-muted: var(--text-muted);
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
+
+  /* Application stage tokens — named for the enum members in
+     @/lib/schemas/enums, so a new status is a compile error in
+     APPLICATION_STATUS_META until its colours exist here too. */
+  --color-stage-wishlist: var(--stage-wishlist);
+  --color-stage-wishlist-fg: var(--stage-wishlist-fg);
+  --color-stage-applied: var(--stage-applied);
+  --color-stage-applied-fg: var(--stage-applied-fg);
+  --color-stage-interview: var(--stage-interview);
+  --color-stage-interview-fg: var(--stage-interview-fg);
+  --color-stage-offer: var(--stage-offer);
+  --color-stage-offer-fg: var(--stage-offer-fg);
+  --color-stage-rejected: var(--stage-rejected);
+  --color-stage-rejected-fg: var(--stage-rejected-fg);
 }
 
-/* ─── LIGHT THEME ─────────────────────────────────── */
+/* ─── LIGHT THEME ─────────────────────────────────────────────────────────
+   A single hue family: every neutral sits between 177° and 191°, which is
+   what makes the greys read as belonging to the teal rather than sitting
+   next to it.
+
+   The primary/ring split is a contrast requirement, not a preference:
+   #12B2C1 measures 2.6:1 on white — far under the 4.5:1 minimum — so it
+   cannot be a filled-button colour in light mode. Light mode fills with
+   #0C7285 (5.6:1) and spends the bright cyan on the focus ring, the active
+   nav indicator and links. Dark mode inverts the two roles. */
 :root {
-  /* shadcn base tokens — light */
-  --background: oklch(0.97 0 0);
-  --foreground: oklch(0.15 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.15 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.15 0 0);
-  --primary: oklch(0.45 0.18 264);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.93 0 0);
-  --secondary-foreground: oklch(0.2 0 0);
-  --muted: oklch(0.93 0 0);
-  --muted-foreground: oklch(0.5 0 0);
-  --accent: oklch(0.93 0 0);
-  --accent-foreground: oklch(0.2 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.88 0 0);
-  --input: oklch(0.88 0 0);
-  --ring: oklch(0.45 0.18 264);
+  --background: hsl(177 63% 94%);        /* #E5F9F8 */
+  --foreground: hsl(189 18% 15%);        /* #1F2B2D */
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(189 18% 15%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(189 18% 15%);
+  --primary: hsl(189 83% 28%);           /* #0C7285 — fills */
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(180 44% 89%);
+  --secondary-foreground: hsl(187 56% 31%);
+  --muted: hsl(180 44% 89%);
+  --muted-foreground: hsl(188 17% 35%);
+  --accent: hsl(181 50% 88%);
+  --accent-foreground: hsl(189 83% 28%);
+  --destructive: hsl(350 89% 47%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(182 37% 83%);
+  --input: hsl(182 37% 83%);
+  --ring: hsl(185 83% 41%);              /* #12B2C1 — ring, links, indicator */
   --radius: 0.625rem;
 
-  /* Chart tokens */
-  --chart-1: oklch(0.45 0.18 264);
-  --chart-2: oklch(0.6 0.15 160);
-  --chart-3: oklch(0.7 0.17 60);
-  --chart-4: oklch(0.65 0.2 30);
-  --chart-5: oklch(0.55 0.18 300);
+  /* Charts read the stage foregrounds so a bar and its badge agree. */
+  --chart-1: hsl(263 70% 42%);
+  --chart-2: hsl(33 100% 29%);
+  --chart-3: hsl(143 61% 24%);
+  --chart-4: hsl(342 79% 35%);
+  --chart-5: hsl(189 15% 30%);
 
-  /* Sidebar tokens */
-  --sidebar: oklch(1 0 0);
-  --sidebar-foreground: oklch(0.15 0 0);
-  --sidebar-primary: oklch(0.45 0.18 264);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.93 0 0);
-  --sidebar-accent-foreground: oklch(0.2 0 0);
-  --sidebar-border: oklch(0.88 0 0);
-  --sidebar-ring: oklch(0.45 0.18 264);
+  /* The left navigation rail only — NOT the header, which follows the theme
+     like the rest of the app. These carry the dark palette in BOTH modes and
+     are declared only here, so the .dark block has nothing to override and
+     the two cannot drift.
 
-  /* App-specific surface tokens — light */
-  --surface: oklch(1 0 0);
-  --surface-raised: oklch(0.97 0 0);
-  --surface-overlay: oklch(0.95 0 0);
-  --border-subtle: oklch(0.9 0 0);
-  --text-primary: oklch(0.15 0 0);
-  --text-secondary: oklch(0.35 0 0);
-  --text-muted: oklch(0.55 0 0);
-  --brand: oklch(0.45 0.18 264);
-  --brand-hover: oklch(0.38 0.18 264);
+     Anything rendered inside the rail must use a --sidebar-* token, never
+     --foreground / --muted-foreground, or it goes dark-on-dark in light
+     mode. Conversely, nothing outside the rail should use these. */
+  --sidebar: hsl(189 18% 15%);
+  --sidebar-foreground: hsl(177 63% 94%);
+  --sidebar-muted-foreground: hsl(187 18% 63%);
+  --sidebar-primary: hsl(185 83% 41%);
+  --sidebar-primary-foreground: hsl(188 83% 9%);
+  --sidebar-accent: hsl(190 20% 23%);
+  --sidebar-accent-foreground: hsl(177 63% 94%);
+  --sidebar-border: hsl(190 20% 23%);
+  --sidebar-ring: hsl(185 83% 41%);
+
+  --surface: hsl(0 0% 100%);
+  --surface-raised: hsl(180 44% 96%);
+  --surface-overlay: hsl(180 44% 89%);
+  --border-subtle: hsl(182 37% 88%);
+  --text-primary: hsl(189 18% 15%);
+  --text-secondary: hsl(188 17% 35%);
+  --text-muted: hsl(188 15% 48%);
+  --brand: hsl(189 83% 28%);
+  --brand-hover: hsl(189 83% 22%);
+
+  /* Stage chips. Applied is violet rather than blue: cyan and blue are close
+     enough that a blue chip would read as a primary button. */
+  --stage-wishlist: hsl(189 9% 92%);     --stage-wishlist-fg: hsl(189 15% 30%);
+  --stage-applied: hsl(251 91% 95%);     --stage-applied-fg: hsl(263 70% 42%);
+  --stage-interview: hsl(48 96% 89%);    --stage-interview-fg: hsl(33 100% 29%);
+  /* Offer is at 143°, not emerald's ~160° — 160° is only 25° off the cyan and
+     the two chips would read as siblings. */
+  --stage-offer: hsl(141 79% 93%);       --stage-offer-fg: hsl(143 61% 24%);
+  --stage-rejected: hsl(356 100% 95%);   --stage-rejected-fg: hsl(342 79% 35%);
 }
 
-/* ─── DARK THEME ──────────────────────────────────── */
+/* ─── DARK THEME ──────────────────────────────────────────────────────────
+   The app's default. Here #12B2C1 becomes the fill, with near-black cyan
+   text on top — the same colour as light mode's ring, in the opposite role. */
 .dark {
-  /* shadcn base tokens — dark (your slate palette) */
-  --background: oklch(0.13 0.01 264);
-  --foreground: oklch(0.97 0 0);
-  --card: oklch(0.18 0.01 264);
-  --card-foreground: oklch(0.97 0 0);
-  --popover: oklch(0.18 0.01 264);
-  --popover-foreground: oklch(0.97 0 0);
-  --primary: oklch(0.55 0.2 264);
-  --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.22 0.01 264);
-  --secondary-foreground: oklch(0.97 0 0);
-  --muted: oklch(0.22 0.01 264);
-  --muted-foreground: oklch(0.6 0.01 264);
-  --accent: oklch(0.22 0.01 264);
-  --accent-foreground: oklch(0.97 0 0);
-  --destructive: oklch(0.65 0.22 25);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.55 0.2 264);
+  --background: hsl(191 28% 8%);         /* #0E1719 */
+  --foreground: hsl(177 63% 94%);        /* #E5F9F8 */
+  --card: hsl(189 18% 15%);              /* #1F2B2D */
+  --card-foreground: hsl(177 63% 94%);
+  --popover: hsl(189 18% 15%);
+  --popover-foreground: hsl(177 63% 94%);
+  --primary: hsl(185 83% 41%);           /* #12B2C1 — fills */
+  --primary-foreground: hsl(188 83% 9%);
+  --secondary: hsl(189 20% 19%);
+  --secondary-foreground: hsl(177 63% 94%);
+  --muted: hsl(189 20% 19%);
+  --muted-foreground: hsl(187 18% 63%);
+  --accent: hsl(190 20% 23%);
+  --accent-foreground: hsl(177 63% 94%);
+  --destructive: hsl(350 75% 65%);
+  --destructive-foreground: hsl(188 83% 9%);
+  --border: hsl(190 20% 23%);
+  --input: hsl(190 20% 23%);
+  --ring: hsl(185 83% 41%);
 
-  /* Chart tokens */
-  --chart-1: oklch(0.55 0.2 264);
-  --chart-2: oklch(0.65 0.15 160);
-  --chart-3: oklch(0.75 0.17 60);
-  --chart-4: oklch(0.65 0.22 25);
-  --chart-5: oklch(0.6 0.18 300);
+  --chart-1: hsl(255 92% 76%);
+  --chart-2: hsl(45 97% 64%);
+  --chart-3: hsl(142 77% 73%);
+  --chart-4: hsl(353 96% 82%);
+  --chart-5: hsl(187 15% 71%);
 
-  /* Sidebar tokens */
-  --sidebar: oklch(0.18 0.01 264);
-  --sidebar-foreground: oklch(0.97 0 0);
-  --sidebar-primary: oklch(0.55 0.2 264);
-  --sidebar-primary-foreground: oklch(0.98 0 0);
-  --sidebar-accent: oklch(0.22 0.01 264);
-  --sidebar-accent-foreground: oklch(0.97 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.55 0.2 264);
+  /* Sidebar tokens are intentionally absent — see the note in :root. */
 
-  /* App-specific surface tokens — dark */
-  --surface: oklch(0.18 0.01 264);
-  --surface-raised: oklch(0.22 0.01 264);
-  --surface-overlay: oklch(0.25 0.01 264);
-  --border-subtle: oklch(1 0 0 / 10%);
-  --text-primary: oklch(0.97 0 0);
-  --text-secondary: oklch(0.75 0.01 264);
-  --text-muted: oklch(0.55 0.01 264);
-  --brand: oklch(0.55 0.2 264);
-  --brand-hover: oklch(0.62 0.2 264);
+  --surface: hsl(189 18% 15%);
+  --surface-raised: hsl(189 20% 19%);
+  --surface-overlay: hsl(190 20% 23%);
+  --border-subtle: hsl(190 20% 23%);
+  --text-primary: hsl(177 63% 94%);
+  --text-secondary: hsl(187 18% 63%);
+  --text-muted: hsl(187 15% 50%);
+  --brand: hsl(185 83% 41%);
+  --brand-hover: hsl(185 83% 48%);
+
+  --stage-wishlist: hsl(189 20% 19%);    --stage-wishlist-fg: hsl(187 15% 71%);
+  --stage-applied: hsl(258 50% 25%);     --stage-applied-fg: hsl(255 92% 76%);
+  --stage-interview: hsl(40 82% 13%);    --stage-interview-fg: hsl(45 97% 64%);
+  --stage-offer: hsl(145 62% 11%);       --stage-offer-fg: hsl(142 77% 73%);
+  --stage-rejected: hsl(348 74% 14%);    --stage-rejected-fg: hsl(353 96% 82%);
 }
 
 @layer base {
@@ -171,5 +210,17 @@
   }
   html {
     @apply font-sans;
+  }
+}
+
+@layer utilities {
+  /* The one glow in the app, and it is functional: a card lifting off the
+     Kanban board is the single moment where the element genuinely leaves the
+     surface. Dark mode only — the halo needs a dark ground to read as light
+     rather than as a smudge. */
+  .dark .drag-glow {
+    box-shadow:
+      0 0 0 1px var(--ring),
+      0 0 12px -2px color-mix(in srgb, var(--ring) 50%, transparent);
   }
 }

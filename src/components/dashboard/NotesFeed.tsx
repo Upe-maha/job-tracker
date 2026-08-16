@@ -3,45 +3,14 @@
 
 import { format } from 'date-fns'
 import Link from 'next/link'
-import {
-  MessageSquare,
-  Brain,
-  BookOpen,
-  FileText,
-  ArrowRight,
-} from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 import { INoteFeedItem } from '@/types'
+import { NOTE_TYPE_META } from '@/lib/display'
 
 interface NotesFeedProps {
   notes: INoteFeedItem[]
 }
 
-const noteTypeConfig = {
-  interview_question: {
-    label: 'Interview Q',
-    icon: MessageSquare,
-    color: 'text-blue-500',
-    dot: 'bg-blue-500',
-  },
-  personal_experience: {
-    label: 'Experience',
-    icon: Brain,
-    color: 'text-purple-500',
-    dot: 'bg-purple-500',
-  },
-  experience_log: {
-    label: 'Exp Log',
-    icon: BookOpen,
-    color: 'text-orange-500',
-    dot: 'bg-orange-500',
-  },
-  general: {
-    label: 'Note',
-    icon: FileText,
-    color: 'text-muted-foreground',
-    dot: 'bg-muted-foreground',
-  },
-}
 
 export default function NotesFeed({ notes }: NotesFeedProps) {
   if (notes.length === 0) {
@@ -61,8 +30,7 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
     <div className="space-y-3">
       {notes.map(item => {
         const config =
-          noteTypeConfig[item.noteType as keyof typeof noteTypeConfig]
-          ?? noteTypeConfig.general
+          NOTE_TYPE_META[item.noteType] ?? NOTE_TYPE_META.general
         const Icon = config.icon
 
         return (
@@ -86,6 +54,8 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                 ">
                   {item.companyLogo ? (
                     <img
+                      referrerPolicy="no-referrer"
+                      loading="lazy"
                       src={item.companyLogo}
                       alt={item.company}
                       className="w-9 h-9 rounded-lg object-cover"
@@ -106,7 +76,7 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                         flex items-center gap-1 text-xs ${config.color}
                       `}>
                         <Icon className="w-3 h-3" />
-                        <span>{config.label}</span>
+                        <span>{config.shortLabel}</span>
                       </div>
                     </div>
                     <span className="text-muted-foreground/60 text-xs shrink-0">

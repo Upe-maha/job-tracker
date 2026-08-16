@@ -1,9 +1,8 @@
 // src/app/(dashboard)/applications/[id]/page.tsx
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { ArrowLeft } from 'lucide-react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -15,59 +14,62 @@ import {
   PrepFilesTab,
 } from '@/components/applications/detail'
 import ExperienceLogPrompt from '@/components/notes/ExperienceLogPrompt'
-import { IApplication, INote, ApplicationStatus, IPrepFile } from '@/types'
-
-async function fetchApplication(id: string): Promise<IApplication> {
-  const res = await fetch(`/api/applications/${id}`)
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
-}
+import { useApplication } from '@/hooks/useQueries'
+import {
+  useAddContact,
+  useAddNote,
+  useAddPrepFile,
+  useDeleteContact,
+  useDeleteNote,
+  useDeletePrepFile,
+} from '@/hooks/useMutations'
+import type { NoteCreatePayload } from '@/lib/schemas/note'
+import type { ContactCreatePayload } from '@/lib/schemas/contact'
+import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
+import { ApplicationStatus } from '@/types'
+import PageShell from '@/components/common/PageShell'
+import ErrorState from '@/components/common/ErrorState'
+import { DetailSkeleton } from '@/components/common/Skeletons'
 
 export default function ApplicationDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const queryClient = useQueryClient()
   const id = params.id as string
 
   const [showExpPrompt, setShowExpPrompt] = useState(false)
-  const [prevStatus, setPrevStatus] = useState<ApplicationStatus | null>(null)
 
-  const { data: application, isLoading } = useQuery({
-    queryKey: ['application', id],
-    queryFn: () => fetchApplication(id),
-  })
+  const { data: application, isLoading, isError, error, refetch, isFetching } =
+    useApplication(id)
 
-  // Show experience log prompt when moved to rejected
-  useEffect(() => {
-    if (!application) return
-    if (prevStatus && prevStatus !== 'rejected' && application.status === 'rejected') {
+  const addNote = useAddNote(id)
+  const deleteNote = useDeleteNote(id)
+  const addContact = useAddContact(id)
+  const deleteContact = useDeleteContact(id)
+  const addPrepFile = useAddPrepFile(id)
+  const deletePrepFile = useDeletePrepFile(id)
+
+  // Offer the experience-log prompt the moment an application becomes
+  // rejected. Tracked by comparing against the previous render's value rather
+  // than in an effect: setting state inside an effect body triggers a
+  // cascading re-render, which is what the lint rule here objects to.
+  const status = application?.status ?? null
+  const [prevStatus, setPrevStatus] = useState<ApplicationStatus | null>(status)
+  if (status !== prevStatus) {
+    setPrevStatus(status)
+    if (prevStatus && prevStatus !== 'rejected' && status === 'rejected') {
       setShowExpPrompt(true)
     }
-    setPrevStatus(application.status)
-  }, [application?.status])
-
-  function invalidate() {
-    queryClient.invalidateQueries({ queryKey: ['application', id] })
-    queryClient.invalidateQueries({ queryKey: ['applications'] })
   }
 
-  // ── Note handlers ──────────────────────────────────
-  async function handleAddNote(note: Partial<INote>) {
-    await fetch(`/api/applications/${id}/notes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(note),
-    })
-    invalidate()
+  // ── Handlers ───────────────────────────────────────
+  // Each mutation owns its own invalidation and error reporting, so these are
+  // just adapters between the child components' props and the hooks.
+  async function handleAddNote(note: NoteCreatePayload) {
+    await addNote.mutateAsync(note)
   }
 
   async function handleDeleteNote(noteId: string) {
-    await fetch(`/api/applications/${id}/notes`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ noteId }),
-    })
-    invalidate()
+    await deleteNote.mutateAsync(noteId)
   }
 
   async function handleExperienceLog(log: {
@@ -75,69 +77,42 @@ export default function ApplicationDetailPage() {
     whatWentWrong: string
     whatToImprove: string
   }) {
-    await handleAddNote({
-      type: 'experience_log',
-      ...log,
-    })
+    await addNote.mutateAsync({ type: 'experience_log', ...log })
     setShowExpPrompt(false)
   }
 
-  // ── Contact handlers ───────────────────────────────
-  async function handleAddContact(contact: any) {
-    await fetch(`/api/applications/${id}/contacts`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(contact),
-    })
-    invalidate()
+  async function handleAddContact(contact: ContactCreatePayload) {
+    await addContact.mutateAsync(contact)
   }
 
   async function handleDeleteContact(contactId: string) {
-    await fetch(`/api/applications/${id}/contacts`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contactId }),
-    })
-    invalidate()
+    await deleteContact.mutateAsync(contactId)
   }
 
-  // ── Prep file handlers ─────────────────────────────
-  async function handleAddPrepFile(file: {
-    name: string
-    type: string
-    url: string
-  }) {
-    await fetch(`/api/applications/${id}/prep-files`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(file),
-    })
-    invalidate()
+  async function handleAddPrepFile(file: PrepFileCreateInput) {
+    await addPrepFile.mutateAsync(file)
   }
 
   async function handleDeletePrepFile(fileId: string) {
-    await fetch(`/api/applications/${id}/prep-files`, {
-      method: 'DELETE',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileId }),
-    })
-    invalidate()
+    await deletePrepFile.mutateAsync(fileId)
   }
 
-  // ── Loading / not found ────────────────────────────
+  // ── Loading / error / not found ────────────────────
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Loading...</p>
-      </div>
+      <PageShell>
+        <DetailSkeleton />
+      </PageShell>
     )
   }
 
-  if (!application) {
+  // A deleted or non-existent application answers 404, which ErrorState
+  // renders as "We couldn't find that" rather than a retry loop.
+  if (isError || !application) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Application not found.</p>
-      </div>
+      <PageShell>
+        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+      </PageShell>
     )
   }
 
@@ -151,7 +126,7 @@ export default function ApplicationDetailPage() {
   ).length
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell>
 
       {/* Back */}
       <button
@@ -194,7 +169,7 @@ export default function ApplicationDetailPage() {
           <TabsTrigger value="interview" className="data-[state=active]:bg-background">
             Interview
             {interviewCount > 0 && (
-              <span className="ml-1.5 text-xs bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-stage-applied-fg/20 text-stage-applied-fg px-1.5 py-0.5 rounded-full">
                 {interviewCount}
               </span>
             )}
@@ -203,7 +178,7 @@ export default function ApplicationDetailPage() {
           <TabsTrigger value="experience" className="data-[state=active]:bg-background">
             Experience Log
             {experienceCount > 0 && (
-              <span className="ml-1.5 text-xs bg-orange-500/20 text-orange-500 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-stage-interview-fg/20 text-stage-interview-fg px-1.5 py-0.5 rounded-full">
                 {experienceCount}
               </span>
             )}
@@ -264,13 +239,12 @@ export default function ApplicationDetailPage() {
         <TabsContent value="prep">
           <PrepFilesTab
             files={application.prepFiles}
-            applicationId={id}
             onAdd={handleAddPrepFile}
             onDelete={handleDeletePrepFile}
           />
         </TabsContent>
 
       </Tabs>
-    </div>
+    </PageShell>
   )
 }

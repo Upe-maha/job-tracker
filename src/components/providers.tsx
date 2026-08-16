@@ -4,6 +4,7 @@
 import { SessionProvider } from 'next-auth/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useState } from 'react'
+import { Toaster } from 'sonner'
 import { ThemeProvider } from '@/lib/theme'
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -21,6 +22,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           {children}
+          {/* The app's only error surface. Before this, a failed write either
+              showed nothing or — on the profile page — reported success. */}
+          <Toaster position="bottom-right" richColors closeButton />
         </ThemeProvider>
       </QueryClientProvider>
     </SessionProvider>

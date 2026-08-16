@@ -1,20 +1,38 @@
+// This file describes the *wire* shapes — the JSON an API route returns, i.e.
+// a serialized Mongoose document (Dates as strings, plus _id/user/timestamps).
+// The Zod schemas in @/lib/schemas describe the opposite direction: what a
+// route *accepts*. Neither can be derived from the other, so input types come
+// from `z.infer` at the bottom of each schema file and output types are these
+// hand-written interfaces.
+//
+// The one thing both directions share is the enum members, which live in
+// @/lib/schemas/enums and are re-exported here so `@/types` stays the single
+// import site for consumers.
+export type {
+  ApplicationStatus,
+  InterviewRound,
+  JobSearchStatus,
+  JobType,
+  NoteOutcome,
+  NoteType,
+  OAuthProvider,
+  PrepFileType,
+  WorkMode,
+} from '@/lib/schemas/enums'
+
+import type {
+  ApplicationStatus,
+  InterviewRound,
+  JobSearchStatus,
+  JobType,
+  NoteOutcome,
+  NoteType,
+  OAuthProvider,
+  PrepFileType,
+  WorkMode,
+} from '@/lib/schemas/enums'
+
 // ─── Note ─────────────────────────────────────────────
-export type NoteType =
-  | 'interview_question'
-  | 'personal_experience'
-  | 'experience_log'
-  | 'general'
-
-export type InterviewRound =
-  | 'round_1'
-  | 'round_2'
-  | 'hr'
-  | 'technical'
-  | 'final'
-  | 'other'
-
-export type NoteOutcome = 'passed' | 'failed' | 'waiting'
-
 export interface INote {
   _id: string
   type: NoteType
@@ -31,9 +49,8 @@ export interface INote {
 export interface IPrepFile {
   _id: string
   name: string
-  type: 'pdf' | 'link'
+  type: PrepFileType
   url: string
-  scrapedContent?: string
   createdAt: string
   updatedAt: string
 }
@@ -49,21 +66,6 @@ export interface IContact {
 }
 
 // ─── Application ──────────────────────────────────────
-export type ApplicationStatus =
-  | 'wishlist'
-  | 'applied'
-  | 'interview'
-  | 'offer'
-  | 'rejected'
-
-export type WorkMode = 'remote' | 'hybrid' | 'on-site' | ''
-export type JobType =
-  | 'full-time'
-  | 'part-time'
-  | 'contract'
-  | 'internship'
-  | ''
-
 export interface IApplication {
   _id: string
   user: string // User ID string
@@ -90,21 +92,19 @@ export interface IApplication {
   updatedAt: string
 }
 
-// Utility type for when Mongoose populates the user field
-export interface IApplicationPopulated extends Omit<IApplication, 'user'> {
-  user: Pick<IUser, '_id' | 'name' | 'email' | 'photo'>
-}
-
 // ─── User ─────────────────────────────────────────────
-export type JobSearchStatus =
-  | 'actively_looking'
-  | 'open'
-  | 'not_looking'
+export interface ILinkedAccount {
+  provider: OAuthProvider
+  providerAccountId: string
+  linkedAt: string
+}
 
 export interface IUser {
   _id: string
   name: string
   email: string
+  accounts?: ILinkedAccount[]
+  emailVerified?: string | null
   photo?: string
   bio?: string
   location?: string
@@ -122,15 +122,24 @@ export interface IUser {
 }
 
 // ─── Dashboard ────────────────────────────────────────
-export interface IDashboardStats {
-  total: number
-  wishlist: number
-  applied: number
-  interview: number
-  offer: number
-  rejected: number
-  deadlinesThisWeek: IApplication[]
-  followUpsThisWeek: IApplication[]
+// The payload /api/dashboard actually returns. The previous IDashboardStats
+// nested the deadline lists inside the counts, which never matched the route.
+export type IDashboardStats = Record<ApplicationStatus, number> & { total: number }
+
+// Widget rows are projected, not whole applications (CARD_FIELDS in the
+// route), and each list projects a different extra field — so the date it
+// carries is part of its type rather than an optional on a shared one.
+export type IApplicationCard = Pick<
+  IApplication,
+  '_id' | 'company' | 'role' | 'status' | 'companyLogo'
+>
+
+export interface IDashboardResponse {
+  stats: IDashboardStats
+  deadlinesThisWeek: (IApplicationCard & { deadline: string })[]
+  followUpsThisWeek: (IApplicationCard & { followUpDate: string })[]
+  notesFeed: INoteFeedItem[]
+  recentApplications: (IApplicationCard & { createdAt: string })[]
 }
 
 // ─── Notes Feed (dashboard) ───────────────────────────

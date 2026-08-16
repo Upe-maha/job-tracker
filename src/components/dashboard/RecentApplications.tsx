@@ -5,22 +5,12 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { ArrowRight } from 'lucide-react'
 
-const statusColors: Record<string, string> = {
-  wishlist:  'bg-muted text-muted-foreground border-border',
-  applied:   'bg-blue-500/10 text-blue-500 border-blue-500/20',
-  interview: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-  offer:     'bg-green-500/10 text-green-500 border-green-500/20',
-  rejected:  'bg-red-500/10 text-red-500 border-red-500/20',
-}
+import { APPLICATION_STATUS_META } from '@/lib/display'
+import type { IApplicationCard } from '@/types'
 
-interface RecentItem {
-  _id: string
-  company: string
-  role: string
-  status: string
-  companyLogo?: string
-  createdAt: string
-}
+// Matches the projection /api/dashboard returns for this widget — the shared
+// card type rather than a fourth hand-written copy of the same five fields.
+type RecentItem = IApplicationCard & { createdAt: string }
 
 interface RecentApplicationsProps {
   applications: RecentItem[]
@@ -59,6 +49,8 @@ export default function RecentApplications({
               ">
                 {app.companyLogo ? (
                   <img
+                    referrerPolicy="no-referrer"
+                    loading="lazy"
                     src={app.companyLogo}
                     alt={app.company}
                     className="w-7 h-7 rounded-md object-cover"
@@ -80,7 +72,7 @@ export default function RecentApplications({
             <div className="flex items-center gap-3 shrink-0">
               <span className={`
                 text-xs px-2 py-0.5 rounded-full border capitalize
-                ${statusColors[app.status]}
+                ${APPLICATION_STATUS_META[app.status].badge}
               `}>
                 {app.status}
               </span>

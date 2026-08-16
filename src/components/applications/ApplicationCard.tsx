@@ -2,10 +2,9 @@
 'use client'
 
 import { IApplication } from '@/types'
-import { MapPin, ExternalLink, FileText, Calendar, Banknote, Link, ArrowRight, } from 'lucide-react'
+import { MapPin, ExternalLink, FileText, Calendar, Banknote, } from 'lucide-react'
 import { format } from 'date-fns'
 import { useRouter } from 'next/navigation'
-import { Button } from '@/components/ui/button'
 
 interface ApplicationCardProps {
   application: IApplication
@@ -15,9 +14,9 @@ interface ApplicationCardProps {
 }
 
 const workModeColors: Record<string, string> = {
-  remote: 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20',
-  hybrid: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
-  'on-site': 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+  remote: 'bg-stage-offer text-stage-offer-fg dark:text-stage-offer-fg border-stage-offer-fg/20',
+  hybrid: 'bg-stage-interview text-stage-interview-fg dark:text-stage-interview-fg border-stage-interview-fg/20',
+  'on-site': 'bg-stage-applied text-stage-applied-fg dark:text-stage-applied-fg border-stage-applied-fg/20',
 }
 
 export default function ApplicationCard({ application }: ApplicationCardProps) {
@@ -51,6 +50,8 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           ">
             {application.companyLogo ? (
               <img
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 src={application.companyLogo}
                 alt={application.company}
                 className="w-8 h-8 rounded-md object-cover"
@@ -141,7 +142,7 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           </div>
         )}
         {application.followUpDate && (
-          <div className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
+          <div className="flex items-center gap-1.5 text-stage-interview-fg dark:text-stage-interview-fg">
             <Calendar className="w-3 h-3 shrink-0" />
             <span className="text-xs">
               Follow up {format(new Date(application.followUpDate), 'MMM d')}

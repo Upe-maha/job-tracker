@@ -3,7 +3,7 @@
 
 import Link from 'next/link'
 import { format, differenceInDays } from 'date-fns'
-import { Calendar, ArrowRight } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface DeadlineItem {
   _id: string
@@ -93,6 +93,8 @@ function DeadlineRow({
           ">
             {item.companyLogo ? (
               <img
+                referrerPolicy="no-referrer"
+                loading="lazy"
                 src={item.companyLogo}
                 alt={item.company}
                 className="w-7 h-7 rounded-md object-cover"
@@ -118,9 +120,9 @@ function DeadlineRow({
             text-xs px-2 py-0.5 rounded-full border
             ${type === 'deadline'
               ? isUrgent
-                ? 'bg-red-500/10 text-red-500 border-red-500/20'
-                : 'bg-orange-500/10 text-orange-500 border-orange-500/20'
-              : 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+                ? 'bg-destructive/10 text-destructive border-destructive/20'
+                : 'bg-stage-interview text-stage-interview-fg border-stage-interview-fg/20'
+              : 'bg-stage-applied text-stage-applied-fg border-stage-applied-fg/20'
             }
           `}>
             {type === 'deadline' ? 'Deadline' : 'Follow up'}
@@ -129,7 +131,7 @@ function DeadlineRow({
           {/* Date */}
           <div className="text-right">
             <p className={`text-xs font-medium ${
-              isUrgent ? 'text-red-500' : 'text-muted-foreground'
+              isUrgent ? 'text-destructive' : 'text-muted-foreground'
             }`}>
               {format(new Date(date), 'MMM d')}
             </p>

@@ -1,108 +1,98 @@
 // src/app/api/dashboard/route.ts
+import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
 import { connectDB } from '@/lib/db'
 import Application from '@/models/Application'
 import { guard } from '@/lib/api/guard'
 import { serverError } from '@/lib/api/respond'
-import type { INote } from '@/types'
+import { fetchNotesFeed } from '@/lib/dal/notes'
+import type { ApplicationStatus } from '@/types'
+
+const NOTES_FEED_LIMIT = 10
+const WIDGET_LIMIT = 5
+
+// Only what the widgets actually render. Previously this route loaded whole
+// applications — every jobDescription, note, prepFile and contact — to produce
+// six counts and a handful of five-field rows.
+const CARD_FIELDS = 'company role status companyLogo'
+
+const EMPTY_STATS = {
+  total: 0,
+  wishlist: 0,
+  applied: 0,
+  interview: 0,
+  offer: 0,
+  rejected: 0,
+}
 
 export async function GET(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'read' })
   if (!g.ok) return g.response
 
   try {
     await connectDB()
 
-    const applications = await Application.find({
-      user: g.session.user.id
-    }).sort({ createdAt: -1 })
+    const userId = g.session.user.id
+    // find() casts a string id for us; aggregate() does not.
+    const user = new mongoose.Types.ObjectId(userId)
 
     const now = new Date()
     const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
 
-    // ── Stats ────────────────────────────────────────
-    const stats = {
-      total:     applications.length,
-      wishlist:  applications.filter(a => a.status === 'wishlist').length,
-      applied:   applications.filter(a => a.status === 'applied').length,
-      interview: applications.filter(a => a.status === 'interview').length,
-      offer:     applications.filter(a => a.status === 'offer').length,
-      rejected:  applications.filter(a => a.status === 'rejected').length,
-    }
+    const [statusCounts, deadlinesThisWeek, followUpsThisWeek, notesFeed, recentApplications] =
+      await Promise.all([
+        // ── Stats ──────────────────────────────────────
+        // Counting in the database rather than filtering a hydrated array six
+        // times. Served by the { user, status } index.
+        Application.aggregate<{ _id: ApplicationStatus; count: number }>([
+          { $match: { user } },
+          { $group: { _id: '$status', count: { $sum: 1 } } },
+        ]),
 
-    // ── Deadlines this week ───────────────────────────
-    const deadlinesThisWeek = applications
-      .filter(a =>
-        a.deadline &&
-        new Date(a.deadline) >= now &&
-        new Date(a.deadline) <= weekFromNow
-      )
-      .map(a => ({
-        _id: a._id,
-        company: a.company,
-        role: a.role,
-        status: a.status,
-        deadline: a.deadline,
-        companyLogo: a.companyLogo,
-      }))
-      .slice(0, 5)
+        // ── Deadlines this week ────────────────────────
+        // Sorted by deadline, so this is the five *soonest* — the old code took
+        // the five most recently created that happened to fall in the window.
+        Application.find({ user: userId, deadline: { $gte: now, $lte: weekFromNow } })
+          .select(`${CARD_FIELDS} deadline`)
+          .sort({ deadline: 1 })
+          .limit(WIDGET_LIMIT)
+          .lean(),
 
-    // ── Follow-ups this week ──────────────────────────
-    const followUpsThisWeek = applications
-      .filter(a =>
-        a.followUpDate &&
-        new Date(a.followUpDate) >= now &&
-        new Date(a.followUpDate) <= weekFromNow
-      )
-      .map(a => ({
-        _id: a._id,
-        company: a.company,
-        role: a.role,
-        status: a.status,
-        followUpDate: a.followUpDate,
-        companyLogo: a.companyLogo,
-      }))
-      .slice(0, 5)
+        // ── Follow-ups this week ───────────────────────
+        Application.find({ user: userId, followUpDate: { $gte: now, $lte: weekFromNow } })
+          .select(`${CARD_FIELDS} followUpDate`)
+          .sort({ followUpDate: 1 })
+          .limit(WIDGET_LIMIT)
+          .lean(),
 
-    // ── Notes feed ────────────────────────────────────
-    // Flatten all notes from all applications
-    const notesFeed = applications
-      .flatMap(a =>
-        (a.notes ?? []).map((note: INote) => ({
-          noteId: note._id.toString(),
-          applicationId: a._id.toString(),
-          company: a.company,
-          companyLogo: a.companyLogo ?? '',
-          noteType: note.type,
-          content: note.content,
-          createdAt: note.createdAt,
-        }))
-      )
-      .sort((a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      )
-      .slice(0, 10)
+        // ── Notes feed ─────────────────────────────────
+        // Same pipeline the /notes page paginates over, capped at a preview.
+        fetchNotesFeed({ userId, limit: NOTES_FEED_LIMIT }),
 
-    // ── Recent applications ───────────────────────────
-    const recentApplications = applications
-      .slice(0, 5)
-      .map(a => ({
-        _id: a._id,
-        company: a.company,
-        role: a.role,
-        status: a.status,
-        companyLogo: a.companyLogo,
-        createdAt: a.createdAt,
-      }))
+        // ── Recent applications ────────────────────────
+        Application.find({ user: userId })
+          .select(`${CARD_FIELDS} createdAt`)
+          .sort({ createdAt: -1 })
+          .limit(WIDGET_LIMIT)
+          .lean(),
+      ])
+
+    const stats = statusCounts.reduce(
+      (acc, { _id, count }) => {
+        if (_id in acc) acc[_id] = count
+        acc.total += count
+        return acc
+      },
+      { ...EMPTY_STATS } as Record<string, number>
+    )
 
     return NextResponse.json({
       stats,
       deadlinesThisWeek,
       followUpsThisWeek,
-      notesFeed,
+      notesFeed: notesFeed.notes,
       recentApplications,
     })
-
   } catch (error) {
     return serverError('dashboard.GET', error)
   }

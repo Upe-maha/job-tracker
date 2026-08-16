@@ -1,22 +1,39 @@
 import mongoose from 'mongoose'
+import {
+  APPLICATION_STATUSES,
+  INTERVIEW_ROUNDS,
+  JOB_TYPES,
+  NOTE_OUTCOMES,
+  NOTE_TYPES,
+  PREP_FILE_TYPES,
+  WORK_MODES,
+} from '@/lib/schemas/enums'
+
+// Enum members come from @/lib/schemas/enums so the Zod schemas, these
+// `enum:` arrays and the TS unions in @/types cannot drift. The spread is
+// required: the source arrays are `as const`, and Mongoose's `enum` option
+// does not accept a readonly tuple.
 
 // ─── Note Schema ─────────────────────────────────────
 const NoteSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: ['interview_question', 'personal_experience', 'experience_log', 'general'],
+      enum: [...NOTE_TYPES],
       default: 'general'
     },
     content: { type: String, required: true },
+    // `null` is deliberately outside the enum: Mongoose skips enum validation
+    // for null/undefined on a non-required path, and null is how "not
+    // applicable" is stored. The Zod side models this as .nullish().
     interviewRound: {
       type: String,
-      enum: ['round_1', 'round_2', 'hr', 'technical', 'final', 'other'],
+      enum: [...INTERVIEW_ROUNDS],
       default: null
     },
     outcome: {
       type: String,
-      enum: ['passed', 'failed', 'waiting'],
+      enum: [...NOTE_OUTCOMES],
       default: null
     },
     whatWentWrong: { type: String, default: '' },
@@ -31,11 +48,10 @@ const PrepFileSchema = new mongoose.Schema(
     name: { type: String, required: true },
     type: {
       type: String,
-      enum: ['pdf', 'link'],
+      enum: [...PREP_FILE_TYPES],
       required: true
     },
     url: { type: String, required: true },
-    scrapedContent: { type: String, default: '' },
   },
   { timestamps: true }
 )
@@ -63,7 +79,7 @@ const ApplicationSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['wishlist', 'applied', 'interview', 'offer', 'rejected'],
+      enum: [...APPLICATION_STATUSES],
       default: 'wishlist'
     },
 
@@ -73,13 +89,13 @@ const ApplicationSchema = new mongoose.Schema(
 
     workMode: {
       type: String,
-      enum: ['remote', 'hybrid', 'on-site', ''],
+      enum: [...WORK_MODES],
       default: ''
     },
 
     jobType: {
       type: String,
-      enum: ['full-time', 'part-time', 'contract', 'internship', ''],
+      enum: [...JOB_TYPES],
       default: ''
     },
 
