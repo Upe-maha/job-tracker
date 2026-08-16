@@ -9,6 +9,10 @@ const SERVER_ONLY = [
   { group: ["next/server"], message: "Server-only. Keep this layer importable from a 'use client' file." },
   { group: ["@/lib/db", "@/models/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
   { group: ["@/lib/api/*", "@/lib/dal/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
+  // The Resend SDK carries the API key and has no business in a bundle.
+  // templates.ts is pure, but it is grouped with the mailer so there is one
+  // answer to "may I import from lib/email here" rather than a per-file one.
+  { group: ["resend", "@/lib/email/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
 ];
 
 const eslintConfig = defineConfig([
@@ -79,6 +83,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             { group: ["mongoose", "@/models/*", "@/lib/dal/*", "@/lib/db"], message: "Client code talks to /api, not to Mongoose." },
+            { group: ["resend", "@/lib/email/*"], message: "Mail is sent by a route, not by a component." },
           ],
         },
       ],

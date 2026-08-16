@@ -21,6 +21,7 @@ import {
 } from '@/lib/schemas/user'
 import { useChangePassword } from '@/hooks/useMutations'
 import { ApiError } from '@/lib/api-client'
+import PageShell from '@/components/common/PageShell'
 
 const EMPTY: PasswordChangeFormValues = {
   currentPassword: '',
@@ -57,15 +58,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
-
-      {/* Header */}
-      <div>
-        <h1 className="text-foreground text-2xl font-bold">Settings</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          Manage your account settings
-        </p>
-      </div>
+    <PageShell className="max-w-3xl">
 
       {/* Change password */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
@@ -73,6 +66,12 @@ export default function SettingsPage() {
           <Lock className="w-4 h-4" />
           Change Password
         </h2>
+
+        {/* Step C made this confirm-first, so say so up front — otherwise the
+            form looks like it failed when the password still works afterwards. */}
+        <p className="text-muted-foreground text-xs">
+          We&apos;ll email you a link to confirm. Your password stays the same until you click it.
+        </p>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleChangePassword)} className="space-y-4">
@@ -182,6 +181,6 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-    </div>
+    </PageShell>
   )
 }

@@ -12,7 +12,7 @@ import {
 
 // GET — fetch all applications (with optional status filtering)
 export async function GET(req: NextRequest) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'read' })
   if (!g.ok) return g.response
 
   const query = parseQuery(req.nextUrl.searchParams, applicationListQuerySchema)
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
 // POST — create a new application
 export async function POST(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'write' })
   if (!g.ok) return g.response
 
   // The schema supplies every default and rejects a bad enum, URL, date,

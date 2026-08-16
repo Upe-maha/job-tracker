@@ -8,6 +8,9 @@ import Link from 'next/link'
 import { ArrowRight, Filter } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { NOTE_FILTERS, NOTE_TYPE_META, type NoteFilterKey } from '@/lib/display'
+import PageShell from '@/components/common/PageShell'
+import ErrorState from '@/components/common/ErrorState'
+import { ListSkeleton } from '@/components/common/Skeletons'
 
 
 
@@ -20,6 +23,10 @@ export default function NotesPage() {
   const {
     data,
     isLoading,
+    isError,
+    error,
+    refetch,
+    isFetching,
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
@@ -28,17 +35,10 @@ export default function NotesPage() {
   const notes = data?.pages.flatMap(page => page.notes) ?? []
 
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <PageShell>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-foreground text-2xl font-bold">Notes</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          All notes across your job applications
-        </p>
-      </div>
-
-      {/* Filter pills */}
+      {/* Filter pills — always interactive, even while the list loads, so
+          changing filter never waits on the previous request. */}
       <div className="flex items-center gap-2 flex-wrap">
         <Filter className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
         {NOTE_FILTERS.map(f => (
@@ -60,14 +60,15 @@ export default function NotesPage() {
       </div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="flex items-center justify-center h-40">
-          <p className="text-muted-foreground text-sm">Loading notes...</p>
-        </div>
+      {isLoading && <ListSkeleton rows={4} />}
+
+      {/* Error */}
+      {!isLoading && isError && (
+        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
       )}
 
       {/* Empty */}
-      {!isLoading && notes.length === 0 && (
+      {!isLoading && !isError && notes.length === 0 && (
         <div className="
           border-2 border-dashed border-border rounded-xl
           flex flex-col items-center justify-center h-40 gap-2
@@ -82,7 +83,7 @@ export default function NotesPage() {
       )}
 
       {/* Notes list */}
-      {!isLoading && notes.length > 0 && (
+      {!isLoading && !isError && notes.length > 0 && (
         <div className="space-y-3">
           {notes.map(item => {
             const config =
@@ -176,6 +177,6 @@ export default function NotesPage() {
         </div>
       )}
 
-    </div>
+    </PageShell>
   )
 }

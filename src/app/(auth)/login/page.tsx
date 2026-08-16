@@ -81,17 +81,17 @@ function LoginForm() {
         }
     }
     return (
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+        <Card className="w-full max-w-md bg-card border-border">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-2xl text-foreground">Welcome back</CardTitle>
+                <CardDescription className="text-muted-foreground">
                     Sign in to your job tracker
                 </CardDescription>
             </CardHeader>
             <CardContent>
 
                 {registered && (
-                    <p className="text-green-400 text-sm bg-green-400/10 px-3 py-2 rounded-md mb-4">
+                    <p className="text-stage-offer-fg text-sm bg-stage-offer px-3 py-2 rounded-md mb-4">
                         Account created successfully. Please sign in.
                     </p>
                 )}
@@ -102,7 +102,7 @@ function LoginForm() {
                         type="button"
                         onClick={() => handleOAuth("google")}
                         disabled={form.formState.isSubmitting || oauthLoading !== ""}
-                        className="w-full bg-white text-slate-900 hover:bg-slate-200"
+                        className="w-full bg-white text-foreground hover:bg-muted"
                     >
                         <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.76h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -117,7 +117,7 @@ function LoginForm() {
                         type="button"
                         onClick={() => handleOAuth("github")}
                         disabled={form.formState.isSubmitting || oauthLoading !== ""}
-                        className="w-full bg-slate-800 text-white hover:bg-slate-700 border border-slate-700"
+                        className="w-full bg-input text-foreground hover:bg-muted border border-input"
                     >
                         <svg className="w-4 h-4 mr-2" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
                             <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
@@ -128,9 +128,9 @@ function LoginForm() {
 
                 {/* Divider */}
                 <div className="flex items-center gap-3 my-4">
-                    <span className="h-px flex-1 bg-slate-800" />
-                    <span className="text-slate-500 text-xs">or</span>
-                    <span className="h-px flex-1 bg-slate-800" />
+                    <span className="h-px flex-1 bg-input" />
+                    <span className="text-muted-foreground text-xs">or</span>
+                    <span className="h-px flex-1 bg-input" />
                 </div>
 
                 <Form {...form}>
@@ -141,12 +141,12 @@ function LoginForm() {
                         name="email"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-slate-300">Email</FormLabel>
+                                <FormLabel className="text-foreground">Email</FormLabel>
                                 <FormControl>
                                     <Input
                                         type="email"
                                         placeholder="you@example.com"
-                                        className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                                        className="bg-input border-input text-foreground placeholder:text-muted-foreground"
                                         {...field}
                                     />
                                 </FormControl>
@@ -160,12 +160,20 @@ function LoginForm() {
                         name="password"
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel className="text-slate-300">Password</FormLabel>
+                                <div className="flex items-center justify-between">
+                                    <FormLabel className="text-foreground">Password</FormLabel>
+                                    <Link
+                                        href="/forgot-password"
+                                        className="text-ring hover:underline text-sm"
+                                    >
+                                        Forgot password?
+                                    </Link>
+                                </div>
                                 <FormControl>
                                     <Input
                                         type="password"
                                         placeholder="Your password"
-                                        className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-500"
+                                        className="bg-input border-input text-foreground placeholder:text-muted-foreground"
                                         {...field}
                                     />
                                 </FormControl>
@@ -175,22 +183,22 @@ function LoginForm() {
                     />
 
                     {(form.formState.errors.root || oauthError) && (
-                        <p className="text-red-400 text-sm">
+                        <p className="text-destructive text-sm">
                             {form.formState.errors.root?.message || oauthError}
                         </p>
                     )}
 
                     <Button
                         type="submit"
-                        className="w-full bg-blue-600 hover:bg-blue-700"
+                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
                         disabled={form.formState.isSubmitting}
                     >
                         {form.formState.isSubmitting ? 'Signing in...' : 'Sign In'}
                     </Button>
 
-                    <p className="text-center text-slate-400 text-sm">
+                    <p className="text-center text-muted-foreground text-sm">
                         Don&apos;t have an account?{' '}
-                        <Link href="/register" className="text-blue-400 hover:underline">
+                        <Link href="/register" className="text-ring hover:underline">
                             Create one
                         </Link>
                     </p>
@@ -216,15 +224,15 @@ export default function LoginPage() {
 
 function LoginFallback() {
     return (
-        <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+        <Card className="w-full max-w-md bg-card border-border">
             <CardHeader className="space-y-1">
-                <CardTitle className="text-2xl text-white">Welcome back</CardTitle>
-                <CardDescription className="text-slate-400">
+                <CardTitle className="text-2xl text-foreground">Welcome back</CardTitle>
+                <CardDescription className="text-muted-foreground">
                     Sign in to your account
                 </CardDescription>
             </CardHeader>
             <CardContent>
-                <p className="text-slate-400 text-sm">Loading...</p>
+                <p className="text-muted-foreground text-sm">Loading...</p>
             </CardContent>
         </Card>
     )

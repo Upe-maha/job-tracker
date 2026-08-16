@@ -23,33 +23,41 @@ interface NoteTypeMeta {
 // has room for 'Interview Question', a feed row does not, and a filter pill
 // reads as a plural. Previously these lived in three separate config objects
 // that had already drifted apart.
+//
+// Note type is deliberately TONAL, not hued. Application status already owns
+// five saturated colours; giving the four note types four more put nine
+// competing hues on one screen, which is most of why the UI read as noisy.
+// The icons already distinguish these four — MessageSquare, Brain, BookOpen,
+// FileText — so the icon carries the category and colour is left to mean
+// status. Only the primary teal appears here, on the type a note tab is
+// currently scoped to.
 export const NOTE_TYPE_META: Record<NoteType, NoteTypeMeta> = {
   interview_question: {
     label: 'Interview Question',
     shortLabel: 'Interview Q',
     pluralLabel: 'Interview Questions',
     icon: MessageSquare,
-    color: 'text-blue-500',
-    bg: 'bg-blue-500/10 border-blue-500/20',
-    dot: 'bg-blue-500',
+    color: 'text-primary',
+    bg: 'bg-card border-border',
+    dot: 'bg-primary',
   },
   personal_experience: {
     label: 'Personal Experience',
     shortLabel: 'Experience',
     pluralLabel: 'Experiences',
     icon: Brain,
-    color: 'text-purple-500',
-    bg: 'bg-purple-500/10 border-purple-500/20',
-    dot: 'bg-purple-500',
+    color: 'text-foreground/70',
+    bg: 'bg-card border-border',
+    dot: 'bg-foreground/50',
   },
   experience_log: {
     label: 'Experience Log',
     shortLabel: 'Exp Log',
     pluralLabel: 'Experience Logs',
     icon: BookOpen,
-    color: 'text-orange-500',
-    bg: 'bg-orange-500/10 border-orange-500/20',
-    dot: 'bg-orange-500',
+    color: 'text-muted-foreground',
+    bg: 'bg-muted/50 border-border',
+    dot: 'bg-muted-foreground',
   },
   general: {
     label: 'General Note',
@@ -57,7 +65,7 @@ export const NOTE_TYPE_META: Record<NoteType, NoteTypeMeta> = {
     pluralLabel: 'General',
     icon: FileText,
     color: 'text-muted-foreground',
-    bg: 'bg-muted border-border',
+    bg: 'bg-card border-border',
     dot: 'bg-muted-foreground',
   },
 }
@@ -86,9 +94,9 @@ export const INTERVIEW_ROUND_LABELS: Record<InterviewRound, string> = {
 }
 
 export const NOTE_OUTCOME_BADGES: Record<NoteOutcome, string> = {
-  passed: 'bg-green-500/10 text-green-500 border-green-500/20',
-  failed: 'bg-red-500/10 text-red-500 border-red-500/20',
-  waiting: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+  passed: 'bg-stage-offer text-stage-offer-fg border-stage-offer-fg/20',
+  failed: 'bg-stage-rejected text-stage-rejected-fg border-stage-rejected-fg/20',
+  waiting: 'bg-stage-interview text-stage-interview-fg border-stage-interview-fg/20',
 }
 
 export const NOTE_OUTCOME_LABELS: Record<NoteOutcome, string> = {

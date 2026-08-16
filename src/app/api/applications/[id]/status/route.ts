@@ -11,7 +11,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'write' })
   if (!g.ok) return g.response
 
   const { id } = await params

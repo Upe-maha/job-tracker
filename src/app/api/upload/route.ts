@@ -45,7 +45,7 @@ function sniffMimeType(buffer: Buffer): SniffedType | null {
 }
 
 export async function POST(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'upload' })
   if (!g.ok) return g.response
 
   // Forces a CORS preflight on any cross-origin request (this app answers

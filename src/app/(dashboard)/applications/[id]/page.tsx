@@ -27,6 +27,9 @@ import type { NoteCreatePayload } from '@/lib/schemas/note'
 import type { ContactCreatePayload } from '@/lib/schemas/contact'
 import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
 import { ApplicationStatus } from '@/types'
+import PageShell from '@/components/common/PageShell'
+import ErrorState from '@/components/common/ErrorState'
+import { DetailSkeleton } from '@/components/common/Skeletons'
 
 export default function ApplicationDetailPage() {
   const params = useParams()
@@ -35,7 +38,8 @@ export default function ApplicationDetailPage() {
 
   const [showExpPrompt, setShowExpPrompt] = useState(false)
 
-  const { data: application, isLoading } = useApplication(id)
+  const { data: application, isLoading, isError, error, refetch, isFetching } =
+    useApplication(id)
 
   const addNote = useAddNote(id)
   const deleteNote = useDeleteNote(id)
@@ -93,20 +97,22 @@ export default function ApplicationDetailPage() {
     await deletePrepFile.mutateAsync(fileId)
   }
 
-  // ── Loading / not found ────────────────────────────
+  // ── Loading / error / not found ────────────────────
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Loading...</p>
-      </div>
+      <PageShell>
+        <DetailSkeleton />
+      </PageShell>
     )
   }
 
-  if (!application) {
+  // A deleted or non-existent application answers 404, which ErrorState
+  // renders as "We couldn't find that" rather than a retry loop.
+  if (isError || !application) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground text-sm">Application not found.</p>
-      </div>
+      <PageShell>
+        <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
+      </PageShell>
     )
   }
 
@@ -120,7 +126,7 @@ export default function ApplicationDetailPage() {
   ).length
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <PageShell>
 
       {/* Back */}
       <button
@@ -163,7 +169,7 @@ export default function ApplicationDetailPage() {
           <TabsTrigger value="interview" className="data-[state=active]:bg-background">
             Interview
             {interviewCount > 0 && (
-              <span className="ml-1.5 text-xs bg-blue-500/20 text-blue-500 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-stage-applied-fg/20 text-stage-applied-fg px-1.5 py-0.5 rounded-full">
                 {interviewCount}
               </span>
             )}
@@ -172,7 +178,7 @@ export default function ApplicationDetailPage() {
           <TabsTrigger value="experience" className="data-[state=active]:bg-background">
             Experience Log
             {experienceCount > 0 && (
-              <span className="ml-1.5 text-xs bg-orange-500/20 text-orange-500 px-1.5 py-0.5 rounded-full">
+              <span className="ml-1.5 text-xs bg-stage-interview-fg/20 text-stage-interview-fg px-1.5 py-0.5 rounded-full">
                 {experienceCount}
               </span>
             )}
@@ -239,6 +245,6 @@ export default function ApplicationDetailPage() {
         </TabsContent>
 
       </Tabs>
-    </div>
+    </PageShell>
   )
 }

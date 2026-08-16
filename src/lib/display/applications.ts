@@ -4,7 +4,7 @@
 // as @/lib/schemas: no mongoose, no next/server, no @/lib/api or @/lib/dal.
 //
 // Typed as Record<Enum, Meta> on purpose: adding a status to
-// @/lib/schemas/enums becomes a compile error here until its label and colors
+// @/lib/schemas/enums becomes a compile error here until its label and colours
 // exist, instead of silently rendering an unstyled column.
 import { APPLICATION_STATUSES, JOB_TYPES, WORK_MODES } from '@/lib/schemas/enums'
 import type { ApplicationStatus, JobType, WorkMode } from '@/lib/schemas/enums'
@@ -17,45 +17,58 @@ interface StatusMeta {
   dot: string
   /** Dashed border of an empty Kanban column. */
   emptyBorder: string
-  /** Raw hex for Recharts, which cannot read Tailwind classes. */
-  hex: string
+  /**
+   * For Recharts, which renders SVG and cannot read a Tailwind class. A raw
+   * `var()` rather than a fixed hex: `fill` is a presentation attribute, so
+   * the browser resolves it as a CSS property and the chart re-colours with
+   * the theme instead of freezing one mode's palette into the other.
+   */
+  chart: string
 }
 
+// Every stage reads from the --stage-* tokens in globals.css, so a colour
+// exists in exactly one place and light/dark are defined together. The chips
+// are deliberately off the teal hue family that carries the UI itself —
+// status is information, not brand.
 export const APPLICATION_STATUS_META: Record<ApplicationStatus, StatusMeta> = {
   wishlist: {
     label: 'Wishlist',
-    badge: 'bg-muted text-muted-foreground border-border',
-    dot: 'bg-muted-foreground',
-    emptyBorder: 'border-border',
-    hex: '#64748b',
+    badge: 'bg-stage-wishlist text-stage-wishlist-fg border-stage-wishlist-fg/20',
+    dot: 'bg-stage-wishlist-fg',
+    emptyBorder: 'border-stage-wishlist-fg/20',
+    chart: 'var(--stage-wishlist-fg)',
   },
   applied: {
     label: 'Applied',
-    badge: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
-    dot: 'bg-blue-500',
-    emptyBorder: 'border-blue-500/20',
-    hex: '#3b82f6',
+    // Violet, not blue: blue sits too near the cyan primary and the chip would
+    // read as a button.
+    badge: 'bg-stage-applied text-stage-applied-fg border-stage-applied-fg/20',
+    dot: 'bg-stage-applied-fg',
+    emptyBorder: 'border-stage-applied-fg/20',
+    chart: 'var(--stage-applied-fg)',
   },
   interview: {
     label: 'Interview',
-    badge: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
-    dot: 'bg-yellow-500',
-    emptyBorder: 'border-yellow-500/20',
-    hex: '#eab308',
+    badge: 'bg-stage-interview text-stage-interview-fg border-stage-interview-fg/20',
+    dot: 'bg-stage-interview-fg',
+    emptyBorder: 'border-stage-interview-fg/20',
+    chart: 'var(--stage-interview-fg)',
   },
   offer: {
     label: 'Offer',
-    badge: 'bg-green-500/10 text-green-500 border-green-500/20',
-    dot: 'bg-green-500',
-    emptyBorder: 'border-green-500/20',
-    hex: '#22c55e',
+    // 143°, not emerald's ~160° — 160° is only 25° from the cyan and the two
+    // would read as siblings rather than as different information.
+    badge: 'bg-stage-offer text-stage-offer-fg border-stage-offer-fg/20',
+    dot: 'bg-stage-offer-fg',
+    emptyBorder: 'border-stage-offer-fg/20',
+    chart: 'var(--stage-offer-fg)',
   },
   rejected: {
     label: 'Rejected',
-    badge: 'bg-red-500/10 text-red-500 border-red-500/20',
-    dot: 'bg-red-500',
-    emptyBorder: 'border-red-500/20',
-    hex: '#ef4444',
+    badge: 'bg-stage-rejected text-stage-rejected-fg border-stage-rejected-fg/20',
+    dot: 'bg-stage-rejected-fg',
+    emptyBorder: 'border-stage-rejected-fg/20',
+    chart: 'var(--stage-rejected-fg)',
   },
 }
 

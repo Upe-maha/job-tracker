@@ -12,7 +12,7 @@ import { profileUpdateSchema } from '@/lib/schemas/user'
 const PRIVATE_FIELDS = '-password -failedLoginAttempts -lockUntil'
 
 export async function GET(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'read' })
   if (!g.ok) return g.response
 
   try {
@@ -26,7 +26,7 @@ export async function GET(req: Request) {
 }
 
 export async function PUT(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'write' })
   if (!g.ok) return g.response
 
   // Replaces PROFILE_UPDATABLE + STRING_FIELDS + validateProfileUpdate (~80

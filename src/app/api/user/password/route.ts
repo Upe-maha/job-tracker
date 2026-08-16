@@ -6,6 +6,10 @@ import bcrypt from 'bcryptjs'
 import { guard } from '@/lib/api/guard'
 import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
+import { issueToken } from '@/lib/dal/tokens'
+import { sendMail } from '@/lib/email/mailer'
+import { passwordChangeConfirm } from '@/lib/email/templates'
+import { PASSWORD_CHANGE_TTL_MS } from '@/lib/schemas/auth'
 import { passwordChangeSchema } from '@/lib/schemas/user'
 
 export async function PUT(req: Request) {
@@ -38,13 +42,28 @@ export async function PUT(req: Request) {
     const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) return fail(400, 'Current password is incorrect')
 
+    // Confirm-first (Step C): the new hash is parked on the token and the user
+    // document is not touched. Knowing the current password is no longer enough
+    // to change it — a stolen session has to hold the inbox as well.
+    // /api/auth/confirm-password-change applies it.
     const hashed = await bcrypt.hash(newPassword, 12)
-    await User.updateOne(
-      { _id: user._id },
-      { $set: { password: hashed, passwordChangedAt: new Date() } }
-    )
 
-    return NextResponse.json({ message: 'Password updated' })
+    const token = await issueToken({
+      userId: user._id,
+      type: 'password_change',
+      ttlMs: PASSWORD_CHANGE_TTL_MS,
+      pendingPassword: hashed,
+    })
+
+    // sendMail, not sendMailSafe: this route is authenticated and reveals
+    // nothing about who exists, so a delivery failure is safe to report — and
+    // must be, or the user waits for an email that will never arrive believing
+    // their password is about to change.
+    await sendMail({ to: user.email, ...passwordChangeConfirm(user.name, token) })
+
+    return NextResponse.json({
+      message: 'Check your inbox — your password changes once you confirm.',
+    })
   } catch (error) {
     return serverError('user.password.PUT', error)
   }

@@ -58,6 +58,15 @@ export const JOB_SEARCH_STATUSES = [
 
 export const OAUTH_PROVIDERS = ['google', 'github'] as const
 
+// Step C. The type is part of the security boundary, not a label: consumeToken
+// matches on it so a password_reset link can never be redeemed against
+// verify-email, which would hand a token a capability it was not issued for.
+export const TOKEN_TYPES = [
+  'email_verify',
+  'password_reset',
+  'password_change',
+] as const
+
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]
 export type WorkMode = (typeof WORK_MODES)[number]
 export type JobType = (typeof JOB_TYPES)[number]
@@ -67,3 +76,4 @@ export type NoteOutcome = (typeof NOTE_OUTCOMES)[number]
 export type PrepFileType = (typeof PREP_FILE_TYPES)[number]
 export type JobSearchStatus = (typeof JOB_SEARCH_STATUSES)[number]
 export type OAuthProvider = (typeof OAUTH_PROVIDERS)[number]
+export type TokenType = (typeof TOKEN_TYPES)[number]

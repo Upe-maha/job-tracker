@@ -39,13 +39,13 @@ export default function ExperienceLogPrompt({
 
   return (
     <div className="
-      border border-orange-500/30 rounded-xl p-5
-      bg-orange-500/5 space-y-4
+      border border-stage-interview-fg/30 rounded-xl p-5
+      bg-stage-interview-fg/5 space-y-4
     ">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <BookOpen className="w-4 h-4 text-orange-500 shrink-0" />
+          <BookOpen className="w-4 h-4 text-stage-interview-fg shrink-0" />
           <div>
             <p className="text-foreground font-medium text-sm">
               Log your experience with {company}
@@ -126,7 +126,7 @@ export default function ExperienceLogPrompt({
         <Button
           onClick={handleSave}
           disabled={loading || !content.trim()}
-          className="flex-1 bg-orange-500 hover:bg-orange-600 text-white"
+          className="flex-1 bg-stage-interview-fg/90 hover:bg-stage-interview-fg text-background"
         >
           {loading ? 'Saving...' : 'Save Experience'}
         </Button>

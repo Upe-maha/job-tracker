@@ -13,7 +13,7 @@ export async function POST(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'write' })
   if (!g.ok) return g.response
 
   const { id } = await params
@@ -52,7 +52,7 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'write' })
   if (!g.ok) return g.response
 
   const { id } = await params

@@ -8,28 +8,120 @@ interface RateLimitConfig {
   maxAttempts: number
   windowMs: number // in milliseconds
   message: string
+  // Mongo unreachable: let the request through, or 503? Stated per preset
+  // rather than inferred from the name, because guard() acts on it and a new
+  // budget silently inheriting the wrong answer is a security bug either way —
+  // fail open on an auth budget hands a guesser unlimited attempts, fail closed
+  // on a read budget takes the whole dashboard down with the database.
+  failOpen: boolean
+
+  // Do all routes on this preset draw from one pool, or does each route get its
+  // own? Both are wanted, and picking wrong is a real defect in either
+  // direction:
+  //
+  //   'shared' — the pool IS the budget. 'read' at 120/min means 120 reads a
+  //     minute in total; giving each of the six read routes its own 120 would
+  //     quietly turn that into 720.
+  //
+  //   'route'  — the budget describes one action. 'reset' at 5/hour means five
+  //     forgot-password requests AND five resend-verification requests, because
+  //     they are different intentions that must not compete. Sharing them let a
+  //     logged-in user spend their resend allowance on the forgot-password form
+  //     and get a 429 on their first click of "Resend email".
+  //
+  // guard() derives the route part itself from the request path, so this is the
+  // only place the decision is made and no call site can get it wrong.
+  scope: 'shared' | 'route'
 }
 
+// One budget per thing being protected, not one number for the whole API. The
+// spread matters more than the exact values: what bounds credential guessing
+// has nothing in common with what bounds Cloudinary spend.
 export const RATE_LIMITS = {
   login: {
     maxAttempts: 5,
     windowMs: 15 * 60 * 1000, // 15 minutes
     message: 'Too many login attempts. Please try again in 15 minutes.',
+    failOpen: false,
+    scope: 'shared',
   },
   register: {
     maxAttempts: 3,
     windowMs: 60 * 60 * 1000, // 1 hour
     message: 'Too many registration attempts. Please try again in 1 hour.',
+    failOpen: false,
+    scope: 'shared',
   },
+  // Step C, the *send* side: forgot-password and resend-verification. Bounds
+  // outbound mail cost and stops the app being used to spam someone's inbox.
+  // 5, not 3: this is the budget a user spends when an email did not arrive, so
+  // it has to survive a couple of honest retries. Three was tight enough that a
+  // single unlucky session hit the wall, and because it is per-route now, five
+  // here means five *per action* rather than five across all of them.
   reset: {
-    maxAttempts: 3,
+    maxAttempts: 5,
     windowMs: 60 * 60 * 1000, // 1 hour
-    message: 'Too many reset attempts. Please try again in 1 hour.',
+    message: 'Too many requests. Please try again in an hour.',
+    failOpen: false,
+    scope: 'route',
   },
+  // Step C, the *consume* side: every route that redeems an emailed link.
+  // Split from 'reset' because the two defend different things — sending costs
+  // money and annoys a third party, redeeming costs a database round trip — and
+  // a user who clicks a stale link a few times must not burn their send budget.
+  // Fails closed with the rest of the auth-adjacent budgets.
+  token: {
+    maxAttempts: 10,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    message: 'Too many attempts. Please try again in 15 minutes.',
+    failOpen: false,
+    scope: 'route',
+  },
+  // Generic moderate budget. No longer any route's default — it survives for
+  // the OAuth signIn callback in @/lib/auth, which needs a budget that isn't
+  // tied to a request object and isn't as tight as 'login'.
   api: {
     maxAttempts: 100,
     windowMs: 60 * 1000, // 1 minute
     message: 'Too many requests. Please slow down.',
+    failOpen: true,
+    scope: 'shared',
+  },
+  // Generous on purpose. A single mutation fans out to several invalidations
+  // client-side, and invalidating ['notes'] refetches every loaded page of the
+  // infinite feed at once — a deep-scrolled user creating a note can spend a
+  // dozen of these in one burst, all of it legitimate.
+  read: {
+    maxAttempts: 120,
+    windowMs: 60 * 1000, // 1 minute
+    message: 'Too many requests. Please slow down.',
+    failOpen: true,
+    scope: 'shared',
+  },
+  // Bounds document growth: the embedded arrays have SUBDOCUMENT_LIMITS, but
+  // the applications collection itself has no cap. A Kanban drag spends 1 here
+  // and puts its two refetches on 'read', so 30 is well past human speed.
+  write: {
+    maxAttempts: 30,
+    windowMs: 60 * 1000, // 1 minute
+    message: 'Too many changes at once. Please slow down.',
+    failOpen: true,
+    scope: 'shared',
+  },
+  // Fails closed, unlike the other non-auth budgets. This tier exists to bound
+  // billable Cloudinary uploads and permanently stored assets, and failing open
+  // abandons exactly that at the moment it can't be enforced. /api/upload is
+  // also the one route that never touches Mongo — it hands the buffer to
+  // Cloudinary and returns the URL, which a *separate* request persists — so
+  // during an outage it would otherwise be the only endpoint still working,
+  // unmetered. The cost is that uploads 503 while Mongo is down, and the URL
+  // could not have been saved anyway.
+  upload: {
+    maxAttempts: 15,
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    message: 'Too many uploads. Please try again in a few minutes.',
+    failOpen: false,
+    scope: 'shared',
   },
 } satisfies Record<string, RateLimitConfig>
 
@@ -122,12 +214,18 @@ interface RateLimitResult {
   remaining: number
 }
 
+// The one place the bucket key is spelled. guard() needs to name the same
+// bucket later to refund it, and two independent format strings would drift.
+export function rateLimitKey(identifier: string, type: RateLimitType): string {
+  return `${type}:${identifier}`
+}
+
 export async function checkRateLimit(
-  identifier: string, // IP or user id + route key
+  identifier: string, // IP or user id, already scoped by the caller
   type: RateLimitType
 ): Promise<RateLimitResult> {
   const cfg = RATE_LIMITS[type]
-  const key = `${type}:${identifier}`
+  const key = rateLimitKey(identifier, type)
   const now = new Date()
   const nextExpiry = new Date(now.getTime() + cfg.windowMs)
 
@@ -178,7 +276,21 @@ export async function checkRateLimit(
 // Called on successful login so a legitimate user isn't penalised for earlier typos.
 export async function clearRateLimit(identifier: string, type: RateLimitType): Promise<void> {
   await connectDB()
-  await RateLimit.deleteOne({ key: `${type}:${identifier}` })
+  await RateLimit.deleteOne({ key: rateLimitKey(identifier, type) })
+}
+
+// Give back a single attempt. checkRateLimit charges on *request*, but some
+// budgets are really about an effect — 'reset' bounds outbound mail, so a
+// request that turns out to send none should not have cost anything. The
+// handler is the only thing that knows whether the effect happened, so it hands
+// the charge back through guard()'s `refund`.
+//
+// Not clearRateLimit: that wipes the whole window, which would let a caller
+// reset their own budget on demand by triggering the no-op path repeatedly.
+// count stays floored at 0 so a double refund cannot mint attempts.
+export async function refundRateLimit(key: string): Promise<void> {
+  await connectDB()
+  await RateLimit.updateOne({ key, count: { $gt: 0 } }, { $inc: { count: -1 } })
 }
 
 export function rateLimitResponse(message: string, retryAfter: number) {

@@ -200,9 +200,55 @@ export function useUpdateProfile() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
-      apiSend('PUT', '/api/user/password', input),
-    onSuccess: () => toast.success('Password updated'),
-    // No toast: the settings form renders this inline, next to the fields.
+      apiSend<{ message: string }>('PUT', '/api/user/password', input),
+    // Confirm-first since Step C — nothing has changed yet, so the toast must
+    // not claim it has.
+    onSuccess: (data) => toast.success(data.message),
+    // Errors stay inline: the settings form renders them next to the fields.
+  })
+}
+
+// ─── Email verification and password recovery (Step C) ─
+
+export function useResendVerification() {
+  return useMutation({
+    mutationFn: () => apiSend<{ message: string }>('POST', '/api/auth/resend-verification', {}),
+    // No toast either way: the banner renders both outcomes inline and stays on
+    // screen, which is the whole point — a toast disappears, and a banner that
+    // looks unchanged afterwards is what got clicked four times.
+  })
+}
+
+// Used by the two pages that redeem a link. The token is the whole credential,
+// so these are plain mutations with no invalidation of their own — except
+// verify-email, whose caller invalidates ['profile'] to clear the banner.
+export function useVerifyEmail() {
+  const invalidate = useInvalidators()
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiSend<{ message: string }>('POST', '/api/auth/verify-email', { token }),
+    onSuccess: () => invalidate.profile(),
+  })
+}
+
+export function useForgotPassword() {
+  return useMutation({
+    mutationFn: (email: string) =>
+      apiSend<{ message: string }>('POST', '/api/auth/forgot-password', { email }),
+  })
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: (input: { token: string; password: string }) =>
+      apiSend<{ message: string }>('POST', '/api/auth/reset-password', input),
+  })
+}
+
+export function useConfirmPasswordChange() {
+  return useMutation({
+    mutationFn: (token: string) =>
+      apiSend<{ message: string }>('POST', '/api/auth/confirm-password-change', { token }),
   })
 }
 

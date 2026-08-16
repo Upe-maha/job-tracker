@@ -12,10 +12,10 @@ export default function RootPage() {
         If you are logged in, you will be redirected to the dashboard. If not, you will be redirected to the login page.
       </p>
       <p>
-        type <a href="/login" className="text-blue-500 underline">
+        type <a href="/login" className="text-stage-applied-fg underline">
           /login
         </a> in url to get login page and type 
-        <a href="/register" className="text-blue-500 underline">
+        <a href="/register" className="text-stage-applied-fg underline">
           /register
         </a> in url to get register page.
       </p>

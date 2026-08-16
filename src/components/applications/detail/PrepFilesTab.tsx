@@ -256,8 +256,8 @@ function PrepFileRow({
         <div className={`
           w-8 h-8 rounded-lg flex items-center justify-center shrink-0
           ${isPdf
-            ? 'bg-red-500/10 text-red-500'
-            : 'bg-blue-500/10 text-blue-500'
+            ? 'bg-destructive/10 text-destructive'
+            : 'bg-stage-applied text-stage-applied-fg'
           }
         `}>
           {isPdf ? (

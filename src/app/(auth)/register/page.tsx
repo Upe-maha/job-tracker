@@ -1,10 +1,10 @@
 // src/app/(auth)/register/page.tsx
 'use client'
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -26,10 +26,10 @@ import { registerSchema, type RegisterFormValues } from '@/lib/schemas/auth'
 import { apiSend, ApiError } from '@/lib/api-client'
 
 const inputClass =
-  'bg-slate-800 border-slate-700 text-white placeholder:text-slate-500'
+  'bg-input border-input text-foreground placeholder:text-muted-foreground'
 
 export default function RegisterPage() {
-  const router = useRouter()
+  const [submittedEmail, setSubmittedEmail] = useState('')
 
   // The same schema the route validates with, so the 6-character minimum the
   // placeholder promises is now enforced before the network call rather than
@@ -42,22 +42,48 @@ export default function RegisterPage() {
   async function onSubmit(values: RegisterFormValues) {
     try {
       await apiSend('POST', '/api/auth/register', values)
-      router.push('/login?registered=true')
+      // Step C: the route answers identically whether or not the address was
+      // already taken, so there is no longer a 409 to put on the email field
+      // and nothing here may hint at which happened. Staying on this page with
+      // a "check your inbox" panel is the only honest outcome — redirecting to
+      // /login?registered=true would assert an account was created.
+      setSubmittedEmail(values.email)
     } catch (error) {
-      // "Account with this Email already in use" belongs on the email field.
-      const message =
-        error instanceof ApiError ? error.message : 'Something went wrong'
-      form.setError(error instanceof ApiError && error.status === 409 ? 'email' : 'root', {
-        message,
+      form.setError('root', {
+        message: error instanceof ApiError ? error.message : 'Something went wrong',
       })
     }
   }
 
+  if (submittedEmail) {
+    return (
+      <Card className="w-full max-w-md bg-card border-border">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl text-foreground">Check your inbox</CardTitle>
+          <CardDescription className="text-muted-foreground">
+            We sent a message to {submittedEmail}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Follow the link in that email to finish setting up your account. It expires in 24
+            hours.
+          </p>
+          <p className="text-center text-muted-foreground text-sm">
+            <Link href="/login" className="text-ring hover:underline">
+              Go to sign in
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
+
   return (
-    <Card className="w-full max-w-md bg-slate-900 border-slate-800">
+    <Card className="w-full max-w-md bg-card border-border">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl text-white">Create an account</CardTitle>
-        <CardDescription className="text-slate-400">
+        <CardTitle className="text-2xl text-foreground">Create an account</CardTitle>
+        <CardDescription className="text-muted-foreground">
           Start tracking your job applications
         </CardDescription>
       </CardHeader>
@@ -70,7 +96,7 @@ export default function RegisterPage() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-300">Full Name</FormLabel>
+                  <FormLabel className="text-foreground">Full Name</FormLabel>
                   <FormControl>
                     <Input placeholder="Upendra Sharma" className={inputClass} {...field} />
                   </FormControl>
@@ -84,7 +110,7 @@ export default function RegisterPage() {
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-300">Email</FormLabel>
+                  <FormLabel className="text-foreground">Email</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -103,7 +129,7 @@ export default function RegisterPage() {
               name="password"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-slate-300">Password</FormLabel>
+                  <FormLabel className="text-foreground">Password</FormLabel>
                   <FormControl>
                     <Input
                       type="password"
@@ -118,22 +144,22 @@ export default function RegisterPage() {
             />
 
             {form.formState.errors.root && (
-              <p className="text-red-500 text-sm">
+              <p className="text-destructive text-sm">
                 {form.formState.errors.root.message}
               </p>
             )}
 
             <Button
               type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
               disabled={form.formState.isSubmitting}
             >
               {form.formState.isSubmitting ? 'Creating account...' : 'Create Account'}
             </Button>
 
-            <p className="text-center text-slate-400 text-sm">
+            <p className="text-center text-muted-foreground text-sm">
               Already have an account?{' '}
-              <Link href="/login" className="text-blue-400 hover:underline">
+              <Link href="/login" className="text-ring hover:underline">
                 Sign in
               </Link>
             </p>

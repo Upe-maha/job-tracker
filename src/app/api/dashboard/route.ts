@@ -26,7 +26,7 @@ const EMPTY_STATS = {
 }
 
 export async function GET(req: Request) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'read' })
   if (!g.ok) return g.response
 
   try {

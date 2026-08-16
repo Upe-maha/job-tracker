@@ -11,7 +11,7 @@ import { notesQuerySchema } from '@/lib/schemas/note'
 // Distinct from the dashboard's notesFeed, which is a fixed 10-item widget
 // preview: this is the full set, which is what the /notes page needs.
 export async function GET(req: NextRequest) {
-  const g = await guard(req)
+  const g = await guard(req, { rateLimit: 'read' })
   if (!g.ok) return g.response
 
   // Replaces three hand-rolled Number()/isInteger blocks. parseQuery converts

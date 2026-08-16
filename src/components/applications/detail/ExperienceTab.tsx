@@ -27,7 +27,7 @@ export default function ExperienceTab({
       isEmpty={experienceLogs.length === 0}
       defaultType="experience_log"
       onAdd={onAdd}
-      addButtonClass="bg-orange-500 hover:bg-orange-600 text-white"
+      addButtonClass="bg-stage-interview-fg/90 hover:bg-stage-interview-fg text-background"
     >
       <div className="space-y-3">
         {experienceLogs.map(note => (
