@@ -1,22 +1,47 @@
 // src/components/applications/detail/DetailHeader.tsx
 'use client'
 
+import { useState } from 'react'
 import { format } from 'date-fns'
 import {
   MapPin,
   Banknote,
   Calendar,
   ExternalLink,
+  Pencil,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog'
 import { IApplication } from '@/types'
 import { APPLICATION_STATUS_META } from '@/lib/display'
 
 interface DetailHeaderProps {
   application: IApplication
+  onEdit: () => void
+  onDelete: () => void | Promise<void>
 }
 
-export default function DetailHeader({ application }: DetailHeaderProps) {
+export default function DetailHeader({
+  application,
+  onEdit,
+  onDelete,
+}: DetailHeaderProps) {
+  // Local, like NoteCard's: the page owns the mutation, so its isPending can't
+  // be reached from here.
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  async function handleConfirmDelete() {
+    setIsDeleting(true)
+    try {
+      await onDelete()
+      setConfirmOpen(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <div className="bg-card border border-border rounded-xl p-6">
 
@@ -80,23 +105,45 @@ export default function DetailHeader({ application }: DetailHeaderProps) {
           </div>
         </div>
 
-        {/* View job button */}
-        {application.jobUrl && (
-          <a
-            href={application.jobUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-2 border-border text-muted-foreground hover:text-foreground"
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          {application.jobUrl && (
+            <a
+              href={application.jobUrl}
+              target="_blank"
+              rel="noopener noreferrer"
             >
-              <ExternalLink className="w-3.5 h-3.5" />
-              View Job
-            </Button>
-          </a>
-        )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-border text-muted-foreground hover:text-foreground"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View Job
+              </Button>
+            </a>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onEdit}
+            className="gap-2 border-border text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </Button>
+
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmOpen(true)}
+            className="gap-2"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            Delete
+          </Button>
+        </div>
       </div>
 
       {/* Bottom row — details */}
@@ -137,6 +184,15 @@ export default function DetailHeader({ application }: DetailHeaderProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Delete ${application.company}?`}
+        description="This deletes the application along with every note, contact and prep file on it. This cannot be undone."
+        onConfirm={handleConfirmDelete}
+        isPending={isDeleting}
+      />
     </div>
   )
 }

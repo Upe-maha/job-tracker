@@ -57,7 +57,7 @@ export async function POST(req: Request) {
 
     // sendMailSafe, not sendMail: a delivery failure must not turn into a 500
     // on this branch alone, or the oracle reopens through the error path —
-    // break SMTP and the 500/201 split says whether the address was free. The
+    // break delivery and the 500/201 split says whether the address was free. The
     // user can resend from the banner if the mail never arrives.
     await sendMailSafe({ to: user.email, ...verifyEmail(user.name, token) })
 

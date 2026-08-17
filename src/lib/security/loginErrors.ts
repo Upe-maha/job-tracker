@@ -18,6 +18,30 @@ export const LOGIN_ERROR = {
 } as const
 
 
+// Step E. Connecting a provider from the profile page fails through the same
+// mechanism — a string returned from the signIn callback is a redirect — but it
+// lands back on /profile, not /login, so the codes and their copy are separate.
+export const LINK_ERROR = {
+  IN_USE: 'link_in_use',
+  PROVIDER_LINKED: 'link_provider_linked',
+  EXPIRED: 'link_expired',
+  FAILED: 'link_failed',
+} as const
+
+export function linkErrorMessage(code?: string): string {
+  switch (code) {
+    case LINK_ERROR.IN_USE:
+      return 'That account is already connected to a different user.'
+    case LINK_ERROR.PROVIDER_LINKED:
+      return 'A different account is already connected. Disconnect it first, then connect this one.'
+    case LINK_ERROR.EXPIRED:
+      return 'That connection request expired. Please try again.'
+    case LINK_ERROR.FAILED:
+    default:
+      return 'Could not connect that account. Please try again.'
+  }
+}
+
 export function loginErrorMessage(code?: string): string {
   switch (code) {
     case LOGIN_ERROR.RATE_LIMITED:

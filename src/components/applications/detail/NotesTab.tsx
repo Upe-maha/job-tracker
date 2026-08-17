@@ -9,10 +9,16 @@ import type { NoteCreatePayload } from '@/lib/schemas/note'
 interface NotesTabProps {
   notes: INote[]
   onAdd: (note: NoteCreatePayload) => Promise<void>
+  onEdit: (note: INote) => void
   onDelete: (noteId: string) => Promise<void>
 }
 
-export default function NotesTab({ notes, onAdd, onDelete }: NotesTabProps) {
+export default function NotesTab({
+  notes,
+  onAdd,
+  onEdit,
+  onDelete,
+}: NotesTabProps) {
   const generalNotes = notes.filter(n => n.type === 'general')
 
   return (
@@ -26,7 +32,12 @@ export default function NotesTab({ notes, onAdd, onDelete }: NotesTabProps) {
     >
       <div className="space-y-3">
         {generalNotes.map(note => (
-          <NoteCard key={note._id} note={note} onDelete={onDelete} />
+          <NoteCard
+            key={note._id}
+            note={note}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         ))}
       </div>
     </NoteTabShell>

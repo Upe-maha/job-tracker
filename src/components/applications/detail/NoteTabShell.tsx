@@ -5,7 +5,7 @@ import { useState, type ReactNode } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import EmptyState from '@/components/common/EmptyState'
-import AddNoteModal from '@/components/notes/AddNoteModal'
+import NoteModal from '@/components/notes/NoteModal'
 import type { NoteCreatePayload } from '@/lib/schemas/note'
 import type { NoteType } from '@/types'
 
@@ -59,10 +59,13 @@ export default function NoteTabShell({
 
       {isEmpty ? <EmptyState message={emptyMessage} /> : children}
 
-      <AddNoteModal
+      {/* The shell keeps owning the *add* modal — defaultType is genuinely
+          per-tab. The edit modal lives in the detail page, which already owns
+          every note handler. */}
+      <NoteModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onAdd={onAdd}
+        onSubmit={onAdd}
         defaultType={defaultType}
       />
     </div>

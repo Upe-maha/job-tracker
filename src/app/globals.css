@@ -150,6 +150,14 @@
      the two chips would read as siblings. */
   --stage-offer: hsl(141 79% 93%);       --stage-offer-fg: hsl(143 61% 24%);
   --stage-rejected: hsl(356 100% 95%);   --stage-rejected-fg: hsl(342 79% 35%);
+
+  /* How much of each hue the landing backdrop mixes in (Step G). Per theme,
+     because the same percentage reads very differently against the two
+     grounds: light mode's brand token is a *dark* teal, so a mix that gives a
+     rich glow on the near-black dark background washes out to almost nothing
+     over a near-white one. Tuned by looking at both. */
+  --aurora-strength: 58%;
+  --aurora-strength-soft: 44%;
 }
 
 /* ─── DARK THEME ──────────────────────────────────────────────────────────
@@ -199,6 +207,10 @@
   --stage-interview: hsl(40 82% 13%);    --stage-interview-fg: hsl(45 97% 64%);
   --stage-offer: hsl(145 62% 11%);       --stage-offer-fg: hsl(142 77% 73%);
   --stage-rejected: hsl(348 74% 14%);    --stage-rejected-fg: hsl(353 96% 82%);
+
+  /* See the note in :root — the dark ground needs less mix to read as a glow. */
+  --aurora-strength: 42%;
+  --aurora-strength-soft: 30%;
 }
 
 @layer base {
@@ -222,5 +234,92 @@
     box-shadow:
       0 0 0 1px var(--ring),
       0 0 12px -2px color-mix(in srgb, var(--ring) 50%, transparent);
+  }
+
+  /* ── Landing page (Step G) ──────────────────────────────────────────────
+     Three utilities, all scoped to the public page. They live here rather
+     than inline because each is a multi-line declaration that Tailwind has no
+     shorthand for, and because the reduced-motion rules below have to sit
+     next to what they switch off. */
+
+  /* The backdrop the hero's glass panel refracts. Built from brand tokens, so
+     it follows the theme instead of committing the page to one palette the way
+     a photograph would. */
+  .aurora-mesh {
+    background-image:
+      radial-gradient(60% 55% at 20% 15%, color-mix(in srgb, var(--brand) var(--aurora-strength), transparent), transparent 70%),
+      radial-gradient(55% 50% at 82% 25%, color-mix(in srgb, var(--stage-applied-fg) var(--aurora-strength-soft), transparent), transparent 70%),
+      radial-gradient(65% 60% at 55% 88%, color-mix(in srgb, var(--stage-interview-fg) var(--aurora-strength-soft), transparent), transparent 72%);
+    background-size: 160% 160%;
+    animation: aurora-drift 26s ease-in-out infinite alternate;
+  }
+
+  @keyframes aurora-drift {
+    from { background-position: 0% 40%; }
+    to   { background-position: 100% 60%; }
+  }
+
+  /* The reference's frosted panel. backdrop-filter is the whole effect, so the
+     fallback matters: without support the panel is still a legible translucent
+     card rather than transparent. */
+  .glass-panel {
+    background-color: color-mix(in srgb, var(--card) 55%, transparent);
+    border: 1px solid color-mix(in srgb, var(--foreground) 14%, transparent);
+    box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--foreground) 45%, transparent);
+  }
+
+  @supports (backdrop-filter: blur(1px)) {
+    .glass-panel {
+      background-color: color-mix(in srgb, var(--card) 38%, transparent);
+      backdrop-filter: blur(20px) saturate(140%);
+    }
+  }
+
+  /* Smooth scrolling for the landing page's section nav, scoped to it rather
+     than set on html globally — scroll-behavior on the document would also
+     apply to any future scrollIntoView elsewhere in the app, which is a
+     surprising thing to inherit from a marketing page. :has() puts the
+     behaviour on the scrolling element only while the landing root is mounted.
+     Dropped under reduced motion, where an instant jump is the point. */
+  html:has(.landing-root) {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html:has(.landing-root) {
+      scroll-behavior: auto;
+    }
+  }
+
+  /* Scroll reveal. The hidden state is applied by this class and removed once
+     useReveal sees the element; transform and opacity only, so revealing a
+     section never reflows the page below it. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(1rem);
+    transition:
+      opacity 600ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .reveal-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Both directions of the reduced-motion contract, and the first one is the
+     load-bearing half: a reveal whose transition never runs would leave the
+     content permanently invisible, so the revealed state is forced rather than
+     merely un-animated. The drifting backdrop is precisely what this setting
+     exists to stop. */
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .aurora-mesh {
+      animation: none;
+    }
   }
 }

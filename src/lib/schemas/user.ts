@@ -6,6 +6,7 @@ import {
   currency,
   imageUrl,
   password,
+  safeUrl,
   text,
 } from './common'
 
@@ -17,8 +18,13 @@ const fields = {
   bio: text('Bio', { max: 1000 }),
   location: text('Location', { max: 200 }),
   phone: text('Phone', { max: 30 }),
-  linkedIn: text('LinkedIn', { max: 200 }),
-  portfolio: text('Portfolio', { max: 200 }),
+  // safeUrl, not text: Step E renders all three as anchors, and an unvalidated
+  // string in an href is how javascript: gets in. '' still passes, so a field
+  // can be cleared — but a stored bare 'linkedin.com/in/me' now fails on its
+  // next save until it is made absolute.
+  linkedIn: safeUrl('LinkedIn'),
+  portfolio: safeUrl('Portfolio'),
+  github: safeUrl('GitHub'),
   currency: currency('Currency'),
   jobSearchStatus: z.enum(JOB_SEARCH_STATUSES, {
     error: 'Invalid job search status',
@@ -44,6 +50,7 @@ export const profileFormSchema = z.object({
   phone: fields.phone,
   linkedIn: fields.linkedIn,
   portfolio: fields.portfolio,
+  github: fields.github,
   currency: fields.currency,
   jobSearchStatus: fields.jobSearchStatus,
 })

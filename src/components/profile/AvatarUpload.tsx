@@ -67,10 +67,13 @@ export default function AvatarUpload({
   return (
     <div className="flex flex-col items-center gap-3">
 
-      {/* Avatar circle */}
-      <div className="relative group">
+      {/* Avatar circle. The edit affordance is a badge on the corner rather
+          than the hover overlay it replaced: the overlay was invisible until
+          hovered and unreachable by touch, so on a phone there was no way to
+          discover the avatar was editable at all. */}
+      <div className="relative">
         <div className="
-          w-20 h-20 rounded-full overflow-hidden
+          w-24 h-24 rounded-full overflow-hidden
           ring-2 ring-border
         ">
           {displayPhoto ? (
@@ -88,38 +91,31 @@ export default function AvatarUpload({
               {initial}
             </div>
           )}
-
-          {/* Upload overlay */}
-          <button
-            type="button"
-            onClick={() => inputRef.current?.click()}
-            disabled={uploading}
-            className="
-              absolute inset-0
-              bg-black/50 opacity-0 group-hover:opacity-100
-              flex items-center justify-center
-              transition-opacity duration-150
-              rounded-full
-            "
-          >
-            {uploading ? (
-              <Loader2 className="w-5 h-5 text-white animate-spin" />
-            ) : (
-              <Camera className="w-5 h-5 text-white" />
-            )}
-          </button>
         </div>
-      </div>
 
-      {/* Click to upload text */}
-      <button
-        type="button"
-        onClick={() => inputRef.current?.click()}
-        disabled={uploading}
-        className="text-xs text-primary hover:underline disabled:opacity-50"
-      >
-        {uploading ? 'Uploading...' : 'Change photo'}
-      </button>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          aria-label={uploading ? 'Uploading photo' : 'Change photo'}
+          title="Change photo"
+          className="
+            absolute bottom-0 right-0
+            w-11 h-11 lg:w-8 lg:h-8 rounded-full
+            bg-primary text-primary-foreground
+            ring-2 ring-card
+            flex items-center justify-center
+            hover:bg-primary/90 disabled:opacity-60
+            transition-colors
+          "
+        >
+          {uploading ? (
+            <Loader2 className="w-5 h-5 lg:w-4 lg:h-4 animate-spin" />
+          ) : (
+            <Camera className="w-5 h-5 lg:w-4 lg:h-4" />
+          )}
+        </button>
+      </div>
 
       {error && (
         <p className="text-destructive text-xs">{error}</p>

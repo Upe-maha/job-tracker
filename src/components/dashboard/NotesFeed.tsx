@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { INoteFeedItem } from '@/types'
 import { NOTE_TYPE_META } from '@/lib/display'
+import NoteAttachmentChip from '@/components/notes/NoteAttachmentChip'
 
 interface NotesFeedProps {
   notes: INoteFeedItem[]
@@ -34,11 +35,16 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
         const Icon = config.icon
 
         return (
-          <Link
-            key={item.noteId}
-            href={`/applications/${item.applicationId}`}
-            className="block"
-          >
+          // Link behind the card, not around it, so the attachment chip can be
+          // clicked without navigating. See NoteAttachmentChip.
+          <div key={item.noteId} className="relative">
+            <Link
+              href={`/applications/${item.applicationId}`}
+              className="absolute inset-0 rounded-xl"
+            >
+              <span className="sr-only">Open {item.company} application</span>
+            </Link>
+
             <div className="
               bg-card border border-border rounded-xl p-4
               hover:border-primary/30 hover:shadow-sm
@@ -91,6 +97,13 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                   ">
                     {item.content}
                   </p>
+
+                  {item.attachment && (
+                    <NoteAttachmentChip
+                      attachment={item.attachment}
+                      className="relative z-10 mt-2 max-w-[70%]"
+                    />
+                  )}
                 </div>
 
                 {/* Arrow */}
@@ -101,7 +114,7 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                 " />
               </div>
             </div>
-          </Link>
+          </div>
         )
       })}
     </div>

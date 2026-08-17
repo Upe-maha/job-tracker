@@ -52,12 +52,15 @@ function salaryOrder(v: {
   return v.salaryMin <= v.salaryMax
 }
 
-// companyLogo is absent on purpose: PUT is its only writer, matching the
-// behaviour of the hand-rolled route this replaces.
+// companyLogo used to be absent here, on the grounds that PUT was its only
+// writer — but PUT had no UI, so the field was unreachable from the app even
+// though DetailHeader renders it. Step D gave both forms the field, so create
+// writes it too. httpsUrl accepts '', which is how it gets cleared.
 export const applicationCreateSchema = z
   .object({
     company: fields.company,
     role: fields.role,
+    companyLogo: fields.companyLogo.default(''),
     status: fields.status.default('wishlist'),
     jobUrl: fields.jobUrl.default(''),
     jobDescription: fields.jobDescription.default(''),
@@ -85,12 +88,16 @@ export const applicationUpdateSchema = z
 
 export const applicationStatusSchema = z.object({ status: fields.status })
 
-// The subset the Add form owns. The fields it omits (jobDescription, tags,
-// followUpDate) are filled by applicationCreateSchema's defaults server-side.
+// The subset both application forms own. The fields it omits (jobDescription,
+// tags, followUpDate) are filled by applicationCreateSchema's defaults on
+// create; on edit they are simply absent from the request, and since
+// applicationUpdateSchema is partial the route leaves them alone rather than
+// clearing them.
 export const applicationFormSchema = z
   .object({
     company: fields.company,
     role: fields.role,
+    companyLogo: fields.companyLogo,
     jobUrl: fields.jobUrl,
     status: fields.status,
     workMode: fields.workMode,

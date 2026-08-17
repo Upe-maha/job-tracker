@@ -1,6 +1,6 @@
 // src/lib/display/user.ts
 import { JOB_SEARCH_STATUSES } from '@/lib/schemas/enums'
-import type { JobSearchStatus } from '@/lib/schemas/enums'
+import type { JobSearchStatus, OAuthProvider } from '@/lib/schemas/enums'
 
 export const JOB_SEARCH_STATUS_LABELS: Record<JobSearchStatus, string> = {
   actively_looking: 'Actively Looking',
@@ -30,3 +30,13 @@ export const CURRENCIES = [
 ] as const
 
 export const DEFAULT_CURRENCY = 'USD'
+
+// Step E's Connected Accounts panel. Typed as a Record over the enum, so adding
+// a provider is a compile error until it has a label — the same rule the rest
+// of this directory follows. No icons here: the two provider marks are brand
+// SVGs that live in the components that draw them, not lucide components a
+// plain object can hold.
+export const OAUTH_PROVIDER_LABELS: Record<OAuthProvider, string> = {
+  google: 'Google',
+  github: 'GitHub',
+}

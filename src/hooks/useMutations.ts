@@ -10,10 +10,10 @@ import type {
   ApplicationUpdateInput,
 } from '@/lib/schemas/application'
 import type { ContactCreatePayload } from '@/lib/schemas/contact'
-import type { NoteCreatePayload } from '@/lib/schemas/note'
+import type { NoteCreatePayload, NoteUpdatePayload } from '@/lib/schemas/note'
 import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
 import type { ProfileUpdateInput } from '@/lib/schemas/user'
-import type { ApplicationStatus, IApplication } from '@/types'
+import type { ApplicationStatus, IApplication, INote, OAuthProvider } from '@/types'
 
 // Anything that writes goes through here. Two things this buys that the 13
 // hand-rolled fetch calls did not: a failure is always surfaced (several call
@@ -73,10 +73,16 @@ export function useUpdateApplication(id: string) {
 }
 
 export function useDeleteApplication() {
+  const qc = useQueryClient()
   const invalidate = useInvalidators()
   return useMutation({
     mutationFn: (id: string) => apiSend('DELETE', `/api/applications/${id}`),
-    onSuccess: () => {
+    // The detail query has to be dropped, not just invalidated. Deleting from
+    // the detail page leaves useApplication(id) mounted, so invalidating
+    // ['applications'] refetches it, gets the 404, and flashes ErrorState's
+    // "We couldn't find that" before router.push lands.
+    onSuccess: (_data, id) => {
+      qc.removeQueries({ queryKey: qk.applications.detail(id) })
       invalidate.applications()
       toast.success('Application deleted')
     },
@@ -107,6 +113,20 @@ export function useAddNote(applicationId: string) {
       invalidate.notes()
       invalidate.applications()
       toast.success('Note added')
+    },
+    onError: reportError,
+  })
+}
+
+export function useUpdateNote(applicationId: string) {
+  const invalidate = useInvalidators()
+  return useMutation({
+    mutationFn: (input: NoteUpdatePayload) =>
+      apiSend<INote>('PUT', `/api/applications/${applicationId}/notes`, input),
+    onSuccess: () => {
+      invalidate.notes()
+      invalidate.applications()
+      toast.success('Note updated')
     },
     onError: reportError,
   })
@@ -197,6 +217,30 @@ export function useUpdateProfile() {
   })
 }
 
+// Step E. Two halves of connecting a provider, split because only the first is
+// an API call: this records intent (an account_link token in an httpOnly
+// cookie) and the caller then hands off to next-auth's signIn for the redirect.
+// No invalidation — the page is about to leave.
+export function useStartLinkAccount() {
+  return useMutation({
+    mutationFn: () => apiSend<{ ok: true }>('POST', '/api/user/link-account', {}),
+    onError: reportError,
+  })
+}
+
+export function useDisconnectAccount() {
+  const invalidate = useInvalidators()
+  return useMutation({
+    mutationFn: (provider: OAuthProvider) =>
+      apiSend<{ ok: true }>('DELETE', `/api/user/accounts/${provider}`),
+    onSuccess: () => {
+      invalidate.profile()
+      toast.success('Account disconnected')
+    },
+    onError: reportError,
+  })
+}
+
 export function useChangePassword() {
   return useMutation({
     mutationFn: (input: { currentPassword: string; newPassword: string }) =>
@@ -256,7 +300,13 @@ export function useConfirmPasswordChange() {
 
 export function useUpload() {
   return useMutation({
-    mutationFn: async ({ file, folder }: { file: File; folder: 'avatars' | 'prep-files' }) => {
+    mutationFn: async ({
+      file,
+      folder,
+    }: {
+      file: File
+      folder: 'avatars' | 'prep-files' | 'resumes' | 'note-files'
+    }) => {
       const form = new FormData()
       form.append('file', file)
       form.append('folder', folder)

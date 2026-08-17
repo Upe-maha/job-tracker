@@ -14,6 +14,23 @@ import {
 // required: the source arrays are `as const`, and Mongoose's `enum` option
 // does not accept a readonly tuple.
 
+// Step F. One optional PDF per note. A nested schema rather than two flat
+// fields so "no attachment" is a single null instead of a pair of empty strings
+// that could disagree — and `_id: false` because it is a value on the note, not
+// a subdocument anything addresses by id.
+//
+// Only { url, name } is stored: the URL is the file's identity, and it is what
+// resolveOwnedFile matches ownership on. See md/step-f-notes-pdf.md — deleting
+// the Cloudinary asset needs a publicId that R4 introduces, and Step F
+// deliberately does no cleanup at all rather than some.
+const NoteAttachmentSchema = new mongoose.Schema(
+  {
+    url: { type: String, required: true },
+    name: { type: String, required: true },
+  },
+  { _id: false }
+)
+
 // ─── Note Schema ─────────────────────────────────────
 const NoteSchema = new mongoose.Schema(
   {
@@ -38,6 +55,7 @@ const NoteSchema = new mongoose.Schema(
     },
     whatWentWrong: { type: String, default: '' },
     whatToImprove: { type: String, default: '' },
+    attachment: { type: NoteAttachmentSchema, default: null },
   },
   { timestamps: true }
 )

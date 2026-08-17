@@ -53,6 +53,11 @@ export async function fetchNotesFeed({
         companyLogo: { $ifNull: ['$companyLogo', ''] },
         noteType: '$notes.type',
         content: '$notes.content',
+        // Step F. $ifNull so a note written before attachments existed comes
+        // back as an explicit null rather than an absent key — the feed rows
+        // test `item.attachment &&`, and a missing key and a null read the same
+        // there only by luck.
+        attachment: { $ifNull: ['$notes.attachment', null] },
         createdAt: '$notes.createdAt',
       },
     },

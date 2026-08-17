@@ -11,6 +11,7 @@ import type { NoteCreatePayload } from '@/lib/schemas/note'
 interface InterviewTabProps {
   notes: INote[]
   onAdd: (note: NoteCreatePayload) => Promise<void>
+  onEdit: (note: INote) => void
   onDelete: (noteId: string) => Promise<void>
 }
 
@@ -21,6 +22,7 @@ const rounds = [...INTERVIEW_ROUNDS, null]
 export default function InterviewTab({
   notes,
   onAdd,
+  onEdit,
   onDelete,
 }: InterviewTabProps) {
   const interviewNotes = notes.filter(
@@ -55,7 +57,12 @@ export default function InterviewTab({
               </div>
 
               {roundNotes.map(note => (
-                <NoteCard key={note._id} note={note} onDelete={onDelete} />
+                <NoteCard
+                  key={note._id}
+                  note={note}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
               ))}
             </div>
           )

@@ -11,6 +11,7 @@ import { NOTE_FILTERS, NOTE_TYPE_META, type NoteFilterKey } from '@/lib/display'
 import PageShell from '@/components/common/PageShell'
 import ErrorState from '@/components/common/ErrorState'
 import { ListSkeleton } from '@/components/common/Skeletons'
+import NoteAttachmentChip from '@/components/notes/NoteAttachmentChip'
 
 
 
@@ -46,7 +47,7 @@ export default function NotesPage() {
             key={f.key}
             onClick={() => setActiveFilter(f.key)}
             className={`
-              text-xs px-3 py-1.5 rounded-full border
+              text-xs px-3 py-1.5 min-h-9 lg:min-h-0 rounded-full border
               transition-colors duration-150
               ${activeFilter === f.key
                 ? 'bg-primary text-primary-foreground border-primary'
@@ -91,15 +92,27 @@ export default function NotesPage() {
             const Icon = config.icon
 
             return (
-              <Link
+              // The link is an overlay behind the card rather than a wrapper
+              // around it, so the attachment chip can sit above it and open the
+              // preview without also navigating. See NoteAttachmentChip.
+              <div
                 key={item.noteId}
-                href={`/applications/${item.applicationId}`}
-              >
-                <div className={`
-                  border rounded-xl p-4
+                className={`
+                  relative border rounded-xl p-4
                   hover:shadow-sm transition-all duration-150
                   group ${config.bg}
-                `}>
+                `}
+              >
+                <Link
+                  href={`/applications/${item.applicationId}`}
+                  className="absolute inset-0 rounded-xl"
+                >
+                  <span className="sr-only">
+                    Open {item.company} application
+                  </span>
+                </Link>
+
+                <div>
                   <div className="flex items-start gap-3">
 
                     {/* Company logo */}
@@ -147,6 +160,14 @@ export default function NotesPage() {
                       ">
                         {item.content}
                       </p>
+
+                      {/* relative z-10 lifts it above the overlay link. */}
+                      {item.attachment && (
+                        <NoteAttachmentChip
+                          attachment={item.attachment}
+                          className="relative z-10 mt-2 max-w-[70%]"
+                        />
+                      )}
                     </div>
 
                     <ArrowRight className="
@@ -157,7 +178,7 @@ export default function NotesPage() {
                     " />
                   </div>
                 </div>
-              </Link>
+              </div>
             )
           })}
         </div>

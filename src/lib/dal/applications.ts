@@ -68,6 +68,54 @@ export async function pushSubdocument<T>({
   return { ok: false, reason: exists ? 'limit' : 'not_found' }
 }
 
+// Updates one subdocument in place and returns it.
+//
+// Written for `notes`, its only caller. The generic signature is here for
+// symmetry with the two helpers either side of it, not because a second caller
+// is planned.
+//
+// Three things to know:
+//
+// 1. The positional `$` binds to whatever matched `${field}._id` in the filter.
+//    Drop that condition and the $set has nothing to point at and errors.
+// 2. `updatedAt` is written by hand. NoteSchema has { timestamps: true }, but
+//    Mongoose maintains subdocument timestamps through the document API
+//    (save()), not through a raw positional $set — without this line an edited
+//    note keeps its original updatedAt forever.
+// 3. Unlike pullSubdocument, which is idempotent by design, an unknown subId
+//    matches nothing and returns null. The caller's 404 therefore covers both
+//    "not your application" and "no such subdocument" — the same conflation
+//    pushSubdocument accepts, and the one the ownership invariant wants.
+//
+// Note that `runValidators` does NOT reach the subdocument through the
+// positional operator, so Zod is the only enum guard on this path. See
+// md/step-d-crud.md.
+export async function updateSubdocument<T>({
+  userId,
+  appId,
+  field,
+  subId,
+  value,
+}: {
+  userId: string
+  appId: string
+  field: SubdocumentField
+  subId: string
+  value: Record<string, unknown>
+}): Promise<T | null> {
+  const setFields = Object.fromEntries(
+    Object.entries(value).map(([key, v]) => [`${field}.$.${key}`, v])
+  )
+
+  const application = await Application.findOneAndUpdate(
+    { _id: appId, user: userId, [`${field}._id`]: subId },
+    { $set: { ...setFields, [`${field}.$.updatedAt`]: new Date() } },
+    { new: true, runValidators: true }
+  )
+
+  return application ? (application[field].id(subId) as T) : null
+}
+
 // Removes one subdocument by id. Returns false when the application isn't the
 // caller's; removing an id that isn't present is a no-op and still true, so
 // a repeated delete is idempotent.

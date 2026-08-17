@@ -1,6 +1,11 @@
-#Step C — Email System (nodemailer)
+#Step C — Email System (Resend)
 
 Status: planned → implemented in this step.
+
+> **Transport note.** This step was built on nodemailer over SMTP and later moved to the Resend SDK;
+> `nodemailer` is no longer a dependency. Decision 1 and the *Mailer* section below have been
+> rewritten to describe what the code does now. Everything else — the token mechanism, the rate-limit
+> presets, the routes, the enumeration-safety rules — was never transport-specific and is unchanged.
 
 Three flows share one token mechanism: **email verification on register**, **forgot-password
 reset**, and **password-change confirmation**.
@@ -19,9 +24,13 @@ Two things in the codebase were already waiting on this step:
 
 ## Decisions locked with the user
 
-1. **nodemailer over SMTP**, not Resend. The roadmap named Resend; this step supersedes that. SMTP
-   keeps the app provider-agnostic — Gmail, Mailgun, SES or a local Mailpit are all the same six
-   env vars.
+1. **Resend, over its HTTPS API** — `RESEND_API_KEY` and `EMAIL_FROM`, which is what the roadmap
+   named in the first place. The step originally went the other way: nodemailer over SMTP, chosen to
+   stay provider-agnostic (Gmail, Mailgun, SES or a local Mailpit are all the same six env vars).
+   That reversed once the app needed a transport that actually worked from a deployed serverless
+   function — an HTTPS API needs no outbound SMTP port, no connection pool to keep alive across
+   invocations, and no app password. The cost is one vendor; the flows below don't care either way,
+   which is why the switch touched `mailer.ts` and nothing else.
 2. **All three flows in one step.** They share the token model, the mailer and the rate-limit
    presets, so the third flow costs almost nothing once the first two exist.
 3. **An unverified user can still sign in**, and sees a banner with a resend button. `authorize()`
@@ -84,16 +93,35 @@ missing hash as a server error, never as a write.
 
 ### Mailer (`src/lib/email/`)
 
-`mailer.ts` is server-only and caches the nodemailer transport on `globalThis` for the same reason
-`connectDB` does: a serverless invocation gets a fresh module registry but the same global, so this
-is what stops every request opening a new SMTP connection pool. `templates.ts` is pure — four
-functions returning `{ subject, html, text }`, with links built from `NEXTAUTH_URL`, reusing the
-origin `csrf.ts` already trusts rather than adding a second source of truth.
+`mailer.ts` is server-only and holds the `Resend` client in a **module variable, not `globalThis`**.
+The nodemailer transport it replaced was cached on the global for the same reason `connectDB` is — a
+serverless invocation gets a fresh module registry but the same global, which is what stopped every
+request opening its own SMTP connection pool. A Resend client holds no sockets (an API key and a
+header object wrapped around `fetch`), so there is no pool to protect and nothing worth keeping
+across invocations.
+
+It is still built **lazily**, for the original reason: `db.ts` can throw at import on a missing env
+var because nothing works without Mongo, but a missing `RESEND_API_KEY` should fail the one request
+that tries to send rather than stop the app from booting.
+
+**The one thing to know about this SDK: `emails.send()` resolves with `{ data: null, error }` for
+anything the API refuses** — bad key, unverified sender, quota, suppressed recipient. It does not
+throw; only a transport-level failure (DNS, socket) rejects. So `sendMail` inspects `error` and
+throws itself, and that check is what keeps the `sendMail`/`sendMailSafe` split honest. Without it
+every refused message would look like a success: `sendMail` would stop throwing,
+`resend-verification` would answer 200 and charge the `reset` budget for mail that never left, and
+`user/password` would tell the user to go read a confirmation link that was never delivered.
+
+`templates.ts` is pure — four functions returning `{ subject, html, text }`, with links built from
+`NEXTAUTH_URL`, reusing the origin `csrf.ts` already trusts rather than adding a second source of
+truth.
 
 **Register must swallow send failures.** Both branches — new account and existing account — send
 *different* emails but must produce identical responses. A send failure surfacing as a 500 on one
-branch only would reopen the enumeration oracle through the error path. Everywhere else `sendMail`
-throws into the route's `catch { return serverError(...) }`.
+branch only would reopen the enumeration oracle through the error path. That is what `sendMailSafe`
+is for, and it is why the resolved-`{ error }` case above has to be turned into a throw first — a
+refusal that never throws is a refusal `sendMailSafe` cannot log. Everywhere else `sendMail` throws
+into the route's `catch { return serverError(...) }`.
 
 ### Rate limiting
 
@@ -167,4 +195,5 @@ listing them there would bounce them to `/dashboard` and silently discard the to
   `passwordChangedAt`. This step keeps writing that field so Step H has a baseline.
 - **Lockout-notification emails** → a Step A follow-up; the mailer built here makes it a small
   addition.
-- **Email change / re-verification on address change** → Step D's profile overhaul.
+- **Email change / re-verification on address change** → the profile overhaul, which is **Step E**.
+  (This line said "Step D" when written; Step D is now Application & Note CRUD.)

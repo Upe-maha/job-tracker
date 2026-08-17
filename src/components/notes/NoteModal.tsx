@@ -1,4 +1,4 @@
-// src/components/notes/AddNoteModal.tsx
+// src/components/notes/NoteModal.tsx
 'use client'
 
 import { useForm } from 'react-hook-form'
@@ -26,23 +26,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  noteFormSchema,
-  type NoteCreatePayload,
-  type NoteFormValues,
-} from '@/lib/schemas/note'
+import { noteFormSchema, type NoteFormValues } from '@/lib/schemas/note'
+import NoteAttachmentField from '@/components/notes/NoteAttachmentField'
 import {
   INTERVIEW_ROUND_LABELS,
   NOTE_OUTCOME_LABELS,
   NOTE_TYPE_META,
 } from '@/lib/display'
 import { INTERVIEW_ROUNDS, NOTE_OUTCOMES, NOTE_TYPES } from '@/lib/schemas/enums'
-import type { NoteType } from '@/types'
+import type { INote, NoteType } from '@/types'
 
-interface AddNoteModalProps {
+// Add and edit are the same modal. The type-driven field layout and
+// handleTypeChange's clearing logic are identical between the two, and a
+// second copy of them is exactly what drifts.
+//
+// One onSubmit rather than an optional onAdd plus an optional onEdit: two
+// optional callbacks with a runtime branch permit states the type system
+// should be ruling out. The edit caller closes over the note id.
+interface NoteModalProps {
   open: boolean
   onClose: () => void
-  onAdd: (note: NoteCreatePayload) => Promise<void>
+  onSubmit: (note: NoteFormValues) => Promise<void>
+  /** Present ⇒ edit mode. */
+  note?: INote
   defaultType?: NoteType
 }
 
@@ -69,24 +75,32 @@ const CONTENT_PLACEHOLDERS: Record<NoteType, string> = {
   general: 'Write your note here...',
 }
 
-export default function AddNoteModal({
+export default function NoteModal({
   open,
   onClose,
-  onAdd,
+  onSubmit: onSubmitProp,
+  note,
   defaultType = 'general',
-}: AddNoteModalProps) {
-  const emptyValues: NoteFormValues = {
-    type: defaultType,
-    content: '',
-    interviewRound: null,
-    outcome: null,
-    whatWentWrong: '',
-    whatToImprove: '',
+}: NoteModalProps) {
+  const isEdit = Boolean(note)
+
+  // In edit mode these are the note's current values, not empty ones. RHF reads
+  // defaultValues at mount only, which is why the edit caller mounts this modal
+  // conditionally — a fresh mount per note is what a reset effect would
+  // otherwise have to reproduce by hand.
+  const initialValues: NoteFormValues = {
+    type: note?.type ?? defaultType,
+    content: note?.content ?? '',
+    interviewRound: note?.interviewRound ?? null,
+    outcome: note?.outcome ?? null,
+    whatWentWrong: note?.whatWentWrong ?? '',
+    whatToImprove: note?.whatToImprove ?? '',
+    attachment: note?.attachment ?? null,
   }
 
   const form = useForm<NoteFormValues>({
     resolver: standardSchemaResolver(noteFormSchema),
-    defaultValues: emptyValues,
+    defaultValues: initialValues,
   })
 
   const type = form.watch('type')
@@ -110,23 +124,31 @@ export default function AddNoteModal({
     }
   }
 
+  // Closes only on success. mutateAsync rejects on a failed save, which throws
+  // before the two lines below run, so the modal stays open with the user's
+  // text and the mutation's own onError toast explains why. Do not wrap this in
+  // a try/catch — swallowing the rejection closes the modal and loses the text.
   async function onSubmit(values: NoteFormValues) {
-    await onAdd(values)
-    form.reset(emptyValues)
+    await onSubmitProp(values)
+    // Nothing to reset when editing: onClose unmounts this modal, so a reset
+    // here would only risk a blank form flashing through the close animation.
+    if (!isEdit) form.reset(initialValues)
     onClose()
   }
 
   function handleOpenChange(isOpen: boolean) {
     if (isOpen) return
-    form.reset(emptyValues)
+    if (!isEdit) form.reset(initialValues)
     onClose()
   }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="bg-card border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="bg-card border-border text-foreground sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-foreground">Add Note</DialogTitle>
+          <DialogTitle className="text-foreground">
+            {isEdit ? 'Edit Note' : 'Add Note'}
+          </DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
@@ -284,6 +306,19 @@ export default function AddNoteModal({
               </>
             )}
 
+            {/* Attachment — type-independent, so it sits outside the two
+                type-driven blocks above and survives handleTypeChange. */}
+            <FormField
+              control={form.control}
+              name="attachment"
+              render={({ field }) => (
+                <FormItem>
+                  <NoteAttachmentField value={field.value} onChange={field.onChange} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             {/* Actions */}
             <div className="flex gap-3 pt-2">
               <Button
@@ -299,7 +334,11 @@ export default function AddNoteModal({
                 disabled={form.formState.isSubmitting}
                 className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
               >
-                {form.formState.isSubmitting ? 'Saving...' : 'Save Note'}
+                {form.formState.isSubmitting
+                  ? 'Saving...'
+                  : isEdit
+                    ? 'Save Changes'
+                    : 'Save Note'}
               </Button>
             </div>
           </form>

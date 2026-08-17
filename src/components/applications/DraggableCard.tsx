@@ -38,20 +38,32 @@ export default function DraggableCard({ application }: DraggableCardProps) {
         isDragging && 'z-10 opacity-50 shadow-md cursor-grabbing'
       )}
     >
-      <div 
+      {/* The handle was opacity-0 until hover, which meant it did not exist on
+          a touch screen: no hover, no handle, and the only way to reorder the
+          board was an invisible 20px target. Below lg it is therefore always
+          visible and a full 44px.
+
+          It sits *outside* the card's top-left corner on touch (-top-2 -left-2
+          plus a ring) rather than over it, so enlarging the grab area does not
+          steal taps from the company name underneath — a drag handle that
+          swallows the card's own tap target trades one broken interaction for
+          another. */}
+      <div
       {...attributes}
       {...listeners}
       className="
-          absolute top-3 left-3 z-20
-          w-5 h-5
+          absolute z-20
+          -top-2 -left-2 w-11 h-11 rounded-full bg-card ring-1 ring-border
+          lg:top-3 lg:left-3 lg:w-5 lg:h-5 lg:rounded-none lg:bg-transparent lg:ring-0
           flex items-center justify-center
-          opacity-0 group-hover:opacity-100
-          transition-opacity duration-150
+          opacity-100 lg:opacity-0 lg:group-hover:opacity-100
+          transition-opacity duration-150 motion-reduce:transition-none
           cursor-grab active:cursor-grabbing
           text-muted-foreground hover:text-foreground
           touch-none select-none
         "
         title="Drag to move"
+        aria-label="Drag to move card"
         >
         <Grip className="w-4 h-4" />
       </div>

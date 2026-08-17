@@ -40,6 +40,7 @@ const UserSchema = new mongoose.Schema(
     phone: { type: String, default: '' },
     linkedIn: { type: String, default: '' },
     portfolio: { type: String, default: '' },
+    github: { type: String, default: '' },   // profile URL, unrelated to accounts[]
 
     // Resume
     resume: { type: String, default: '' },       // Cloudinary URL

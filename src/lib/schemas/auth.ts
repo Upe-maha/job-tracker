@@ -8,12 +8,23 @@ export const registerSchema = z.object({
   password,
 })
 
+export const registerFormSchema = registerSchema
+  .extend({ confirmPassword: z.string() })
+  .refine(v => v.password === v.confirmPassword, {
+    error: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
+
 // Login only checks that a password was typed. Applying the 6-character policy
 // here would both leak it to an attacker and lock out any account created under
 // an older rule — the credential check itself is authorize()'s job.
 export const loginSchema = z.object({
   email: email('Please enter a valid email address', { allowEmpty: false }),
   password: z.string().min(1, { error: 'Password is required' }),
+  // Step I. Only ever chooses between two idle timeouts (see
+  // security/sessionPolicy) — it is a convenience control, never a credential,
+  // so there is nothing here to validate beyond its type.
+  rememberMe: z.boolean().default(false),
 })
 
 // ── Step C: email tokens ───────────────────────────────────────────────────
@@ -44,7 +55,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z.object({ token, password })
 
 export type RegisterInput = z.infer<typeof registerSchema>
-export type RegisterFormValues = z.input<typeof registerSchema>
+export type RegisterFormValues = z.input<typeof registerFormSchema>
 export type LoginFormValues = z.input<typeof loginSchema>
 export type VerifyTokenPayload = z.input<typeof verifyTokenSchema>
 export type ForgotPasswordFormValues = z.input<typeof forgotPasswordSchema>

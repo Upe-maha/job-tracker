@@ -1,9 +1,12 @@
 // src/components/notes/NoteCard.tsx
 'use client'
 
+import { useState } from 'react'
 import { INote } from '@/types'
 import { format } from 'date-fns'
-import { Trash2 } from 'lucide-react'
+import { Pencil, Trash2 } from 'lucide-react'
+import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog'
+import NoteAttachmentChip from '@/components/notes/NoteAttachmentChip'
 import {
   INTERVIEW_ROUND_LABELS,
   NOTE_OUTCOME_BADGES,
@@ -12,12 +15,30 @@ import {
 
 interface NoteCardProps {
   note: INote
-  onDelete: (noteId: string) => void
+  onEdit: (note: INote) => void
+  // Widened from `void` so the card can await it and show a pending state.
+  onDelete: (noteId: string) => void | Promise<void>
 }
 
-export default function NoteCard({ note, onDelete }: NoteCardProps) {
+export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
   const config = NOTE_TYPE_META[note.type] ?? NOTE_TYPE_META.general
   const Icon = config.icon
+
+  // Both local: the page owns the mutation, so its isPending is out of reach
+  // here. onDelete's signature is unchanged — this is the same capability, now
+  // behind a confirmation rather than firing straight from the click.
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  async function handleConfirmDelete() {
+    setIsDeleting(true)
+    try {
+      await onDelete(note._id)
+      setConfirmOpen(false)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
 
   return (
     <div className={`
@@ -53,16 +74,29 @@ export default function NoteCard({ note, onDelete }: NoteCardProps) {
           )}
         </div>
 
-        {/* Delete */}
-        <button
-          onClick={() => onDelete(note._id)}
-          className="
-            text-muted-foreground hover:text-destructive
-            transition-colors shrink-0
-          "
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        {/* Edit + delete */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onEdit(note)}
+            aria-label="Edit note"
+            className="
+              text-muted-foreground hover:text-foreground
+              transition-colors
+            "
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={() => setConfirmOpen(true)}
+            aria-label="Delete note"
+            className="
+              text-muted-foreground hover:text-destructive
+              transition-colors
+            "
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Content */}
@@ -96,10 +130,27 @@ export default function NoteCard({ note, onDelete }: NoteCardProps) {
         </div>
       )}
 
-      {/* Timestamp */}
-      <p className="text-xs text-muted-foreground/60">
-        {format(new Date(note.createdAt), 'MMM d, yyyy · h:mm a')}
-      </p>
+      {/* Attachment + timestamp. The chip opens the preview dialog rather than
+          linking at Cloudinary, which serves a raw PDF as an octet-stream
+          attachment — see md/step-e-profile.md. */}
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-xs text-muted-foreground/60">
+          {format(new Date(note.createdAt), 'MMM d, yyyy · h:mm a')}
+        </p>
+
+        {note.attachment && (
+          <NoteAttachmentChip attachment={note.attachment} className="shrink-0 max-w-[55%]" />
+        )}
+      </div>
+
+      <ConfirmDeleteDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title="Delete this note?"
+        description="This note will be permanently removed from the application. This cannot be undone."
+        onConfirm={handleConfirmDelete}
+        isPending={isDeleting}
+      />
     </div>
   )
 }

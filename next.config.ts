@@ -34,9 +34,32 @@ const securityHeaders = [
   },
 ];
 
+// /api/files is the one response this app frames on purpose — the PDF preview
+// dialog renders it in an iframe — so a blanket DENY makes the feature
+// impossible rather than safer. Headers set here win over anything the route
+// sets, so the exception has to live at this level.
+//
+// Same-origin only, and still sandboxed: `sandbox` with no allow-* puts the
+// document in an opaque origin with scripting off, which is what keeps a
+// PDF-with-JavaScript from being interesting now that it is served from our
+// own origin instead of Cloudinary's.
+const fileHeaders = securityHeaders.map(header => {
+  if (header.key === "X-Frame-Options") return { ...header, value: "SAMEORIGIN" };
+  if (header.key === "Content-Security-Policy") {
+    return { ...header, value: "frame-ancestors 'self'; sandbox" };
+  }
+  return header;
+});
+
 const nextConfig: NextConfig = {
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [
+      // Most specific first: a path matching both gets both sets, and the
+      // negative lookahead is what keeps /api/files out of the blanket rule
+      // rather than leaving it with two conflicting X-Frame-Options.
+      { source: "/api/files", headers: fileHeaders },
+      { source: "/((?!api/files$).*)", headers: securityHeaders },
+    ];
   },
 };
 

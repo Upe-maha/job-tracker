@@ -61,10 +61,14 @@ export const OAUTH_PROVIDERS = ['google', 'github'] as const
 // Step C. The type is part of the security boundary, not a label: consumeToken
 // matches on it so a password_reset link can never be redeemed against
 // verify-email, which would hand a token a capability it was not issued for.
+// Step E adds 'account_link': proof that the OAuth round trip about to happen
+// was started by an already-signed-in user, so the signIn callback links the
+// provider to *that* user instead of resolving one from the provider's email.
 export const TOKEN_TYPES = [
   'email_verify',
   'password_reset',
   'password_change',
+  'account_link',
 ] as const
 
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number]

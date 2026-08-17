@@ -1,4 +1,5 @@
 // src/app/api/upload/route.ts
+import { randomBytes } from 'node:crypto'
 import { v2 as cloudinary } from 'cloudinary'
 import { guard } from '@/lib/api/guard'
 import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
@@ -12,14 +13,20 @@ cloudinary.config({
 })
 
 
-const ALLOWED_FOLDERS = ['avatars', 'prep-files'] as const
+const ALLOWED_FOLDERS = ['avatars', 'prep-files', 'resumes', 'note-files'] as const
 type AllowedFolder = (typeof ALLOWED_FOLDERS)[number]
 
 type SniffedType = 'image/jpeg' | 'image/png' | 'image/webp' | 'application/pdf'
 
+// Per folder, not one list for the route: 'resumes' (Step E) is PDF-only
+// rather than reusing 'prep-files', which accepts images. A CV that is a
+// screenshot is not a CV, and widening an existing bucket's meaning is how a
+// caller ends up in a MIME allowlist it never intended.
 const ALLOWED_MIME: Record<AllowedFolder, SniffedType[]> = {
   avatars: ['image/jpeg', 'image/png', 'image/webp'],
   'prep-files': ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
+  resumes: ['application/pdf'],
+  'note-files': ['application/pdf'],
 }
 
 // file.type is client-supplied and trivially spoofed, so it's never trusted
@@ -42,6 +49,33 @@ function sniffMimeType(buffer: Buffer): SniffedType | null {
     return 'image/webp'
   }
   return null
+}
+
+// A recognisable public id built from the name the user uploaded, so a stored
+// URL reads as ".../ada-cv-3f9c1b2e" rather than ".../kmgkwtebjqsomdujtos2".
+//
+// Deliberately WITHOUT a .pdf extension, which is the counter-intuitive part
+// and was measured, not assumed. Cloudinary infers a raw asset's Content-Type
+// from that extension — but delivery of .pdf URLs is refused outright (HTTP 401
+// and a placeholder GIF) unless the account enables "Allow delivery of PDF and
+// ZIP files", which is off by default. So adding the extension turns a file
+// that downloads into a file that 404s. Extension-less it serves as
+// application/octet-stream, and /api/files re-labels it on the way through.
+//
+// file.name is client-supplied and goes straight into a delivery path, so it is
+// reduced to [A-Za-z0-9_-] rather than escaped — nothing else survives, which
+// rules out traversal and a public id that would need encoding. The random
+// suffix keeps two uploads of "resume.pdf" from overwriting each other, which is
+// what Cloudinary's auto-generated ids were buying.
+function pdfPublicId(originalName: string): string {
+  const base =
+    originalName
+      .replace(/\.pdf$/i, '')
+      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'document'
+
+  return `${base}-${randomBytes(4).toString('hex')}`
 }
 
 export async function POST(req: Request) {
@@ -85,6 +119,7 @@ export async function POST(req: Request) {
     }
 
     const base64 = `data:${sniffed};base64,${buffer.toString('base64')}`
+    const isPdf = sniffed === 'application/pdf'
 
     const result = await cloudinary.uploader.upload(base64, {
       folder: `job-tracker/${folder}`,
@@ -92,7 +127,8 @@ export async function POST(req: Request) {
         folder === 'avatars'
           ? [{ width: 400, height: 400, crop: 'fill', gravity: 'face' }]
           : undefined,
-      resource_type: sniffed === 'application/pdf' ? 'raw' : 'image',
+      resource_type: isPdf ? 'raw' : 'image',
+      ...(isPdf ? { public_id: pdfPublicId(file.name) } : {}),
     })
 
     return NextResponse.json({

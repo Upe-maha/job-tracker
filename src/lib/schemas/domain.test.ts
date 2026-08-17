@@ -9,7 +9,12 @@ import {
   applicationStatusSchema,
   applicationUpdateSchema,
 } from './application'
-import { noteCreateSchema, notesQuerySchema, NOTES_PAGE_SIZE } from './note'
+import {
+  noteCreateSchema,
+  noteUpdateSchema,
+  notesQuerySchema,
+  NOTES_PAGE_SIZE,
+} from './note'
 import { contactCreateSchema } from './contact'
 import { prepFileCreateSchema } from './prepFile'
 import { passwordChangeSchema, profileUpdateSchema } from './user'
@@ -162,6 +167,114 @@ describe('noteCreateSchema', () => {
     expect(noteCreateSchema.safeParse({ content: 'hi', type: 'nope' }).success).toBe(false)
     expect(noteCreateSchema.safeParse({ content: 'hi', outcome: 'maybe' }).success).toBe(false)
   })
+
+  // Step F. The attachment url is also the ownership key /api/files matches on,
+  // so what may be stored here is what may later be served.
+  describe('attachment', () => {
+    const url =
+      'https://res.cloudinary.com/demo/raw/upload/v1/job-tracker/note-files/take-home-ffeeddcc'
+
+    it('defaults to null and accepts an explicit null', () => {
+      expect(noteCreateSchema.parse({ content: 'hi' }).attachment).toBeNull()
+      expect(
+        noteCreateSchema.safeParse({ content: 'hi', attachment: null }).success,
+      ).toBe(true)
+    })
+
+    it('accepts an uploaded file with a name', () => {
+      expect(
+        noteCreateSchema.safeParse({
+          content: 'hi',
+          attachment: { url, name: 'Take home' },
+        }).success,
+      ).toBe(true)
+    })
+
+    it('rejects a url from anywhere but our own uploads', () => {
+      expect(
+        noteCreateSchema.safeParse({
+          content: 'hi',
+          attachment: { url: 'https://evil.test/x.pdf', name: 'X' },
+        }).success,
+      ).toBe(false)
+    })
+
+    it('rejects an empty url — the cloudinaryUrl("") trap', () => {
+      // isCloudinaryUrl returns true for '', meaning "cleared", which is right
+      // for a field that can be blanked and wrong here: an attachment either
+      // has a url or is null. Without the explicit min(1) this would store an
+      // attachment pointing at nothing.
+      expect(
+        noteCreateSchema.safeParse({ content: 'hi', attachment: { url: '', name: 'X' } })
+          .success,
+      ).toBe(false)
+    })
+
+    it('requires a name, and bounds it', () => {
+      expect(
+        noteCreateSchema.safeParse({ content: 'hi', attachment: { url, name: '  ' } })
+          .success,
+      ).toBe(false)
+      expect(
+        noteCreateSchema.safeParse({
+          content: 'hi',
+          attachment: { url, name: 'a'.repeat(201) },
+        }).success,
+      ).toBe(false)
+    })
+
+    it('is left alone by an update that omits it', () => {
+      // The route $sets only the keys it receives, so an absent attachment must
+      // not appear in the parsed output and clear a note's existing file.
+      const parsed = noteUpdateSchema.parse({
+        noteId: 'a'.repeat(24),
+        content: 'edited',
+      })
+      expect(parsed).not.toHaveProperty('attachment')
+    })
+
+    it('is cleared by an update that sends null', () => {
+      expect(
+        noteUpdateSchema.parse({ noteId: 'a'.repeat(24), attachment: null }).attachment,
+      ).toBeNull()
+    })
+  })
+})
+
+describe('noteUpdateSchema', () => {
+  const noteId = '507f1f77bcf86cd799439011'
+
+  it('requires a valid noteId', () => {
+    expect(noteUpdateSchema.safeParse({ content: 'hi' }).success).toBe(false)
+    expect(noteUpdateSchema.safeParse({ noteId: 'nope', content: 'hi' }).success).toBe(false)
+  })
+
+  // noteId always occupies one key, which is why the refine counts > 1. A
+  // request naming only the note is a no-op the route should never run.
+  it('rejects a noteId with no updatable field', () => {
+    const result = noteUpdateSchema.safeParse({ noteId })
+    expect(result.success).toBe(false)
+    expect(result.error?.issues[0].message).toBe('No valid fields to update')
+  })
+
+  // Partial is what makes an absent field mean "leave it alone" rather than
+  // "clear it" — the route $sets only the keys it receives.
+  it('accepts a single field on its own', () => {
+    expect(noteUpdateSchema.safeParse({ noteId, content: 'edited' }).success).toBe(true)
+    expect(noteUpdateSchema.safeParse({ noteId, outcome: 'passed' }).success).toBe(true)
+  })
+
+  it('still enforces the field rules it inherits', () => {
+    expect(noteUpdateSchema.safeParse({ noteId, content: '   ' }).success).toBe(false)
+    expect(noteUpdateSchema.safeParse({ noteId, type: 'nope' }).success).toBe(false)
+    expect(noteUpdateSchema.safeParse({ noteId, interviewRound: 'round_9' }).success).toBe(false)
+  })
+
+  it('accepts explicit nulls, the same way create does', () => {
+    expect(
+      noteUpdateSchema.safeParse({ noteId, interviewRound: null, outcome: null }).success,
+    ).toBe(true)
+  })
 })
 
 describe('notesQuerySchema', () => {
@@ -274,6 +387,29 @@ describe('profileUpdateSchema', () => {
       profileUpdateSchema.safeParse({ photo: 'https://lh3.googleusercontent.com/a' }).success,
     ).toBe(true)
     expect(profileUpdateSchema.safeParse({ resume: 'https://evil.test/cv.pdf' }).success).toBe(false)
+  })
+
+  it('accepts a Cloudinary resume and the empty string that clears it', () => {
+    expect(
+      profileUpdateSchema.safeParse({
+        resume: 'https://res.cloudinary.com/demo/raw/upload/cv.pdf',
+      }).success,
+    ).toBe(true)
+    // '' is how ResumeCard's Remove works — there is no delete route.
+    expect(profileUpdateSchema.safeParse({ resume: '' }).success).toBe(true)
+  })
+
+  // Step E renders these three as anchors, so they are safeUrl rather than the
+  // bounded text they used to be: an unvalidated string in an href is how
+  // javascript: gets in.
+  it('rejects a non-URL in the three link fields', () => {
+    for (const field of ['linkedIn', 'portfolio', 'github'] as const) {
+      expect(profileUpdateSchema.safeParse({ [field]: 'javascript:alert(1)' }).success).toBe(false)
+      expect(profileUpdateSchema.safeParse({ [field]: 'linkedin.com/in/ada' }).success).toBe(false)
+      expect(profileUpdateSchema.safeParse({ [field]: 'https://github.com/ada' }).success).toBe(true)
+      // Still clearable.
+      expect(profileUpdateSchema.safeParse({ [field]: '' }).success).toBe(true)
+    }
   })
 })
 

@@ -153,7 +153,8 @@ export default function SettingsPage() {
           Sign out of your account on this device.
         </p>
         <Button
-          onClick={() => signOut({ callbackUrl: '/login' })}
+          // Matches the header's sign-out: home, not the login form.
+          onClick={() => signOut({ callbackUrl: '/' })}
           variant="outline"
           className="border-border text-muted-foreground hover:text-foreground gap-2"
         >

@@ -7,6 +7,7 @@ import {
   Link,
   Trash2,
   ExternalLink,
+  Eye,
   Loader2,
   Upload,
 } from 'lucide-react'
@@ -17,6 +18,7 @@ import { format } from 'date-fns'
 import { IPrepFile } from '@/types'
 import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
 import { useUpload } from '@/hooks/useMutations'
+import PdfPreview from '@/components/common/PdfPreview'
 
 interface PrepFilesTabProps {
   files: IPrepFile[]
@@ -280,18 +282,34 @@ function PrepFileRow({
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        <a
-          href={file.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="
-            text-muted-foreground hover:text-foreground
-            transition-colors
-          "
-          title={isPdf ? 'Open PDF' : 'Open link'}
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-        </a>
+        {/* A PDF opens in the preview dialog, a link opens where it points.
+            The two used to share one anchor, which meant a prep-file PDF
+            downloaded as an unnamed octet-stream instead of being read — the
+            same delivery behaviour the CV hit. */}
+        {isPdf ? (
+          <PdfPreview url={file.url} name={`${file.name}.pdf`}>
+            <button
+              type="button"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+              title="Preview PDF"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+          </PdfPreview>
+        ) : (
+          <a
+            href={file.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="
+              text-muted-foreground hover:text-foreground
+              transition-colors
+            "
+            title="Open link"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+          </a>
+        )}
         <button
           onClick={() => onDelete(file._id)}
           className="

@@ -16,20 +16,39 @@ import {
 // beside it takes the remaining space on its own, so nothing has to mirror
 // this width as a margin. The brand and the collapse toggle both live in the
 // header now.
-export default function Sidebar() {
+// `inDrawer` is the below-lg copy rendered inside the sheet: it always shows
+// labels (the collapse toggle is a desktop affordance and is not offered there)
+// and drops the width/border the permanent column carries, since the sheet
+// panel supplies both.
+export default function Sidebar({ inDrawer = false }: { inDrawer?: boolean }) {
   const pathname = usePathname()
-  const { collapsed } = useSidebar()
+  const { collapsed: collapsedPref } = useSidebar()
+  const collapsed = inDrawer ? false : collapsedPref
 
   return (
     <TooltipProvider>
       <aside
         className={cn(
-          'shrink-0 h-full bg-sidebar border-r border-sidebar-border flex flex-col',
-          'transition-[width] duration-200 ease-out motion-reduce:transition-none',
-          collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH
+          'h-full bg-sidebar flex flex-col',
+          inDrawer
+            ? 'w-full'
+            : [
+                // hidden, not opacity/visibility/transform: `display: none` is
+                // what takes the permanent column out of the accessibility tree
+                // AND the tab order below lg. With the drawer rendering the same
+                // links, anything that merely hides it visually would leave a
+                // second copy of every nav link focusable and announced.
+                'hidden lg:flex shrink-0 border-r border-sidebar-border',
+                'transition-[width] duration-200 ease-out motion-reduce:transition-none',
+                collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,
+              ]
         )}
       >
+        {/* Named, so it is distinguishable from the header's breadcrumb nav —
+            both are legitimate landmarks, and the verification script asserts
+            there is exactly one of *this* one. */}
         <nav
+          aria-label="Main"
           className={cn(
             'flex-1 space-y-1 overflow-y-auto overflow-x-hidden py-4',
             collapsed ? 'px-2' : 'px-4'

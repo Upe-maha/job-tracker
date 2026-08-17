@@ -1,7 +1,9 @@
 // src/lib/auth.ts
+import { cookies } from 'next/headers'
 import NextAuth, { CredentialsSignin } from 'next-auth'
 import type { Account, Profile, Session, User as AuthUser } from 'next-auth'
 import type { AdapterUser } from 'next-auth/adapters'
+import { getToken } from 'next-auth/jwt'
 import type { JWT } from 'next-auth/jwt'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import GoogleProvider from 'next-auth/providers/google'
@@ -10,8 +12,20 @@ import bcrypt from 'bcryptjs'
 import { connectDB } from './db'
 import User from '@/models/User'
 import { checkRateLimit, clearRateLimit, getClientIP } from '@/lib/security/rateLimiter'
-import { LOGIN_ERROR } from '@/lib/security/loginErrors'
-import { resolveOAuthUser, verifiedProviderEmail } from '@/lib/dal/users'
+import { LINK_ERROR, LOGIN_ERROR } from '@/lib/security/loginErrors'
+import {
+  fetchSessionUser,
+  linkProviderToUser,
+  resolveOAuthUser,
+  verifiedProviderEmail,
+} from '@/lib/dal/users'
+import { consumeToken } from '@/lib/dal/tokens'
+import { ACCOUNT_LINK_COOKIE } from '@/lib/security/linkIntent'
+import {
+  DEFAULT_IDLE_MS,
+  REMEMBERED_IDLE_MS,
+  sessionVerdict,
+} from '@/lib/security/sessionPolicy'
 import type { OAuthProvider } from '@/lib/schemas/enums'
 
 const MAX_FAILED_ATTEMPTS = 5
@@ -40,6 +54,40 @@ class AccountLocked extends CredentialsSignin {
 // cause into a generic AccessDenied.
 const oauthFailure = (code: string) => `/login?error=${code}`
 
+// Step E's equivalent. A failed *link* belongs back on the page that started
+// it, with its own vocabulary — the user is already signed in and nothing about
+// their session changed, so /login?error=... would be actively misleading.
+const linkFailure = (code: string) => `/profile?error=${code}`
+
+// Who is signed in *right now*, read from the session cookie exactly as
+// src/middleware.ts reads it. The signIn callback gets no request object, so
+// the cookie store is rebuilt into the headers getToken expects.
+//
+// Only used by the link branch. A failure to read is treated as "nobody",
+// which fails safe: the branch is skipped and the request is handled as an
+// ordinary sign-in, rather than a link being applied to an unverified identity.
+async function currentUserId(
+  store: Awaited<ReturnType<typeof cookies>>
+): Promise<string | null> {
+  try {
+    const cookieHeader = store
+      .getAll()
+      .map(c => `${c.name}=${c.value}`)
+      .join('; ')
+
+    const token = await getToken({
+      req: { headers: new Headers({ cookie: cookieHeader }) } as unknown as Request,
+      secret: process.env.AUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === 'production',
+    })
+
+    return typeof token?.id === 'string' ? token.id : null
+  } catch (error) {
+    console.error('[auth.currentUserId]', error)
+    return null
+  }
+}
+
 const config = {
   providers: [
     // allowDangerousEmailAccountLinking stays false: the signIn callback below
@@ -58,7 +106,8 @@ const config = {
       name: 'credentials',
       credentials: {
         email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' }
+        password: { label: 'Password', type: 'password' },
+        rememberMe: { label: 'Remember me', type: 'checkbox' }
       },
       async authorize(credentials, request) {
         const email = typeof credentials?.email === 'string' ? credentials.email.toLowerCase().trim() : null
@@ -118,12 +167,21 @@ const config = {
           name: user.name,
           email: user.email,
           photo: user.photo ?? '',
+          // The checkbox arrives as a string over the credentials transport,
+          // so 'false' would be truthy if tested directly. Only the jwt
+          // callback consumes this; it never reaches the session.
+          rememberMe: credentials?.rememberMe === 'true' || credentials?.rememberMe === true,
         }
       }
     })
   ],
 
-  session: { strategy: 'jwt' as const },
+  // maxAge is the cookie's lifetime and the *longest* a session can idle. A
+  // JWT strategy has only one cookie lifetime to give, so the shorter
+  // unremembered timeout cannot live here — it is enforced per session by the
+  // idleMs claim in the jwt callback below. Rolling, not absolute: @auth/core
+  // re-issues the cookie on every read, so a daily user is never signed out.
+  session: { strategy: 'jwt' as const, maxAge: REMEMBERED_IDLE_MS / 1000 },
 
   callbacks: {
     // Runs for every sign-in. For OAuth it is where the user document is
@@ -145,6 +203,75 @@ const config = {
 
       try {
         await connectDB()
+
+        // Step E. A link-intent cookie means this round trip was started by an
+        // already-signed-in user pressing Connect, which is a different
+        // question from "who is signing in" — so it takes its own branch and
+        // never reaches verifiedProviderEmail or resolveOAuthUser.
+        //
+        // Those resolve a user from the provider's verified email. When that
+        // email differs from the one on the job-tracker account — common, and
+        // exactly the case Connect exists to serve — they find or create a
+        // *different* user, and the user.id overwrite below would hand the
+        // session to them silently. Identity here comes from the token instead.
+        const cookieStore = await cookies()
+        const intent = cookieStore.get(ACCOUNT_LINK_COOKIE)?.value
+
+        // The intent cookie alone is not enough to take the link branch: an
+        // abandoned Connect (redirect to the provider, then Back) leaves it
+        // sitting in the browser with its token unspent. On a shared computer,
+        // the next person to sign in with that provider inside the TTL would
+        // otherwise be linked straight into the first user's account. So the
+        // branch also requires a live session, and requires it to be the same
+        // user the token was issued to.
+        //
+        // Read the same way src/middleware.ts reads it. Anything short of a
+        // match falls through to the ordinary sign-in path below rather than
+        // failing — with no session, this *is* an ordinary sign-in.
+        const activeUserId = intent ? await currentUserId(cookieStore) : null
+
+        if (intent && activeUserId) {
+          // Single-use and type-scoped by consumeToken's filter, so a stale or
+          // already-spent request cannot be replayed and no other token type
+          // can be redeemed here.
+          const consumed = await consumeToken({ token: intent, type: 'account_link' })
+          if (!consumed) return linkFailure(LINK_ERROR.EXPIRED)
+
+          // Whoever is signed in now must be who the token was issued to. The
+          // token is already spent by this point, which is the right order:
+          // a mismatch should burn it rather than leave it available for
+          // another try.
+          if (consumed.userId.toString() !== activeUserId) {
+            return linkFailure(LINK_ERROR.FAILED)
+          }
+
+          const result = await linkProviderToUser({
+            userId: consumed.userId,
+            provider,
+            providerAccountId: account.providerAccountId,
+          })
+
+          if (!result.ok) {
+            if (result.reason === 'in_use') return linkFailure(LINK_ERROR.IN_USE)
+            if (result.reason === 'provider_linked') {
+              return linkFailure(LINK_ERROR.PROVIDER_LINKED)
+            }
+            return linkFailure(LINK_ERROR.FAILED)
+          }
+
+          // The same invariant the sign-in path maintains, and here it also
+          // keeps the session *unchanged*: this is the id the token was issued
+          // to, i.e. whoever was already signed in. The other three fields
+          // matter for the same reason — @auth/core is minting a fresh JWT from
+          // this object, so leaving them would rebuild the session from the
+          // linked GitHub profile and the header would start showing that
+          // account's name and email.
+          user.id = result.user._id.toString()
+          user.photo = result.user.photo ?? ''
+          user.name = result.user.name
+          user.email = result.user.email
+          return true
+        }
 
         // Bounds the work one provider account can trigger — a DB read/write
         // plus, for GitHub, an outbound /user/emails call. Keyed on the
@@ -205,11 +332,52 @@ const config = {
       }
     },
 
+    // Runs on every auth() call — every API route through guard(), every
+    // dashboard page load — so everything here is on the critical path of a
+    // request. The decisions live in sessionPolicy (pure, and unit-tested);
+    // this keeps only the I/O.
+    //
+    // Returning null ends the session: @auth/core's session action calls
+    // sessionStore.clean() on a null token, which clears the cookie.
     async jwt({ token, user }: { token: JWT; user?: AuthUser }) {
+      const now = Date.now()
+
+      // Sign-in. signedInAt is stamped exactly here and never touched again —
+      // `iat` cannot serve this purpose because the token is re-encoded on
+      // every read, so it would always look newer than any password change.
       if (user?.id) {
         token.id = user.id
         token.photo = user.photo
+        token.signedInAt = now
+        token.lastSeen = now
+        token.checkedAt = now
+        // OAuth has no checkbox and lands on the shorter default.
+        token.idleMs = user.rememberMe ? REMEMBERED_IDLE_MS : DEFAULT_IDLE_MS
+        return token
       }
+
+      const verdict = sessionVerdict(token, now)
+      if (verdict === 'idle-expired') return null
+
+      if (verdict === 'needs-check') {
+        try {
+          await connectDB()
+          const owner = await fetchSessionUser(token.id)
+
+          // A deleted account keeps no live token.
+          if (!owner) return null
+          if (sessionVerdict(token, now, owner.passwordChangedAt) === 'revoked') return null
+
+          token.checkedAt = now
+        } catch (error) {
+          // Fail open, matching the read-tier rate limiter: a database blip
+          // must not sign the whole userbase out. The window it leaves is one
+          // revalidation period, and the next successful request closes it.
+          console.error('[auth.jwt.revalidate]', error)
+        }
+      }
+
+      token.lastSeen = now
       return token
     },
     async session({ session, token }: { session: Session; token: JWT }) {

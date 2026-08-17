@@ -80,7 +80,15 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Open job posting"
+              // -m-3 p-3 grows the hit area to 44px without moving anything
+              // around it: the padding expands the box, the negative margin
+              // gives the space back to the layout.
+              className="
+                text-muted-foreground hover:text-foreground transition-colors
+                w-11 h-11 -m-3 lg:w-auto lg:h-auto lg:m-0
+                flex items-center justify-center
+              "
             >
               <ExternalLink className="w-3.5 h-3.5" />
             </a>

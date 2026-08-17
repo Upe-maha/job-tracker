@@ -1,42 +1,17 @@
 // src/components/applications/AddApplicationModal.tsx
 'use client'
 
-import { useForm } from 'react-hook-form'
-import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  applicationFormSchema,
-  type ApplicationFormOutput,
-  type ApplicationFormValues,
+import ApplicationForm from './ApplicationForm'
+import type {
+  ApplicationFormOutput,
+  ApplicationFormValues,
 } from '@/lib/schemas/application'
-import {
-  APPLICATION_STATUS_OPTIONS,
-  CURRENCIES,
-  JOB_TYPE_OPTIONS,
-  WORK_MODE_OPTIONS,
-} from '@/lib/display'
 import { useCreateApplication } from '@/hooks/useMutations'
 
 interface AddApplicationModalProps {
@@ -50,6 +25,7 @@ interface AddApplicationModalProps {
 const defaultValues: ApplicationFormValues = {
   company: '',
   role: '',
+  companyLogo: '',
   jobUrl: '',
   status: 'wishlist',
   workMode: '',
@@ -62,41 +38,21 @@ const defaultValues: ApplicationFormValues = {
   deadline: '',
 }
 
-const inputClass =
-  'bg-input border-input text-foreground placeholder:text-muted-foreground h-9'
-const labelClass = 'text-muted-foreground text-xs'
-
 export default function AddApplicationModal({
   open,
   onClose,
 }: AddApplicationModalProps) {
   const createApplication = useCreateApplication()
 
-  // Three generics: values in, context, values out. Needed because the input
-  // and output types genuinely differ here (see defaultValues above).
-  const form = useForm<ApplicationFormValues, unknown, ApplicationFormOutput>({
-    resolver: standardSchemaResolver(applicationFormSchema),
-    defaultValues,
-  })
-
   async function onSubmit(values: ApplicationFormOutput) {
     await createApplication.mutateAsync(values)
-    form.reset(defaultValues)
-    onClose()
-  }
-
-  function handleOpenChange(isOpen: boolean) {
-    if (isOpen) return
-    // Reset on close too — previously only a successful submit cleared the
-    // form, so cancelling and reopening showed the abandoned draft.
-    form.reset(defaultValues)
     onClose()
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={isOpen => !isOpen && onClose()}>
       <DialogContent
-        className="bg-card border-border text-foreground max-w-lg max-h-[90vh] overflow-y-auto"
+        className="bg-card border-border text-foreground sm:max-w-lg max-h-[85vh] overflow-y-auto"
         onPointerDownOutside={e => e.preventDefault()}
         onInteractOutside={e => e.preventDefault()}
       >
@@ -104,281 +60,21 @@ export default function AddApplicationModal({
           <DialogTitle className="text-foreground">Add Job Application</DialogTitle>
         </DialogHeader>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
-
-            {/* Company + Role */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="company"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Company *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Google" className={inputClass} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="role"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Role *</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="Frontend Developer"
-                        className={inputClass}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Job URL */}
-            <FormField
-              control={form.control}
-              name="jobUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className={labelClass}>Job URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://careers.google.com/..."
-                      className={inputClass}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Status + Location */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Status</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className={inputClass}>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover border-border text-popover-foreground">
-                        {APPLICATION_STATUS_OPTIONS.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Location</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Remote / Kathmandu" className={inputClass} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Work mode + Job type */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="workMode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Work Mode</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className={inputClass}>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover border-border text-popover-foreground">
-                        {WORK_MODE_OPTIONS.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="jobType"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Job Type</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className={inputClass}>
-                          <SelectValue placeholder="Select..." />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover border-border text-popover-foreground">
-                        {JOB_TYPE_OPTIONS.map(({ value, label }) => (
-                          <SelectItem key={value} value={value}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Salary */}
-            <div className="grid grid-cols-[1fr_1fr_auto] gap-3">
-              <FormField
-                control={form.control}
-                name="salaryMin"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Salary Min</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="50000"
-                        className={inputClass}
-                        {...field}
-                        value={field.value == null ? '' : String(field.value)}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="salaryMax"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Salary Max</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="80000"
-                        className={inputClass}
-                        {...field}
-                        value={field.value == null ? '' : String(field.value)}
-                      />
-                    </FormControl>
-                    {/* The min <= max rule reports itself here. */}
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="salaryCurrency"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Currency</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <FormControl>
-                        <SelectTrigger className={`${inputClass} w-24`}>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent className="bg-popover border-border text-popover-foreground">
-                        {CURRENCIES.map(({ code }) => (
-                          <SelectItem key={code} value={code}>
-                            {code}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            {/* Dates */}
-            <div className="grid grid-cols-2 gap-3">
-              <FormField
-                control={form.control}
-                name="appliedDate"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Applied Date</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        className={inputClass}
-                        {...field}
-                        value={typeof field.value === 'string' ? field.value : ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="deadline"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className={labelClass}>Deadline</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="date"
-                        className={inputClass}
-                        {...field}
-                        value={typeof field.value === 'string' ? field.value : ''}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                type="button"
-                variant="ghost"
-                onClick={() => handleOpenChange(false)}
-                disabled={form.formState.isSubmitting}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={form.formState.isSubmitting}
-                className="bg-brand hover:bg-brand-hover text-primary-foreground"
-              >
-                {form.formState.isSubmitting ? 'Adding...' : 'Add Application'}
-              </Button>
-            </div>
-          </form>
-        </Form>
+        {/* Keyed on `open` so each opening gets a fresh form. This replaces the
+            form.reset(defaultValues) the modal used to run on close and on
+            successful submit — the reset existed because cancelling and
+            reopening otherwise showed the abandoned draft, and remounting
+            achieves the same thing without a second source of truth for what
+            "empty" means. */}
+        {open && (
+          <ApplicationForm
+            defaultValues={defaultValues}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            submitLabel="Add Application"
+            submittingLabel="Adding..."
+          />
+        )}
       </DialogContent>
     </Dialog>
   )

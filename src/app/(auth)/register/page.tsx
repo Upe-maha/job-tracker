@@ -4,6 +4,7 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
+import { signIn } from 'next-auth/react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,26 +23,38 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { registerSchema, type RegisterFormValues } from '@/lib/schemas/auth'
+import { registerFormSchema, type RegisterFormValues } from '@/lib/schemas/auth'
+import type { OAuthProvider } from '@/lib/schemas/enums'
 import { apiSend, ApiError } from '@/lib/api-client'
+import { GitHubMark, GoogleMark } from '@/components/common/ProviderMarks'
 
 const inputClass =
   'bg-input border-input text-foreground placeholder:text-muted-foreground'
 
 export default function RegisterPage() {
   const [submittedEmail, setSubmittedEmail] = useState('')
+  const [oauthLoading, setOauthLoading] = useState<OAuthProvider | ''>('')
 
   // The same schema the route validates with, so the 6-character minimum the
   // placeholder promises is now enforced before the network call rather than
   // only server-side.
   const form = useForm<RegisterFormValues>({
-    resolver: standardSchemaResolver(registerSchema),
-    defaultValues: { name: '', email: '', password: '' },
+    resolver: standardSchemaResolver(registerFormSchema),
+    defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
   })
+
+  function handleOAuth(provider: OAuthProvider) {
+    setOauthLoading(provider)
+    form.clearErrors()
+    // Full redirect to the provider, same as the login page — no redirect:false,
+    // the whole point is to leave the app and come back through the callback.
+    signIn(provider, { callbackUrl: '/dashboard' })
+  }
 
   async function onSubmit(values: RegisterFormValues) {
     try {
-      await apiSend('POST', '/api/auth/register', values)
+      const { confirmPassword: _confirmPassword, ...payload } = values
+      await apiSend('POST', '/api/auth/register', payload)
       // Step C: the route answers identically whether or not the address was
       // already taken, so there is no longer a 409 to put on the email field
       // and nothing here may hint at which happened. Staying on this page with
@@ -89,6 +102,36 @@ export default function RegisterPage() {
       </CardHeader>
 
       <CardContent>
+        {/* OAuth providers */}
+        <div className="space-y-2">
+          <Button
+            type="button"
+            onClick={() => handleOAuth('google')}
+            disabled={form.formState.isSubmitting || oauthLoading !== ''}
+            className="w-full bg-white text-foreground hover:bg-muted"
+          >
+            <GoogleMark className="w-4 h-4 mr-2" />
+            {oauthLoading === 'google' ? 'Redirecting...' : 'Continue with Google'}
+          </Button>
+
+          <Button
+            type="button"
+            onClick={() => handleOAuth('github')}
+            disabled={form.formState.isSubmitting || oauthLoading !== ''}
+            className="w-full bg-input text-foreground hover:bg-muted border border-input"
+          >
+            <GitHubMark className="w-4 h-4 mr-2" />
+            {oauthLoading === 'github' ? 'Redirecting...' : 'Continue with GitHub'}
+          </Button>
+        </div>
+
+        {/* Divider */}
+        <div className="flex items-center gap-3 my-4">
+          <span className="h-px flex-1 bg-input" />
+          <span className="text-muted-foreground text-xs">or</span>
+          <span className="h-px flex-1 bg-input" />
+        </div>
+
         <Form {...form}>
           <form className="space-y-4" onSubmit={form.handleSubmit(onSubmit)}>
             <FormField
@@ -134,6 +177,25 @@ export default function RegisterPage() {
                     <Input
                       type="password"
                       placeholder="Min 6 characters"
+                      className={inputClass}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-foreground">Confirm Password</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Repeat your password"
                       className={inputClass}
                       {...field}
                     />

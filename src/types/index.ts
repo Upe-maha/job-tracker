@@ -33,6 +33,14 @@ import type {
 } from '@/lib/schemas/enums'
 
 // ─── Note ─────────────────────────────────────────────
+// Step F. The url is the file's identity — it is what /api/files serves from
+// and what resolveOwnedFile checks ownership against. Nothing else about the
+// Cloudinary asset is stored; see md/step-f-notes-pdf.md.
+export interface INoteAttachment {
+  url: string
+  name: string
+}
+
 export interface INote {
   _id: string
   type: NoteType
@@ -41,6 +49,7 @@ export interface INote {
   outcome?: NoteOutcome | null
   whatWentWrong?: string
   whatToImprove?: string
+  attachment?: INoteAttachment | null
   createdAt: string
   updatedAt: string
 }
@@ -111,6 +120,7 @@ export interface IUser {
   phone?: string
   linkedIn?: string
   portfolio?: string
+  github?: string
   resume?: string
   currency?: string
   jobSearchStatus?: JobSearchStatus
@@ -150,5 +160,6 @@ export interface INoteFeedItem {
   companyLogo?: string
   noteType: NoteType
   content: string
+  attachment?: INoteAttachment | null
   createdAt: string
 }

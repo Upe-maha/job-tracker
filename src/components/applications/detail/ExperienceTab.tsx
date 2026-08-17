@@ -9,12 +9,14 @@ import type { NoteCreatePayload } from '@/lib/schemas/note'
 interface ExperienceTabProps {
   notes: INote[]
   onAdd: (note: NoteCreatePayload) => Promise<void>
+  onEdit: (note: INote) => void
   onDelete: (noteId: string) => Promise<void>
 }
 
 export default function ExperienceTab({
   notes,
   onAdd,
+  onEdit,
   onDelete,
 }: ExperienceTabProps) {
   const experienceLogs = notes.filter(n => n.type === 'experience_log')
@@ -31,7 +33,12 @@ export default function ExperienceTab({
     >
       <div className="space-y-3">
         {experienceLogs.map(note => (
-          <NoteCard key={note._id} note={note} onDelete={onDelete} />
+          <NoteCard
+            key={note._id}
+            note={note}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
         ))}
       </div>
     </NoteTabShell>

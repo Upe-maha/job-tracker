@@ -47,9 +47,9 @@ export async function POST(req: Request) {
       await sendMail({ to: user.email, ...verifyEmail(user.name, token) })
     } catch (err) {
       // Nothing was delivered, so nothing should have been charged. Without
-      // this, a misconfigured or down mail server burns the user's whole hourly
-      // allowance on 500s — they click, get an error, click again, and by the
-      // time SMTP is fixed they are rate limited out of the feature.
+      // this, a misconfigured or down mail provider burns the user's whole
+      // hourly allowance on 500s — they click, get an error, click again, and
+      // by the time delivery is fixed they are rate limited out of the feature.
       //
       // Safe here precisely because the route is authenticated: the refund
       // depends only on whether mail left, never on whether some *other*

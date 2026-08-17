@@ -13,8 +13,15 @@ export async function middleware(req: NextRequest) {
   const isLoggedIn = !!token
   const path = req.nextUrl.pathname
 
-  if (path === '/') {
-    return NextResponse.redirect(new URL(isLoggedIn ? '/dashboard' : '/login', req.url))
+  // Step G. `/` is the public landing page now, so only a signed-in visitor is
+  // redirected off it — sending a signed-out one to /login is what made the
+  // page unreachable, and is the whole of this step's routing change.
+  //
+  // `/` must stay out of both lists below: adding it to isAuthPage restores the
+  // redirect this removed, and adding it to isDashboard bounces the very
+  // visitors the page exists for.
+  if (path === '/' && isLoggedIn) {
+    return NextResponse.redirect(new URL('/dashboard', req.url))
   }
 
   const isAuthPage =

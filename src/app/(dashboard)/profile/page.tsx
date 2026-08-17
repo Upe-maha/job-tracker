@@ -1,18 +1,22 @@
 // src/app/(dashboard)/profile/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, type ComponentType } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
+import { toast } from 'sonner'
 import { format } from 'date-fns'
 import {
   Briefcase,
   Coins,
+  FileText,
   Globe,
   Link as LinkIcon,
   Mail,
   MapPin,
   Phone,
+  Plug,
   Save,
   User,
 } from 'lucide-react'
@@ -48,6 +52,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import AvatarUpload from '@/components/profile/AvatarUpload'
+import ResumeCard from '@/components/profile/ResumeCard'
+import PdfPreview from '@/components/common/PdfPreview'
+import ConnectedAccounts from '@/components/profile/ConnectedAccounts'
+import { GitHubMark } from '@/components/common/ProviderMarks'
+import { linkErrorMessage } from '@/lib/security/loginErrors'
+import { OAUTH_PROVIDER_LABELS } from '@/lib/display'
+import type { OAuthProvider } from '@/types'
 
 const EMPTY_PROFILE: ProfileFormValues = {
   name: '',
@@ -56,6 +67,7 @@ const EMPTY_PROFILE: ProfileFormValues = {
   phone: '',
   linkedIn: '',
   portfolio: '',
+  github: '',
   currency: DEFAULT_CURRENCY,
   jobSearchStatus: 'actively_looking',
 }
@@ -72,10 +84,46 @@ const STATUS_BADGE: Record<string, string> = {
   not_looking: 'bg-muted text-muted-foreground border-border',
 }
 
+// A Fact whose value is a link when there is one to follow. Same shape and
+// spacing as Fact so the Contact panel's rows stay aligned whether or not a
+// field is filled in.
+function ProfileLink({
+  label,
+  href,
+  icon: Icon,
+}: {
+  label: string
+  href?: string
+  // Same loose shape Fact and Panel use, so a lucide icon and the inline
+  // GitHub mark are both acceptable here.
+  icon: ComponentType<{ className?: string }>
+}) {
+  if (!href?.trim()) return <Fact label={label} value="" icon={Icon} />
+
+  return (
+    <div className="min-w-0">
+      <p className="text-muted-foreground text-xs flex items-center gap-1.5">
+        <Icon className="w-3 h-3 shrink-0" />
+        {label}
+      </p>
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        title={href}
+        className="text-primary text-sm mt-1 block truncate hover:underline py-1.5 lg:py-0"
+      >
+        {href}
+      </a>
+    </div>
+  )
+}
+
 export default function ProfilePage() {
   // photo is managed by AvatarUpload outside the form and merged in at submit
   // time — exactly the split profileFormSchema documents.
   const [photo, setPhoto] = useState('')
+  const searchParams = useSearchParams()
 
   const { data: profile, isLoading, isError, error, refetch, isFetching } = useProfile()
   const updateProfile = useUpdateProfile()
@@ -99,10 +147,30 @@ export default function ProfilePage() {
       phone: profile.phone ?? '',
       linkedIn: profile.linkedIn ?? '',
       portfolio: profile.portfolio ?? '',
+      github: profile.github ?? '',
       currency: profile.currency ?? DEFAULT_CURRENCY,
       jobSearchStatus: profile.jobSearchStatus ?? 'actively_looking',
     })
     setPhoto(profile.photo ?? '')
+  }
+
+  // Step E. Connecting a provider leaves the app entirely, so its outcome comes
+  // back as a query param rather than a mutation result — a failure is a string
+  // returned from the signIn callback, which @auth/core treats as a redirect.
+  // Reported once per param, using the same render-time guard the hydration
+  // above uses rather than an effect.
+  const linked = searchParams.get('linked')
+  const linkError = searchParams.get('error')
+  const linkOutcome = linkError ?? linked
+  const [reportedOutcome, setReportedOutcome] = useState<string | null>(null)
+  if (linkOutcome && linkOutcome !== reportedOutcome) {
+    setReportedOutcome(linkOutcome)
+    if (linkError) {
+      toast.error(linkErrorMessage(linkError))
+    } else if (linked) {
+      const label = OAUTH_PROVIDER_LABELS[linked as OAuthProvider] ?? linked
+      toast.success(`${label} connected`)
+    }
   }
 
   async function handleSave(values: ProfileFormValues) {
@@ -171,6 +239,24 @@ export default function ProfilePage() {
                         {live.bio}
                       </p>
                     )}
+
+                    {/* The CV is reachable from the summary card too, not only
+                        from its panel further down the edit column — this is
+                        the part of the page that answers "who am I on paper",
+                        and the CV is the rest of that answer. Absent when
+                        there is nothing to show, rather than a dead button. */}
+                    {profile?.resume && (
+                      <PdfPreview url={profile.resume}>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="mt-4 gap-2 border-border"
+                        >
+                          <FileText className="w-3 h-3" /> View CV
+                        </Button>
+                      </PdfPreview>
+                    )}
                   </div>
 
                   {/* Fact grid — the reference's DOB/Age/Weight/Height block,
@@ -186,8 +272,13 @@ export default function ProfilePage() {
                 <Panel title="Contact" icon={Mail}>
                   <div className="space-y-4">
                     <Fact label="Email" value={profile?.email} icon={Mail} />
-                    <Fact label="LinkedIn" value={live.linkedIn} icon={LinkIcon} />
-                    <Fact label="Portfolio" value={live.portfolio} icon={Globe} />
+                    {/* The three link fields are anchors now, which is why the
+                        schema validates them with safeUrl rather than text:
+                        an unchecked string in an href is how javascript: gets
+                        in. They fall back to a plain Fact when empty. */}
+                    <ProfileLink label="LinkedIn" href={live.linkedIn} icon={LinkIcon} />
+                    <ProfileLink label="Portfolio" href={live.portfolio} icon={Globe} />
+                    <ProfileLink label="GitHub" href={live.github} icon={GitHubMark} />
                   </div>
                 </Panel>
               </div>
@@ -305,7 +396,40 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
+
+                  {/* The profile URL, which has nothing to do with the GitHub
+                      account linked below — one is a link, the other is a way
+                      to sign in. */}
+                  <FormField
+                    control={form.control}
+                    name="github"
+                    render={({ field }) => (
+                      <FormItem className="md:col-span-6">
+                        <FormLabel className={`${labelClass} flex items-center gap-1`}>
+                          <GitHubMark className="w-3 h-3" /> GitHub
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            placeholder="https://github.com/username"
+                            className={inputClass}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </PageGrid>
+              </Panel>
+
+              {/* Both panels live outside the form's control: each persists on
+                  its own the moment it is used, so neither depends on Save. */}
+              <Panel title="CV / Resume" icon={FileText}>
+                <ResumeCard resume={profile?.resume ?? ''} />
+              </Panel>
+
+              <Panel title="Connected Accounts" icon={Plug}>
+                <ConnectedAccounts accounts={profile?.accounts ?? []} />
               </Panel>
 
               <Panel title="Job Search Preferences" icon={Briefcase}>

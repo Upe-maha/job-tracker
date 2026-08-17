@@ -6,6 +6,7 @@ import { guard } from '@/lib/api/guard'
 import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { consumeToken } from '@/lib/dal/tokens'
+import { restampSession } from '@/lib/security/sessionCookie'
 import { verifyTokenSchema } from '@/lib/schemas/auth'
 
 // The second half of the confirm-first password change. PUT /api/user/password
@@ -51,7 +52,17 @@ export async function POST(req: Request) {
       }
     )
 
-    return NextResponse.json({ message: 'Password changed' })
+    // Step I. passwordChangedAt above revokes every session signed in before
+    // it — including this one, which is the tab the user is looking at. Their
+    // own cookie is re-issued with a fresh signedInAt so the roadmap's "all
+    // *other* sessions logged out" is true as written.
+    //
+    // Only ever the acting user's own session, and only if this request
+    // carries one: the emailed link may well have been opened on another
+    // device, or while signed out, and neither case has anything to re-stamp.
+    const res = NextResponse.json({ message: 'Password changed' })
+    await restampSession(req, res, consumed.userId.toString())
+    return res
   } catch (error) {
     return serverError('auth.confirmPasswordChange', error)
   }
