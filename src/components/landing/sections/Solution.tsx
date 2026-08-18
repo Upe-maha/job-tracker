@@ -6,12 +6,8 @@ import Reveal from '../primitives/Reveal'
 import { solution } from '../content/copy'
 import { cn } from '@/shared/utils'
 
-// Formula step 3, and the reference's alternating grid: each row is a wide card
-// and a narrow one, mirrored on the next row, so the eye zig-zags down the page.
-//
-// The alternation is derived from the index rather than written into the data,
-// so reordering or adding a feature re-stripes the grid automatically instead
-// of leaving two wide cards side by side.
+// Formula step 3, the reference's alternating grid. The alternation is derived
+// from the index, so adding a feature re-stripes the rows automatically.
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   KanbanSquare,
   NotebookPen,

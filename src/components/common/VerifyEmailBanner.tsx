@@ -8,14 +8,9 @@ import { useResendVerification } from '@/hooks/useMutations'
 import { useProfile } from '@/hooks/useQueries'
 import { ApiError } from '@/client/api-client'
 
-// Reads verification state from the existing ['profile'] query rather than the
-// session. Putting emailVerified in the JWT would mean touching Step B's
-// signIn/jwt callbacks and then dealing with a token that still says
-// "unverified" until it refreshes; invalidating ['profile'] after a successful
-// verify is what the rest of the app already does.
-//
-// OAuth users never see this: resolveOAuthUser sets emailVerified on every path
-// it can return from.
+// Reads verification state from the ['profile'] query rather than the session:
+// putting emailVerified in the JWT means a token that still says "unverified" until
+// it refreshes. OAuth users never see this — resolveOAuthUser always sets it.
 export function VerifyEmailBanner() {
   const { data: user } = useProfile()
   const resend = useResendVerification()
@@ -23,11 +18,9 @@ export function VerifyEmailBanner() {
 
   if (dismissed || !user || user.emailVerified) return null
 
-  // The banner cannot disappear on a successful send — the address is still
-  // unverified until the link is clicked — so it has to *say* something changed.
-  // Without this it looked identical after sending, which reads as "nothing
-  // happened" and invites another click; a few of those and the hourly budget
-  // is gone and the next click answers 429.
+  // The banner cannot disappear on a successful send, so it has to *say* something
+  // changed: looking identical reads as "nothing happened" and invites another
+  // click, and a few of those spend the hourly budget.
   const sent = resend.isSuccess
   const error = resend.isError
     ? resend.error instanceof ApiError

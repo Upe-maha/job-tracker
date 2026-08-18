@@ -7,17 +7,11 @@ import { cn } from "@/shared/utils"
 import { Button } from "@/components/ui/button"
 import { XIcon } from "lucide-react"
 
-// Off-canvas panel, built on Radix Dialog — which is what gives it the focus
-// trap, Escape handling, scroll lock and inert background that a hand-rolled
-// drawer has to reimplement or quietly skip.
-//
-// Hand-written against the unified `radix-ui` package rather than generated:
-// the shadcn generator emits `@radix-ui/react-dialog` imports, which is not a
-// dependency here. Same reason ui/form.tsx is hand-written.
-//
-// Deliberately a general primitive rather than "the sidebar drawer": it takes a
-// side and exports the whole family, because a primitive shaped around exactly
-// one caller is the thing the second caller forks.
+// Off-canvas panel on Radix Dialog, which supplies the focus trap, Escape handling,
+// scroll lock and inert background. Hand-written against the unified `radix-ui`
+// package (the generator emits @radix-ui/react-dialog, not a dependency here), and
+// kept a general primitive rather than "the sidebar drawer" — the landing nav is the
+// second caller.
 
 function Sheet({ ...props }: React.ComponentProps<typeof SheetPrimitive.Root>) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />

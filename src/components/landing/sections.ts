@@ -1,19 +1,6 @@
-// src/components/landing/sections.ts
-//
-// The landing page's order of argument, and the ONLY place it lives. page.tsx
-// maps over this array and renders nothing else itself, so adding a section,
-// dropping one, or reordering the page is a one-line change here.
-//
-// What makes that real rather than decorative is the contract every section
-// keeps: it takes no props, imports its own copy from ./content/copy, and
-// renders inside the shared Section primitive. No section knows its index or
-// its neighbours, so none of them break when this array changes. The temptation
-// to resist is a section asking "am I first?" to size its own spacing — that
-// puts the order back in two places, and they will disagree.
-//
-// Header and footer are not entries here: the formula this follows treats them
-// as always-present chrome, and a footer that could be reordered into the
-// middle of the page is an entry with only one valid position.
+// src/components/landing/sections.ts — the page's order of argument, and the only
+// place it lives. Every section takes no props, imports its own copy and renders
+// inside Section, so none of them knows its index and reordering stays one line.
 import type { ComponentType } from 'react'
 import Hero from './sections/Hero'
 import Problem from './sections/Problem'
@@ -51,12 +38,8 @@ export const LANDING_SECTIONS: LandingSection[] = [
   { id: 'closing', Component: ClosingCta },
 ]
 
-// Derived, not a second list. Dropping a section from the array above removes
-// its nav entry with it — a hand-maintained nav is exactly how a link ends up
-// pointing at an anchor that no longer renders.
-//
-// Hero and the closing CTA carry no navLabel on purpose: the first is where the
-// reader already is, and the last is the CTA the header itself duplicates.
+// Derived, not a second list — dropping a section takes its nav entry with it.
+// Hero and the closing CTA carry no navLabel: one is where the reader already is.
 export const LANDING_NAV = LANDING_SECTIONS.filter(
   (section): section is LandingSection & { anchor: string; navLabel: string } =>
     Boolean(section.anchor && section.navLabel),

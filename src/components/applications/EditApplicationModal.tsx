@@ -21,10 +21,8 @@ interface EditApplicationModalProps {
   application: IApplication
 }
 
-// IApplication is the *wire* shape — a serialized document, so dates arrive as
-// ISO strings and salaries as numbers or null. ApplicationFormValues is z.input:
-// what the controls hold. The mapping between them is this function, and it is
-// the reverse of the coercion applicationFormSchema does on submit.
+// IApplication is the *wire* shape (dates as ISO strings); ApplicationFormValues is
+// z.input, what the controls hold. This mapping is the reverse of the schema's coercion.
 function toFormValues(application: IApplication): ApplicationFormValues {
   return {
     company: application.company,
@@ -51,9 +49,8 @@ export default function EditApplicationModal({
 }: EditApplicationModalProps) {
   const updateApplication = useUpdateApplication(application._id)
 
-  // ApplicationFormOutput is structurally assignable to ApplicationUpdateInput
-  // — the update schema is a .partial() over the same field map — so this needs
-  // no cast.
+  // ApplicationFormOutput is structurally assignable to ApplicationUpdateInput — the
+  // update schema is a .partial() over the same field map — so no cast is needed.
   async function onSubmit(values: ApplicationFormOutput) {
     await updateApplication.mutateAsync(values)
     onClose()

@@ -88,7 +88,6 @@ export default function AnalyticsPage() {
     <h1 className="text-2xl font-bold">Application Analytics Overview</h1>
 
     <PageShell>
-      {/* Cards */}
       <PageGrid>
         <div className="md:col-span-4 bg-card border border-border rounded-xl p-5">
           <p className="text-muted-foreground text-xs mb-1">Total Applications</p>
@@ -110,10 +109,8 @@ export default function AnalyticsPage() {
         </div>
       </PageGrid>
 
-      {/* Charts */}
       <PageGrid>
 
-        {/* Bar Chart */}
         <div className="md:col-span-6 bg-card border border-border rounded-xl p-6">
           <h2 className="text-foreground font-semibold text-sm mb-6">
             Applications by Status
@@ -155,7 +152,6 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        {/* Pie Chart */}
         <div className="md:col-span-6 bg-card border border-border rounded-xl p-6">
           <h2 className="text-foreground font-semibold text-sm mb-6">
             Status Distribution
@@ -197,7 +193,6 @@ export default function AnalyticsPage() {
 
       </PageGrid>
 
-      {/* Breakdown Table */}
       <div className="bg-card border border-border rounded-xl p-6">
         <h2 className="text-foreground font-semibold text-sm mb-4">
           Status Breakdown

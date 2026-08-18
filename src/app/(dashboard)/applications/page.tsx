@@ -30,9 +30,8 @@ export default function ApplicationsPage() {
       app.role.toLowerCase().includes(search.toLowerCase())
   )
 
-  // fullBleed: the board scrolls horizontally and needs the whole width. The
-  // toolbar above it still sits inside the shared container so it lines up
-  // with the header breadcrumb.
+  // fullBleed: the board scrolls horizontally and needs the whole width. The toolbar
+  // stays inside the shared container so it lines up with the breadcrumb.
   return (
     <PageShell
       fullBleed

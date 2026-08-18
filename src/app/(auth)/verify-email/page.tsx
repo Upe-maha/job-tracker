@@ -7,9 +7,8 @@ import { AuthCard } from '@/components/auth/AuthCard'
 import { TokenRedeemer } from '@/components/auth/TokenRedeemer'
 import { useVerifyEmail } from '@/hooks/useMutations'
 
-// Reachable signed in or signed out: middleware.ts treats only /login and
-// /register as auth pages, so a logged-in user clicking the link from their
-// inbox lands here instead of being bounced to /dashboard with the token lost.
+// Reachable signed in or out: middleware treats only /login and /register as auth
+// pages, so a signed-in user clicking the link lands here instead of losing the token.
 function VerifyEmail() {
   const verify = useVerifyEmail()
 

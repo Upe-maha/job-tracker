@@ -30,11 +30,9 @@ function LoginForm() {
 
     const registered = searchParams.get("registered");
 
-    // A provider sign-in reports failure by redirecting back here with ?error=.
-    // Our own codes get a specific message; anything else NextAuth emits
-    // (AccessDenied, OAuthAccountNotLinked, Configuration...) is collapsed into
-    // the generic provider failure, since "Invalid email or password" — the
-    // default for an unknown code — would be actively misleading here.
+    // A provider failure redirects back with ?error=. Unknown NextAuth codes collapse
+    // into the generic provider message, since the default "Invalid email or password"
+    // would be actively misleading here.
     const errorParam = searchParams.get("error");
     const oauthError = !errorParam
         ? ""
@@ -44,9 +42,8 @@ function LoginForm() {
 
     const [oauthLoading, setOauthLoading] = useState<OAuthProvider | "">("");
 
-    // loginSchema deliberately only checks that a password was typed: applying
-    // the strength policy here would leak it and lock out accounts created
-    // under an older rule.
+    // loginSchema only checks that a password was typed: applying the strength policy
+    // here would leak it and lock out accounts made under an older rule.
     const form = useForm<LoginFormValues>({
         resolver: standardSchemaResolver(loginSchema),
         defaultValues: { email: "", password: "", rememberMe: false },
@@ -72,9 +69,8 @@ function LoginForm() {
             })
 
             if (result?.error) {
-                // The generic 'credentials' code covers a wrong password, an
-                // unknown account and an OAuth-only account alike, so this
-                // stays a form-level message rather than a field-level one.
+                // The generic 'credentials' code covers a wrong password, an unknown
+                // account and an OAuth-only account alike, so it stays form-level.
                 form.setError('root', { message: loginErrorMessage(result.code) });
                 return;
             }
@@ -101,7 +97,6 @@ function LoginForm() {
                     </p>
                 )}
 
-                {/* OAuth providers */}
                 <div className="space-y-2">
                     <Button
                         type="button"
@@ -124,7 +119,6 @@ function LoginForm() {
                     </Button>
                 </div>
 
-                {/* Divider */}
                 <div className="flex items-center gap-3 my-4">
                     <span className="h-px flex-1 bg-input" />
                     <span className="text-muted-foreground text-xs">or</span>
@@ -230,9 +224,8 @@ function LoginForm() {
 
 }
 
-// useSearchParams opts the subtree into client-side rendering, which Next
-// requires to sit behind a Suspense boundary or the page cannot be
-// prerendered at build time.
+// useSearchParams opts the subtree into client rendering, which Next requires behind a
+// Suspense boundary or the page cannot be prerendered.
 export default function LoginPage() {
     return (
         <Suspense fallback={<LoginFallback />}>

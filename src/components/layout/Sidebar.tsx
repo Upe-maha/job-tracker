@@ -12,14 +12,9 @@ import {
   SIDEBAR_WIDTH_COLLAPSED,
 } from './SidebarContext'
 
-// A flex item beneath the full-width header, not a fixed overlay: the content
-// beside it takes the remaining space on its own, so nothing has to mirror
-// this width as a margin. The brand and the collapse toggle both live in the
-// header now.
-// `inDrawer` is the below-lg copy rendered inside the sheet: it always shows
-// labels (the collapse toggle is a desktop affordance and is not offered there)
-// and drops the width/border the permanent column carries, since the sheet
-// panel supplies both.
+// A flex item beneath the full-width header, so nothing has to mirror its width as
+// a margin. `inDrawer` is the below-lg copy: always labelled, no collapse toggle,
+// and no width or border, since the sheet panel supplies both.
 export default function Sidebar({ inDrawer = false }: { inDrawer?: boolean }) {
   const pathname = usePathname()
   const { collapsed: collapsedPref } = useSidebar()
@@ -33,11 +28,9 @@ export default function Sidebar({ inDrawer = false }: { inDrawer?: boolean }) {
           inDrawer
             ? 'w-full'
             : [
-                // hidden, not opacity/visibility/transform: `display: none` is
-                // what takes the permanent column out of the accessibility tree
-                // AND the tab order below lg. With the drawer rendering the same
-                // links, anything that merely hides it visually would leave a
-                // second copy of every nav link focusable and announced.
+                // hidden, not opacity/visibility/transform: `display: none` is what
+                // takes this column out of the accessibility tree AND the tab order,
+                // so the drawer's copy is never a second focusable set of links.
                 'hidden lg:flex shrink-0 border-r border-sidebar-border',
                 'transition-[width] duration-200 ease-out motion-reduce:transition-none',
                 collapsed ? SIDEBAR_WIDTH_COLLAPSED : SIDEBAR_WIDTH,

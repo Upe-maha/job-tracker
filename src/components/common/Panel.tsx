@@ -4,10 +4,8 @@
 import type { ComponentType, ReactNode } from 'react'
 import { cn } from '@/shared/utils'
 
-// The card shape used across the dashboard: a titled bar divided from the body
-// by a rule, with room for actions on the right. Pages previously hand-rolled
-// `bg-card border border-border rounded-xl p-6` with an ad-hoc heading inside,
-// so padding and heading size drifted between them.
+// The dashboard's card shape: titled bar, rule, body, room for actions. Pages used
+// to hand-roll it, so padding and heading size drifted between them.
 export default function Panel({
   title,
   icon: Icon,
@@ -37,9 +35,8 @@ export default function Panel({
   )
 }
 
-// A labelled value, as used in the identity card's fact grid. Renders an
-// em dash rather than collapsing when empty, so the grid keeps its shape on a
-// sparsely filled profile.
+// A labelled value for the identity card's fact grid. Renders an em dash rather
+// than collapsing, so a sparse profile keeps the grid's shape.
 export function Fact({
   label,
   value,

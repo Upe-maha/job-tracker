@@ -37,10 +37,8 @@ export default function Header({ user }: HeaderProps) {
   const { data: profile } = useProfile()
   const { collapsed, toggle, mobileOpen, setMobileOpen } = useSidebar()
 
-  // On /applications/[id] the trail ends in the company name. This reads the
-  // same ['applications', id] cache entry the detail page uses, so it is
-  // deduped rather than a second request — and it resolves from cache
-  // instantly when arriving from the list.
+  // Reads the same ['applications', id] cache entry the detail page uses, so the
+  // company name in the trail is deduped rather than a second request.
   const applicationId =
     typeof params?.id === 'string' && pathname.startsWith('/applications/')
       ? params.id
@@ -71,9 +69,8 @@ export default function Header({ user }: HeaderProps) {
           below it, not this block, so the logo never shrinks away. */}
       <div className={cn(
         SIDEBAR_WIDTH,
-        // Desktop only. Below lg this fixed 256px block was two-thirds of a
-        // phone's width before any content existed — the hamburger below
-        // replaces it.
+        // Desktop only — below lg this fixed 256px block was two-thirds of a
+        // phone's width before any content existed.
         'shrink-0 hidden lg:flex items-center gap-3 px-4 border-r border-border'
       )}>
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center shrink-0">
@@ -162,11 +159,9 @@ export default function Header({ user }: HeaderProps) {
             {crumbs.map((crumb, i) => {
               const isLast = i === crumbs.length - 1
               return (
-                // Below lg only the last crumb survives. A truncated
-                // "Applications › Very Long Comp…" in ~100px tells the reader
-                // less than the page name alone, and with the sidebar's active
-                // state now inside a drawer, the name is the only thing on
-                // screen saying which page this is.
+                // Below lg only the last crumb survives: with the sidebar's
+                // active state inside a drawer, the page name is the only thing
+                // on screen saying which page this is.
                 <span
                   key={`${crumb.label}-${i}`}
                   className={cn(
@@ -263,10 +258,8 @@ export default function Header({ user }: HeaderProps) {
               <DropdownMenuSeparator />
 
               <DropdownMenuItem
-                // Home, not /login: signing out is not the first half of
-                // signing back in, and dropping someone straight onto a login
-                // form implies it is. The landing page also has the sign-in
-                // button right there for the times it was.
+                // Home, not /login: signing out is not the first half of signing
+                // back in. The landing page has a sign-in button for when it is.
                 onClick={() => signOut({ callbackUrl: '/' })}
                 className="flex items-center gap-2 text-destructive cursor-pointer"
               >

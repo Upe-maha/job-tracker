@@ -1,13 +1,9 @@
 // src/components/landing/primitives/AuroraBackdrop.tsx
 import { cn } from '@/shared/utils'
 
-// What the glass panel refracts. The reference achieves its mood with
-// full-bleed photography; this is the same job done with gradients, which is
-// what lets it follow the theme, weigh nothing, and never go stale.
-//
-// Decorative in the strict sense — it carries no information — so it is
-// aria-hidden and transparent to pointers, and it must never be the only thing
-// distinguishing one section from another.
+// The reference's mood done with gradients rather than photography, so it follows
+// the theme and weighs nothing. Decorative: aria-hidden, and never the only thing
+// separating one section from another.
 export default function AuroraBackdrop({ className }: { className?: string }) {
   return (
     <div

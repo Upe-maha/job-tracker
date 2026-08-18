@@ -19,9 +19,8 @@ interface AddApplicationModalProps {
   onClose: () => void
 }
 
-// z.input, not z.output: the form holds what the controls produce — a date
-// input gives '' or 'YYYY-MM-DD', a number input gives a string — and the
-// schema coerces those on submit. Both types are exported for exactly this.
+// z.input, not z.output: the form holds what the controls produce (a date input
+// gives '' or 'YYYY-MM-DD') and the schema coerces on submit.
 const defaultValues: ApplicationFormValues = {
   company: '',
   role: '',

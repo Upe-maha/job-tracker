@@ -24,10 +24,8 @@ interface NotesTabShellProps {
   addButtonClass?: string
 }
 
-// The toolbar + empty-state + modal scaffold shared by the three note tabs.
-// InterviewTab groups its notes by round and ExperienceTab shows a summary
-// card, so the list itself stays with each tab rather than being generalised
-// into a prop-driven renderer.
+// The toolbar/empty-state/modal scaffold shared by the three note tabs. The list
+// itself stays with each tab — Interview groups by round, Experience shows a summary.
 export default function NotesTabShell({
   description,
   addLabel,

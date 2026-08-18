@@ -52,7 +52,6 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
             ">
               <div className="flex items-start gap-3">
 
-                {/* Company logo or initial */}
                 <div className="
                   w-9 h-9 rounded-lg bg-muted
                   flex items-center justify-center
@@ -72,7 +71,6 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  {/* Company + note type + date */}
                   <div className="flex items-center justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-foreground font-medium text-sm">
@@ -90,7 +88,6 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                     </span>
                   </div>
 
-                  {/* Note preview */}
                   <p className="
                     text-muted-foreground text-xs
                     line-clamp-2 leading-relaxed
@@ -106,7 +103,6 @@ export default function NotesFeed({ notes }: NotesFeedProps) {
                   )}
                 </div>
 
-                {/* Arrow */}
                 <ArrowRight className="
                   w-3.5 h-3.5 text-muted-foreground/30
                   group-hover:text-muted-foreground

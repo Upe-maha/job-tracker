@@ -29,17 +29,14 @@ export function TokenRedeemer({
   const [status, setStatus] = useState<Status>('pending')
   const [message, setMessage] = useState('')
 
-  // Tokens are single-use, so this effect must fire exactly once. React's
-  // StrictMode double-invokes effects in development: without this guard the
-  // first call would consume the token, the second would find it gone, and the
-  // page would show "invalid or expired" for a verification that had in fact
-  // just succeeded.
+  // Tokens are single-use and StrictMode double-invokes effects, so without this
+  // guard the second call finds the token gone and reports "invalid or expired"
+  // for a verification that just succeeded.
   const sent = useRef(false)
 
   useEffect(() => {
-    // A missing token is decided during render below, not here — setting state
-    // synchronously in an effect just to describe something already knowable
-    // from props costs an extra render pass.
+    // A missing token is decided during render below: setting state in an effect to
+    // describe something already knowable from props costs an extra pass.
     if (!token || sent.current) return
     sent.current = true
 
@@ -54,9 +51,8 @@ export function TokenRedeemer({
           error instanceof ApiError ? error.message : 'Something went wrong. Please try again.'
         )
       })
-    // redeem comes from a mutation hook and is not referentially stable; the
-    // ref above is what actually enforces "run once", so it is deliberately not
-    // a dependency.
+    // The ref above is what enforces "run once"; redeem is not referentially
+    // stable, so it is deliberately not a dependency.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 

@@ -7,13 +7,8 @@ import PillButton from '../primitives/PillButton'
 import Reveal from '../primitives/Reveal'
 import { BRAND, closing } from '../content/copy'
 
-// Formula step 8, and the reference's closing full-bleed panel: the same
-// backdrop and glass treatment as the hero, so the page ends where it began
-// rather than trailing off into the footer.
-//
-// The ask is deliberately small — "add the one you are chasing right now" —
-// because the honest first action for a tracker is one application, not a
-// migration of a spreadsheet.
+// Formula step 8: the hero's backdrop and glass again, so the page ends where it
+// began. The ask is one application on purpose, not a spreadsheet migration.
 export default function ClosingCta() {
   return (
     <Section className="py-16 sm:py-24" grid={false}>

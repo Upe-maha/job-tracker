@@ -4,10 +4,8 @@ import Section from './primitives/Section'
 import { LANDING_NAV } from './sections'
 import { BRAND, footer } from './content/copy'
 
-// Formula step 9. Outside the section registry along with the header: the
-// formula treats both as always-present chrome rather than as steps in the
-// argument, and a footer that could be reordered into the middle of the page
-// is a registry entry that only ever has one valid position.
+// Chrome rather than a section: it sits outside the registry because a footer
+// has only one valid position, and an entry that cannot move is not an entry.
 export default function LandingFooter() {
   return (
     <footer className="border-t border-border bg-card/40">

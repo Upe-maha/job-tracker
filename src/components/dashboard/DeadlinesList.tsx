@@ -42,7 +42,6 @@ export default function DeadlinesList({
   return (
     <div className="space-y-2">
 
-      {/* Deadlines */}
       {deadlines.map(item => (
         <DeadlineRow
           key={item._id}
@@ -52,7 +51,6 @@ export default function DeadlinesList({
         />
       ))}
 
-      {/* Follow-ups */}
       {followUps.map(item => (
         <DeadlineRow
           key={item._id}
@@ -85,7 +83,6 @@ function DeadlineRow({
         hover:border-primary/30 transition-colors group
       ">
         <div className="flex items-center gap-3 min-w-0">
-          {/* Logo */}
           <div className="
             w-7 h-7 rounded-md bg-muted
             flex items-center justify-center
@@ -115,7 +112,6 @@ function DeadlineRow({
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
-          {/* Type badge */}
           <span className={`
             text-xs px-2 py-0.5 rounded-full border
             ${type === 'deadline'
@@ -128,7 +124,6 @@ function DeadlineRow({
             {type === 'deadline' ? 'Deadline' : 'Follow up'}
           </span>
 
-          {/* Date */}
           <div className="text-right">
             <p className={`text-xs font-medium ${
               isUrgent ? 'text-destructive' : 'text-muted-foreground'

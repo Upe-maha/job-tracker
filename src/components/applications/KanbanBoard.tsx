@@ -47,11 +47,9 @@ function groupByStatus(apps: IApplication[]): GroupedApps {
   return grouped
 }
 
-// Identity of the incoming list, ignoring array identity. The parent rebuilds
-// `applications` on every keystroke of its search box, so resyncing on the
-// reference would fight every optimistic drag; resyncing on content means a
-// filter change or a refetch updates the board while a local drag (which
-// changes `columns` but not the props) is left alone.
+// Identity by content, not by array reference: the parent rebuilds `applications` on
+// every search keystroke, so resyncing on the reference would fight every optimistic
+// drag, while a local drag changes `columns` and not the props.
 function signatureOf(apps: IApplication[]): string {
   return apps.map(a => `${a._id}:${a.status}`).join('|')
 }
@@ -61,11 +59,9 @@ export default function KanbanBoard({ applications: initial }: { applications: I
   const [columns, setColumns] = useState<GroupedApps>(() => groupByStatus(initial))
   const [activeCard, setActiveCard] = useState<IApplication | null>(null)
 
-  // Adjusting state during render rather than in an effect — React's
-  // documented pattern for derived-from-props state, and it avoids the
-  // cascading re-render an effect would cause. Previously this state was
-  // seeded once and never resynced, so filtering the list left the board
-  // showing every card.
+  // Adjusting state during render, React's documented pattern for derived-from-props
+  // state, rather than an effect and its cascading re-render. This state used to be
+  // seeded once and never resynced, so filtering left the board showing every card.
   const signature = signatureOf(initial)
   const [prevSignature, setPrevSignature] = useState(signature)
   if (signature !== prevSignature) {

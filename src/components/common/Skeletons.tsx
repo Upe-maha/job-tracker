@@ -4,9 +4,8 @@
 import { Skeleton } from '@/components/ui/skeleton'
 import { PageGrid } from './PageShell'
 
-// Each skeleton mirrors the real layout it stands in for — same card count,
-// same grid spans, same heights — so the page does not reflow when data
-// arrives. A generic spinner would let the content jump on every load.
+// Each skeleton mirrors the layout it stands in for — same card count, grid spans
+// and heights — so the page does not reflow when data arrives.
 
 function Card({ className = '' }: { className?: string }) {
   return <Skeleton className={`rounded-xl ${className}`} />

@@ -5,15 +5,9 @@ import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useSidebar } from './SidebarContext'
 import Sidebar from './Sidebar'
 
-// The below-lg navigation. Only ever one nav is exposed: the permanent column
-// is `display: none` below lg, and Radix mounts this content only while the
-// sheet is open — so the two copies of the route list never coexist in the
-// accessibility tree or the tab order.
-//
-// The panel supplies its own close button, Escape handling, focus trap and
-// scroll lock from the Sheet primitive. Closing on navigation is handled once
-// in SidebarContext, keyed on the pathname, rather than by an onClick on every
-// link in here.
+// The below-lg navigation. Only one nav is ever exposed: the permanent column is
+// `display: none` below lg and Radix mounts this only while open. Closing on
+// navigation is handled once in SidebarContext, not per link.
 export default function SidebarDrawer() {
   const { mobileOpen, setMobileOpen } = useSidebar()
 
@@ -22,10 +16,8 @@ export default function SidebarDrawer() {
       <SheetContent
         side="left"
         className="w-72 p-0 lg:hidden"
-        // Radix restores focus to its own trigger, and this sheet has none —
-        // the hamburger lives in Header and drives `open` through context, so
-        // on close focus was landing on <body> and a keyboard user lost their
-        // place. Returning it explicitly is the contract a dialog owes.
+        // Radix restores focus to its own trigger and this sheet has none — the
+        // hamburger lives in Header — so on close focus was landing on <body>.
         onCloseAutoFocus={event => {
           event.preventDefault()
           document.querySelector<HTMLElement>('[data-sidebar-trigger]')?.focus()

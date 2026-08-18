@@ -3,21 +3,10 @@
 
 import { useCallback, useRef, useState } from 'react'
 
-// Reveals an element the first time it scrolls into view, then stops watching
-// it. The unobserve is the point: an observer left attached re-fires on every
-// scroll past, and a section that re-animates each time the user scrolls back
-// up reads as a glitch rather than as polish.
-//
-// A callback ref rather than useEffect, for two reasons. It observes the node
-// at the moment it attaches — no second render to wait through — and it keeps
-// the "no IntersectionObserver" fallback out of an effect, where setting state
-// synchronously is what the react-hooks lint rule warns about (cascading
-// renders). React 19 runs the returned cleanup when the ref detaches.
-//
-// The hidden state itself lives in CSS (.reveal / .reveal-visible in
-// globals.css), which is what lets prefers-reduced-motion force the revealed
-// state: a reveal waiting on a transition that never runs would hide the
-// content permanently.
+// Reveals an element the first time it scrolls into view, then unobserves — a live
+// observer re-animates on every scroll back up. A callback ref rather than an effect,
+// so it observes at attach time; the hidden state lives in CSS, which is what lets
+// prefers-reduced-motion force the revealed state instead of stranding content.
 export function useReveal<T extends HTMLElement = HTMLDivElement>() {
   const [isVisible, setIsVisible] = useState(false)
   // Once revealed, stay revealed — a re-attach (Fast Refresh, a re-key) must

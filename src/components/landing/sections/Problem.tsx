@@ -5,9 +5,8 @@ import Section from '../primitives/Section'
 import Reveal from '../primitives/Reveal'
 import { problem } from '../content/copy'
 
-// Formula step 2: name the problem before offering anything. Deliberately not
-// a feature list — each point is a failure mode of the thing the reader is
-// using now, and Solution answers them one for one in the same order.
+// Formula step 2: name the problem before offering anything. Each point is a
+// failure mode of the reader's current tool, answered in order by Solution.
 const ICONS: Record<string, ComponentType<{ className?: string }>> = {
   FileSpreadsheet,
   CalendarClock,

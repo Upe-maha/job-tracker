@@ -32,10 +32,8 @@ const EMPTY: PasswordChangeFormValues = {
 export default function SettingsPage() {
   const changePassword = useChangePassword()
 
-  // The schema owns all three rules the component used to hand-roll: the
-  // 6-character minimum, the confirm-match, and "must differ from current" —
-  // the last of which the client never checked, so it only ever surfaced as a
-  // 400 after a round trip.
+  // The schema owns all three rules the component used to hand-roll, including "must
+  // differ from current", which the client never checked and only surfaced as a 400.
   const form = useForm<PasswordChangeFormValues>({
     resolver: standardSchemaResolver(passwordChangeFormSchema),
     defaultValues: EMPTY,
@@ -60,7 +58,6 @@ export default function SettingsPage() {
   return (
     <PageShell className="max-w-3xl">
 
-      {/* Change password */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
         <h2 className="text-foreground font-semibold text-sm flex items-center gap-2">
           <Lock className="w-4 h-4" />
@@ -143,7 +140,6 @@ export default function SettingsPage() {
         </Form>
       </div>
 
-      {/* Sign out */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
         <h2 className="text-foreground font-semibold text-sm flex items-center gap-2">
           <LogOut className="w-4 h-4" />
@@ -163,7 +159,6 @@ export default function SettingsPage() {
         </Button>
       </div>
 
-      {/* Danger zone */}
       <div className="bg-card border border-destructive/30 rounded-xl p-6 space-y-4">
         <h2 className="text-destructive font-semibold text-sm flex items-center gap-2">
           <AlertTriangle className="w-4 h-4" />

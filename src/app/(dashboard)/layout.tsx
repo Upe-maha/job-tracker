@@ -12,26 +12,15 @@ export default async function DashboardLayout({
   children: React.ReactNode
 }) {
   const session = await auth()
-  // Not /login: reaching here with no session means middleware saw a decodable
-  // cookie and auth() rejected it (idle-expired, or revoked by a password
-  // change). Sending such a request to /login makes middleware bounce it back
-  // here for as long as the stale cookie exists. That route clears it first.
+  // Not /login: no session here means middleware saw a decodable cookie that auth()
+  // rejected, and /login would bounce it straight back. That route clears it first.
   if (!session) redirect('/api/auth/session-ended')
 
   return (
-    // h-dvh, not min-h-screen: the shell is exactly the viewport so <main> is
-    // the only scrolling element. With min-h-screen the shell could grow past
-    // the viewport, the document itself scrolled, and the header went with it.
-    //
-    // dvh rather than screen (100vh), because on mobile 100vh means the
-    // viewport *without* the collapsible URL bar — the shell ends up taller
-    // than what is visible and the bottom of <main> sits under browser chrome.
-    // Landscape is where it bites hardest, which is why the responsive check
-    // has a landscape case.
-    //
-    // The header spans the full width and the sidebar sits beneath it as a
-    // flex item, so the content takes the remaining space on its own — no
-    // margin has to be kept in sync with the sidebar's width.
+    // h-dvh, not min-h-screen: the shell is exactly the viewport so <main> is the only
+    // scrolling element, and dvh because 100vh on mobile excludes the collapsible URL
+    // bar. The sidebar is a flex item under a full-width header, so no margin has to
+    // track its width.
     <SidebarProvider>
       <div className="h-dvh bg-background flex flex-col overflow-hidden">
         <Header user={session.user} />

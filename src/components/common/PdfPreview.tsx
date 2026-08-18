@@ -15,16 +15,10 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
-// Reads a PDF in place instead of handing the file to the browser and hoping.
-// Every URL here goes through /api/files: Cloudinary serves a raw asset as
-// `application/octet-stream; attachment`, so linking straight at it always
-// downloaded — "check which CV is attached" meant leaving the page and finding
-// a file in Downloads.
-//
-// The trigger is passed in as children (Radix's asChild), because the call
-// sites want visibly different buttons around the identical dialog: a compact
-// one on the identity card, a row action in the CV panel, and one per file in
-// the prep-files tab.
+// Reads a PDF in place. Every URL goes through /api/files, because Cloudinary
+// serves a raw asset as `application/octet-stream; attachment` and linking straight
+// at it always downloaded. The trigger is children (Radix asChild) since the four
+// call sites want visibly different buttons around the identical dialog.
 export default function PdfPreview({
   url,
   name: nameProp,

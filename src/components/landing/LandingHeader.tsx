@@ -7,14 +7,9 @@ import { LANDING_NAV } from './sections'
 import LandingMobileNav from './LandingMobileNav'
 import { BRAND, hero } from './content/copy'
 
-// Formula step 1: the logo, the tagline and a way to act on them stay visible.
-// Sticky rather than fixed, so it never overlaps the content it sits above and
-// no section needs a compensating top padding.
-//
-// ThemeToggle is reused untouched: ThemeProvider is mounted in the root layout
-// via components/providers.tsx, so it works on a public page with no wiring.
-// Keeping it here is what stops a dark-mode visitor meeting a bright page and
-// then a dark app.
+// Formula step 1: logo, tagline and a way to act on them, kept visible. Sticky
+// rather than fixed, so no section needs a compensating top padding. ThemeToggle
+// needs no wiring here — ThemeProvider is mounted in the root layout.
 export default function LandingHeader() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/70 backdrop-blur-lg">

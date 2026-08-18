@@ -5,10 +5,8 @@ import { AlertTriangle, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ApiError } from '@/client/api-client'
 
-// Before this existed, no page handled a failed query at all: the dashboard
-// and analytics pages tested `isLoading || !data`, so when a request failed
-// `isLoading` went false while `data` stayed undefined and the page showed
-// "Loading..." forever with no way to recover.
+// Before this, a failed query showed "Loading..." forever: pages tested
+// `isLoading || !data`, and on failure isLoading goes false while data stays undefined.
 export default function ErrorState({
   error,
   onRetry,

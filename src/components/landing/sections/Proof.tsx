@@ -4,16 +4,9 @@ import Section from '../primitives/Section'
 import Reveal from '../primitives/Reveal'
 import { proof } from '../content/copy'
 
-// Formula steps 4 and 5, merged — and the one place the formula was not
-// followed as written.
-//
-// Step 5 is testimonials. This app has no users, so there are no quotes to
-// show, and inventing them (or a wall of company logos) would be fabricating
-// social proof: the exact thing a reader is right to discount. The slot instead
-// carries claims the audience for a portfolio project — recruiters, and
-// developers who will open the repository — can actually check. The section's
-// own subtitle says so, because the honesty is worth more than the missing
-// quotes.
+// Formula steps 4 and 5, merged — and the one place the formula was not followed.
+// Step 5 is testimonials; with no users, invented quotes would be fabricated
+// social proof, so this carries claims the reader can check instead.
 export default function Proof() {
   return (
     <Section id={proof.id} className="py-16 sm:py-24">

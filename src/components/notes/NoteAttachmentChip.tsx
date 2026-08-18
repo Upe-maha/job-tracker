@@ -6,17 +6,11 @@ import PdfPreview from '@/components/common/PdfPreview'
 import { cn } from '@/shared/utils'
 import type { INoteAttachment } from '@/types'
 
-// The one way an attachment is offered for reading: on the note card and on
-// both feed surfaces. It opens the preview dialog rather than linking at
-// Cloudinary, which serves a raw PDF as an octet-stream attachment that no
-// browser will render — see md/step-e-profile.md.
-//
-// The two feed rows are wrapped in a <Link> to the detail page, so a chip
-// rendered inside one would navigate *and* open the dialog: the anchor's
-// default action is not something stopPropagation can call off, and
-// preventDefault would suppress the dialog too, since Radix's DialogTrigger
-// skips its own handler on a defaultPrevented event. Those callers put the link
-// behind the card as an overlay and lift this chip above it instead.
+// The one way an attachment is offered for reading; opens the preview dialog rather
+// than linking at Cloudinary, which serves a raw PDF as an unrenderable attachment.
+// The feed rows put their <Link> behind the card as an overlay so this can sit above
+// it — nested in the anchor it would navigate *and* open, and neither
+// stopPropagation nor preventDefault separates the two.
 export default function NoteAttachmentChip({
   attachment,
   className,

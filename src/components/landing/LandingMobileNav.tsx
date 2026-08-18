@@ -12,13 +12,8 @@ import {
 import { LANDING_NAV } from './sections'
 import { BRAND, hero } from './content/copy'
 
-// The below-md counterpart to the header's section nav, over the same Sheet
-// primitive Step H added for the dashboard drawer — which is the whole reason
-// that primitive was built as general infrastructure rather than as "the
-// sidebar drawer".
-//
-// Links come from LANDING_NAV, so this cannot drift from the desktop nav or
-// outlive a section dropped from the registry.
+// The below-md counterpart to the header nav, over the same Sheet primitive as
+// the dashboard drawer. Links come from LANDING_NAV, so the two cannot drift.
 export default function LandingMobileNav() {
   const [open, setOpen] = useState(false)
 
@@ -45,9 +40,8 @@ export default function LandingMobileNav() {
             <a
               key={section.id}
               href={`#${section.anchor}`}
-              // Closed on click rather than on a route change: these are
-              // in-page anchors, so the pathname never changes and the
-              // dashboard drawer's pathname rule would never fire here.
+              // Closed on click, not on a pathname change: these are in-page
+              // anchors, so the dashboard drawer's rule would never fire.
               onClick={() => setOpen(false)}
               className="
                 rounded-lg px-4 min-h-11 flex items-center text-sm text-foreground/80

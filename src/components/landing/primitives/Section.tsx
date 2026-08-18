@@ -2,16 +2,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/shared/utils'
 
-// The page's one grid rhythm, stated once so no section has to re-improvise it.
-//
-// Three layers, and each earns its place: a full-bleed outer <section> so a
-// backdrop can reach the window edges, an inner container capped at the same
-// 1200px the dashboard's PageShell uses, and a 12-column grid inside that. The
-// reference's zig-zag then falls out of the grid — alternating col-span rows —
-// instead of being positioned by hand.
-//
-// PageShell itself is deliberately not reused: it is the dashboard's content
-// frame and cannot bleed, which is the one thing this page needs.
+// The page's one grid rhythm: full-bleed <section>, a 1200px container, a
+// 12-column grid. The zig-zag falls out of that grid instead of being positioned
+// by hand. PageShell is not reused — it cannot bleed, which is what this needs.
 export const LANDING_WIDTH = 'max-w-[1200px]'
 
 export default function Section({
@@ -34,9 +27,8 @@ export default function Section({
   return (
     <section
       id={id}
-      // scroll-mt clears the sticky header (h-16). Without it a nav jump puts
-      // the section's heading *behind* the header, which reads as landing on
-      // the wrong section.
+      // scroll-mt clears the sticky header; without it a nav jump leaves the
+      // heading behind it, which reads as landing on the wrong section.
       className={cn('relative w-full scroll-mt-20', className)}
     >
       <div

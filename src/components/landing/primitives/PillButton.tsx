@@ -3,12 +3,8 @@ import Link from 'next/link'
 import type { ComponentType, ReactNode } from 'react'
 import { cn } from '@/shared/utils'
 
-// The reference's pill control, in the three weights the page actually uses.
-//
-// A plain anchor rather than the shadcn Button: every pill here is a link, and
-// Button's variants are sized for the dashboard's denser controls. Wrapping
-// Button in asChild would mean overriding its padding and radius at every call
-// site, which is a copy of this component with extra steps.
+// The reference's pill control. A plain anchor rather than the shadcn Button:
+// every pill here is a link, and Button is sized for the dashboard's density.
 type Tone = 'solid' | 'outline' | 'glass'
 
 const TONES: Record<Tone, string> = {

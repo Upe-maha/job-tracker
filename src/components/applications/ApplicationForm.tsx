@@ -32,15 +32,10 @@ import {
   WORK_MODE_OPTIONS,
 } from '@/shared/display'
 
-// The field list shared by the add and edit modals. No Dialog wrapper — the
-// callers own that, and they differ in title, submit label and which mutation
-// runs. Everything below is identical between the two, which is the whole
-// reason this isn't two files.
-//
-// The fields it omits (jobDescription, tags, followUpDate) are filled by
-// applicationCreateSchema's defaults on create; on edit they are absent from
-// the request, and applicationUpdateSchema being partial is what makes that
-// leave them alone rather than clearing them.
+// The field list shared by the add and edit modals; the callers own the Dialog and
+// differ only in title, submit label and mutation. The omitted fields get
+// applicationCreateSchema's defaults on create, and on edit the update schema being
+// .partial() is what leaves them alone rather than clearing them.
 interface ApplicationFormProps {
   defaultValues: ApplicationFormValues
   onSubmit: (values: ApplicationFormOutput) => Promise<void>
@@ -60,10 +55,8 @@ export default function ApplicationForm({
   submitLabel,
   submittingLabel,
 }: ApplicationFormProps) {
-  // Three generics: values in, context, values out. Needed because the input
-  // and output types genuinely differ here — a date input gives '' or
-  // 'YYYY-MM-DD' and a number input gives a string, and the schema coerces
-  // those on submit.
+  // Three generics: values in, context, values out — the input and output types
+  // genuinely differ, since the schema coerces dates and numbers on submit.
   const form = useForm<ApplicationFormValues, unknown, ApplicationFormOutput>({
     resolver: standardSchemaResolver(applicationFormSchema),
     defaultValues,
@@ -73,7 +66,6 @@ export default function ApplicationForm({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
 
-        {/* Company + Role */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
@@ -107,7 +99,6 @@ export default function ApplicationForm({
           />
         </div>
 
-        {/* Job URL */}
         <FormField
           control={form.control}
           name="jobUrl"
@@ -146,7 +137,6 @@ export default function ApplicationForm({
           )}
         />
 
-        {/* Status + Location */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
@@ -187,7 +177,6 @@ export default function ApplicationForm({
           />
         </div>
 
-        {/* Work mode + Job type */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}
@@ -239,7 +228,6 @@ export default function ApplicationForm({
           />
         </div>
 
-        {/* Salary */}
         <div className="grid grid-cols-[1fr_1fr_auto] gap-3">
           <FormField
             control={form.control}
@@ -306,7 +294,6 @@ export default function ApplicationForm({
           />
         </div>
 
-        {/* Dates */}
         <div className="grid grid-cols-2 gap-3">
           <FormField
             control={form.control}

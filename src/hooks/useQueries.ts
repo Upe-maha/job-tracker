@@ -12,10 +12,8 @@ import type {
   IUser,
 } from '@/types'
 
-// One definition per key. Previously each page wrote its own fetcher, and two
-// of them — profile/page.tsx and Header.tsx — disagreed on failure handling
-// (one threw, one returned null) while writing to the *same* ['profile'] key,
-// so whichever mounted first decided what the cache held.
+// One definition per key. Two pages once wrote the *same* ['profile'] key with
+// different failure handling, so whichever mounted first decided what the cache held.
 
 export function useApplications() {
   return useQuery({
@@ -32,11 +30,8 @@ export function useApplication(id: string) {
   })
 }
 
-// Backs both the dashboard and the analytics page. They previously registered
-// the same key with different options — one polled every 5 minutes, the other
-// did not — which made the polling behaviour depend on which page was mounted.
-// The 60s staleTime from the QueryClient default is enough; the interval is
-// gone rather than copied.
+// Backs both the dashboard and analytics. They used to register the same key with
+// different options, so polling depended on which page was mounted.
 export function useDashboard() {
   return useQuery({
     queryKey: qk.dashboard,

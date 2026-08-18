@@ -36,13 +36,9 @@ import {
 import { INTERVIEW_ROUNDS, NOTE_OUTCOMES, NOTE_TYPES } from '@/shared/schemas/enums'
 import type { INote, NoteType } from '@/types'
 
-// Add and edit are the same modal. The type-driven field layout and
-// handleTypeChange's clearing logic are identical between the two, and a
-// second copy of them is exactly what drifts.
-//
-// One onSubmit rather than an optional onAdd plus an optional onEdit: two
-// optional callbacks with a runtime branch permit states the type system
-// should be ruling out. The edit caller closes over the note id.
+// Add and edit are the same modal: the type-driven layout and the clearing logic are
+// identical, and a second copy is what drifts. One onSubmit rather than optional
+// onAdd/onEdit, which would permit states the type system should rule out.
 interface NoteModalProps {
   open: boolean
   onClose: () => void
@@ -84,10 +80,8 @@ export default function NoteModal({
 }: NoteModalProps) {
   const isEdit = Boolean(note)
 
-  // In edit mode these are the note's current values, not empty ones. RHF reads
-  // defaultValues at mount only, which is why the edit caller mounts this modal
-  // conditionally — a fresh mount per note is what a reset effect would
-  // otherwise have to reproduce by hand.
+  // In edit mode these are the note's current values. RHF reads defaultValues at mount
+  // only, which is why the edit caller mounts this modal conditionally.
   const initialValues: NoteFormValues = {
     type: note?.type ?? defaultType,
     content: note?.content ?? '',
@@ -107,9 +101,8 @@ export default function NoteModal({
   const isInterview = type === 'interview_question' || type === 'personal_experience'
   const isExperienceLog = type === 'experience_log'
 
-  // Clear the fields the new type doesn't show. Without this, choosing
-  // 'interview_question' + a round, then switching to 'general', still posted
-  // the stale round and outcome — the inputs were hidden, not reset.
+  // Clear the fields the new type doesn't show — hidden inputs were not reset, so
+  // switching type still posted the stale round and outcome.
   function handleTypeChange(next: NoteType) {
     form.setValue('type', next)
     const nextIsInterview =
@@ -124,10 +117,8 @@ export default function NoteModal({
     }
   }
 
-  // Closes only on success. mutateAsync rejects on a failed save, which throws
-  // before the two lines below run, so the modal stays open with the user's
-  // text and the mutation's own onError toast explains why. Do not wrap this in
-  // a try/catch — swallowing the rejection closes the modal and loses the text.
+  // Closes only on success: mutateAsync rejects on a failed save and throws before the
+  // lines below, leaving the modal open with the user's text. Do not wrap in try/catch.
   async function onSubmit(values: NoteFormValues) {
     await onSubmitProp(values)
     // Nothing to reset when editing: onClose unmounts this modal, so a reset
@@ -154,7 +145,6 @@ export default function NoteModal({
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 mt-2">
 
-            {/* Note type */}
             <FormField
               control={form.control}
               name="type"
@@ -261,7 +251,6 @@ export default function NoteModal({
               )}
             />
 
-            {/* Experience log extra fields */}
             {isExperienceLog && (
               <>
                 <FormField
@@ -319,7 +308,6 @@ export default function NoteModal({
               )}
             />
 
-            {/* Actions */}
             <div className="flex gap-3 pt-2">
               <Button
                 type="button"

@@ -6,9 +6,8 @@ import { Loader2, type LucideIcon } from 'lucide-react'
 import { cn } from '@/shared/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
-// useLinkStatus reports the pending state of *this* link's navigation, from
-// the moment it is clicked. That is what makes the button acknowledge the
-// click within a frame instead of appearing dead while the next page fetches.
+// useLinkStatus reports *this* link's pending navigation from the click, which is
+// what makes the button acknowledge it instead of appearing dead.
 function PendingDot({ collapsed }: { collapsed: boolean }) {
   const { pending } = useLinkStatus()
   if (!pending) return null

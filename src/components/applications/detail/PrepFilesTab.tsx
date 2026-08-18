@@ -111,7 +111,6 @@ export default function PrepFilesTab({
   return (
     <div className="space-y-4">
 
-      {/* Toolbar */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
           PDFs and links for interview preparation
@@ -155,7 +154,6 @@ export default function PrepFilesTab({
         className="hidden"
       />
 
-      {/* Link form */}
       {mode === 'link' && (
         <form
           onSubmit={handleLinkSave}
@@ -206,12 +204,10 @@ export default function PrepFilesTab({
         </form>
       )}
 
-      {/* Error */}
       {error && (
         <p className="text-destructive text-sm">{error}</p>
       )}
 
-      {/* Files list */}
       {files.length === 0 ? (
         <div className="
           border-2 border-dashed border-border rounded-xl

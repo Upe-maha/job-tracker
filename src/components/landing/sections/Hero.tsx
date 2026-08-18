@@ -7,21 +7,9 @@ import PillButton from '../primitives/PillButton'
 import BoardPreview from './BoardPreview'
 import { BRAND, hero } from '../content/copy'
 
-// The reference's opening: a frosted panel floating on a full-bleed backdrop,
-// with the wordmark centred at its top, the headline oversized beneath, a pill
-// CTA under that, and a bar of chips along the bottom edge.
-//
-// grid={false} because this section owns its own internal layout — the panel is
-// a single full-width element, not a row of columns. Every other section keeps
-// the shared 12-column grid.
-//
-// Deliberately the one section with NO scroll reveal. It is above the fold on
-// every visit, so a reveal here means the page's main message starts at
-// opacity 0 and fades in over 600ms — and the <h1> is the LCP element, which an
-// invisible paint does not satisfy. Measured before removing it: the reveal did
-// fire immediately, so nothing was broken; it was just animating the one thing
-// that should never be animated in. Reveals belong to what the reader scrolls
-// to, not to what greets them.
+// The reference's opening panel. grid={false} because this section owns its own
+// internal layout. Deliberately the one section with NO reveal: the <h1> is the
+// LCP element, which a paint at opacity 0 does not satisfy.
 export default function Hero() {
   return (
     <Section className="pt-4 pb-16 sm:pb-24" grid={false}>

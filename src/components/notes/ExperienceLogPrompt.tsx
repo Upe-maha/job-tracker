@@ -42,7 +42,6 @@ export default function ExperienceLogPrompt({
       border border-stage-interview-fg/30 rounded-xl p-5
       bg-stage-interview-fg/5 space-y-4
     ">
-      {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
           <BookOpen className="w-4 h-4 text-stage-interview-fg shrink-0" />
@@ -63,7 +62,6 @@ export default function ExperienceLogPrompt({
         </button>
       </div>
 
-      {/* Fields */}
       <div className="space-y-3">
         <div className="space-y-1.5">
           <Label className="text-muted-foreground text-xs">
@@ -114,7 +112,6 @@ export default function ExperienceLogPrompt({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex gap-2">
         <Button
           variant="outline"

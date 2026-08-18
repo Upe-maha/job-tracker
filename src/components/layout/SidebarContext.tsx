@@ -11,16 +11,13 @@ import {
 } from 'react'
 import { usePathname } from 'next/navigation'
 
-// The collapsed state has to be shared: the toggle lives in the header, the
-// width it controls lives in the sidebar, and the header's logo block matches
-// that width. (dashboard)/layout is a server component — it awaits auth() —
-// so this cannot be local state lifted into the layout.
+// Shared because the toggle lives in the header and the width it controls lives in
+// the sidebar. (dashboard)/layout awaits auth(), so this cannot be layout state.
 
 const STORAGE_KEY = 'sidebar-collapsed'
 
-// The sidebar is a flex item under a full-width header, so the content needs
-// no matching offset — it simply takes the remaining space. The header's logo
-// block reuses these same widths to stay aligned with the column below it.
+// The sidebar is a flex item under a full-width header, so the content needs no
+// matching offset. The header's logo block reuses these widths to stay aligned.
 export const SIDEBAR_WIDTH = 'w-64'
 export const SIDEBAR_WIDTH_COLLAPSED = 'w-16'
 
@@ -40,9 +37,8 @@ const SidebarCtx = createContext<SidebarValue>({
   setMobileOpen: () => {},
 })
 
-// Read through useSyncExternalStore, matching how @/client/theme reads the
-// stored theme: localStorage is an external store, and copying it into state
-// inside an effect causes a cascading re-render on every mount.
+// Read through useSyncExternalStore, as @/client/theme reads the stored theme:
+// copying an external store into state inside an effect cascades a re-render.
 const listeners = new Set<() => void>()
 
 function emit() {
@@ -71,21 +67,10 @@ function getServerSnapshot(): boolean {
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const collapsed = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot)
 
-  // Ordinary state, not localStorage, and that asymmetry with `collapsed` is
-  // the point: `collapsed` is a preference worth remembering, while a drawer
-  // that reopened on next load because it happened to be open when you left
-  // would be a bug wearing a preference's clothes.
-  //
-  // What is stored is the route the drawer was opened *on*, not a boolean, and
-  // "open" is derived from it. That is what closes the drawer on navigation:
-  // the pathname changes, the comparison stops matching, and it closes — with
-  // no effect to synchronise. The obvious version, an effect calling
-  // setMobileOpen(false) on every pathname change, is a synchronous setState
-  // inside an effect, which cascades a second render and is what the
-  // react-hooks lint rule flags. Same reason theme.tsx reads localStorage
-  // through useSyncExternalStore instead of copying it into state.
-  //
-  // One rule covers link clicks and the browser's back button alike.
+  // Ordinary state, not localStorage, unlike `collapsed`: a drawer that reopened
+  // because it was open when you left is a bug wearing a preference's clothes.
+  // What is stored is the route it was opened on, so "open" is derived and
+  // navigation closes it with no effect to synchronise.
   const pathname = usePathname()
   const [openPath, setOpenPath] = useState<string | null>(null)
   const mobileOpen = openPath === pathname

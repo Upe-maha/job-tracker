@@ -1,16 +1,6 @@
-// src/components/landing/content/copy.ts
-//
-// Every word on the landing page, separated from the markup that arranges it —
-// so a copy edit never means reading JSX, and a layout change never means
-// stepping around prose.
-//
-// Deliberately NOT in @/shared/display: that directory holds Record<SomeEnum, Meta>
-// tables keyed off schemas/enums, where the compiler enforces that every enum
-// member has metadata. Free-form marketing copy has no enum behind it and would
-// blur what that directory is for.
-//
-// Icons are named here and resolved by the sections, keeping this file free of
-// component imports.
+// src/components/landing/content/copy.ts — every word on the landing page, kept
+// out of the markup. Deliberately not in @/shared/display, which holds
+// Record<Enum, Meta> tables the compiler checks; marketing copy has no enum.
 
 export const BRAND = {
   name: 'JobTracker',
@@ -86,9 +76,8 @@ export const solution = {
   ],
 }
 
-// No testimonials: this app has no users, and inventing quotes or company logos
-// would be fabricating social proof. What goes here instead is checkable — the
-// audience for a portfolio project is people who can and will read the source.
+// No testimonials: the app has no users, and invented quotes would be fabricated
+// social proof. What replaces them is checkable by anyone who opens the repo.
 export const proof = {
   id: 'proof',
   title: 'Built properly, and you can check',
@@ -111,9 +100,8 @@ export const proof = {
 export const about = {
   id: 'about',
   title: 'About the developer',
-  // PLACEHOLDER — written by the project owner. Left obviously unfinished on
-  // purpose: a plausible invented biography is worse than a blank one, because
-  // nobody notices it needs replacing.
+  // PLACEHOLDER — the owner's to write. Left obviously blank on purpose: a
+  // plausible invented biography is the one nobody notices needs replacing.
   body:
     'PLACEHOLDER: a short paragraph about who you are, what you were doing when you built this, and what you are looking for next. Two or three sentences is plenty.',
   links: [
@@ -159,11 +147,8 @@ export const closing = {
 
 export const footer = {
   blurb: 'A job application tracker built as a portfolio project.',
-  // The "Product" column is NOT here: it is derived from LANDING_NAV, which is
-  // derived from the section registry. It was a hand-written list of anchors
-  // once, and dropping a section from the registry left it pointing at an
-  // anchor that no longer rendered — caught by actually removing one and
-  // looking, not by reading it.
+  // Derived from LANDING_NAV, not hand-written: a hand-maintained anchor list
+  // once outlived the section it pointed at.
   columns: [
     {
       title: 'Account',

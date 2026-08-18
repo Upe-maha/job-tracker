@@ -12,14 +12,9 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 
-// The one confirmation step in the app. Nothing gated a delete before this —
-// NoteCard's trash icon called onDelete straight from onClick — and application
-// delete takes every note, contact and prep file on the document with it.
-//
-// `open`/`isPending` are owned by whichever component renders the delete
-// button, not by the page that owns the mutation: the mutation's isPending
-// lives too far away to reach, and threading a deletingId down through the
-// parents to reach it would cost more than the local boolean it replaces.
+// The one confirmation step in the app; deleting an application takes every note,
+// contact and prep file with it. `open`/`isPending` belong to whichever component
+// renders the button — threading a deletingId down from the page costs more.
 interface ConfirmDeleteDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void

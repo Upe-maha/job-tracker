@@ -13,12 +13,10 @@ import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog'
 import { GitHubMark, GoogleMark } from '@/components/common/ProviderMarks'
 import { Button } from '@/components/ui/button'
 
-// Connecting is two steps and they cannot be collapsed: POST /api/user/link-account
-// first, so a token proving *this* user started it is waiting in an httpOnly
-// cookie, and only then hand off to next-auth for the redirect. Without the
-// first step the signIn callback would fall through to its sign-in path, which
-// resolves a user from the provider's email — and would silently swap the
-// session whenever that email differs from this account's.
+// Connecting is two steps that cannot be collapsed: POST /api/user/link-account first,
+// so a token proving *this* user started it waits in an httpOnly cookie, then hand off
+// to next-auth. Without it the signIn callback resolves a user from the provider's
+// email and silently swaps the session when that email differs.
 
 export default function ConnectedAccounts({
   accounts,

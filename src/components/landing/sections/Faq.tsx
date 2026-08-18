@@ -3,15 +3,9 @@ import Section from '../primitives/Section'
 import Reveal from '../primitives/Reveal'
 import { faq } from '../content/copy'
 
-// Formula step 7. Native <details>/<summary> rather than an accordion
-// component: it is keyboard accessible, searchable by the browser's find-in-page
-// even while collapsed, and works with JavaScript disabled — none of which a
-// state-driven accordion gives for free on a static marketing page.
-//
-// The last question answers "can I export my data" with "not yet". Leaving that
-// out would be the more flattering choice and the less useful one; someone
-// deciding whether to put a whole job search in here deserves to know before
-// they start rather than after.
+// Formula step 7. Native <details>/<summary>: keyboard accessible, found by
+// find-in-page while collapsed, works without JS. The last answer admits export
+// does not exist yet — the less flattering and more useful choice.
 export default function Faq() {
   return (
     <Section id={faq.id} className="py-16 sm:py-24">

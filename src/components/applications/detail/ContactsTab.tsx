@@ -40,9 +40,8 @@ export default function ContactsTab({
 }: ContactsTabProps) {
   const [showForm, setShowForm] = useState(false)
 
-  // Previously this form had no error state at all: a rejected submit left it
-  // open with nothing shown. The email format rule in particular was enforced
-  // only server-side.
+  // This form had no error state at all before: a rejected submit left it open with
+  // nothing shown, and the email rule was enforced only server-side.
   const form = useForm<ContactFormValues>({
     resolver: standardSchemaResolver(contactFormSchema),
     defaultValues: emptyForm,
@@ -64,7 +63,6 @@ export default function ContactsTab({
   return (
     <div className="space-y-4">
 
-      {/* Toolbar */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground text-sm">
           Recruiters and contacts at this company
@@ -79,7 +77,6 @@ export default function ContactsTab({
         </Button>
       </div>
 
-      {/* Add contact form */}
       {showForm && (
         <Form {...form}>
         <form
@@ -197,7 +194,6 @@ export default function ContactsTab({
         </Form>
       )}
 
-      {/* Contacts list */}
       {contacts.length === 0 && !showForm ? (
         <div className="
           border-2 border-dashed border-border rounded-xl
@@ -263,7 +259,6 @@ function ContactCard({
         </button>
       </div>
 
-      {/* Contact details */}
       <div className="mt-3 space-y-1.5 pl-12">
         {contact.email && (
           <div className="flex items-center gap-2 text-muted-foreground">

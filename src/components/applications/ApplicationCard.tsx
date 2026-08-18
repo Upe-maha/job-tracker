@@ -41,7 +41,6 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
         select-none
       "
     >
-      {/* Top row */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className="
@@ -72,7 +71,6 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
           </div>
         </div>
 
-        {/* Icons */}
         <div className="flex items-center gap-1.5">
           {application.jobUrl && (
             <a
@@ -81,9 +79,8 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}
               aria-label="Open job posting"
-              // -m-3 p-3 grows the hit area to 44px without moving anything
-              // around it: the padding expands the box, the negative margin
-              // gives the space back to the layout.
+              // -m-3 p-3 grows the hit area to 44px without moving anything:
+              // padding expands the box, the negative margin gives it back.
               className="
                 text-muted-foreground hover:text-foreground transition-colors
                 w-11 h-11 -m-3 lg:w-auto lg:h-auto lg:m-0
@@ -103,7 +100,6 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
         </div>
       </div>
 
-      {/* Badges */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         {application.workMode && (
           <span className={`
@@ -123,7 +119,6 @@ export default function ApplicationCard({ application }: ApplicationCardProps) {
         )}
       </div>
 
-      {/* Details */}
       <div className="space-y-1.5">
         {application.location && (
           <div className="flex items-center gap-1.5 text-muted-foreground">

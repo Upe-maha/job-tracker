@@ -2,11 +2,8 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/shared/utils'
 
-// The reference's frosted floating frame, defined once. The visual weight is
-// in the .glass-panel utility (globals.css) because backdrop-filter needs a
-// @supports fallback — without support the panel stays a legible translucent
-// card instead of turning transparent and dropping its contents onto the
-// gradient.
+// The frosted frame, defined once. The visual weight lives in .glass-panel
+// (globals.css) because backdrop-filter needs an @supports fallback.
 export default function GlassPanel({
   children,
   className,

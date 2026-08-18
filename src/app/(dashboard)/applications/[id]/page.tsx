@@ -43,9 +43,8 @@ export default function ApplicationDetailPage() {
 
   const [showExpPrompt, setShowExpPrompt] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
-  // One edit modal for all three note tabs. This page already owns every note
-  // handler and threads them down, so onEdit follows the same path; putting the
-  // state in the tabs instead would triplicate it.
+  // One edit modal for all three note tabs: this page already owns every note handler,
+  // and putting the state in the tabs would triplicate it.
   const [editingNote, setEditingNote] = useState<INote | null>(null)
 
   const { data: application, isLoading, isError, error, refetch, isFetching } =
@@ -60,10 +59,8 @@ export default function ApplicationDetailPage() {
   const addPrepFile = useAddPrepFile(id)
   const deletePrepFile = useDeletePrepFile(id)
 
-  // Offer the experience-log prompt the moment an application becomes
-  // rejected. Tracked by comparing against the previous render's value rather
-  // than in an effect: setting state inside an effect body triggers a
-  // cascading re-render, which is what the lint rule here objects to.
+  // Offer the experience-log prompt when an application becomes rejected. Compared
+  // against the previous render rather than tracked in an effect, which would cascade.
   const status = application?.status ?? null
   const [prevStatus, setPrevStatus] = useState<ApplicationStatus | null>(status)
   if (status !== prevStatus) {
@@ -73,16 +70,14 @@ export default function ApplicationDetailPage() {
     }
   }
 
-  // ── Handlers ───────────────────────────────────────
-  // Each mutation owns its own invalidation and error reporting, so these are
-  // just adapters between the child components' props and the hooks.
+  // Each mutation owns its own invalidation and error reporting, so these are adapters
+  // between the child components' props and the hooks.
   async function handleAddNote(note: NoteCreatePayload) {
     await addNote.mutateAsync(note)
   }
 
-  // Deliberately uncaught: a rejected mutation has to reach NoteModal's
-  // onSubmit so the modal stays open with the user's text rather than closing
-  // over a save that never happened.
+  // Deliberately uncaught: a rejected mutation must reach NoteModal's onSubmit so the
+  // modal stays open with the user's text.
   async function handleUpdateNote(noteId: string, note: NoteFormValues) {
     await updateNote.mutateAsync({ noteId, ...note })
   }
@@ -154,7 +149,6 @@ export default function ApplicationDetailPage() {
   return (
     <PageShell>
 
-      {/* Back */}
       <button
         onClick={() => router.back()}
         className="
@@ -167,7 +161,6 @@ export default function ApplicationDetailPage() {
         Back to Applications
       </button>
 
-      {/* Header */}
       <DetailHeader
         application={application}
         onEdit={() => setEditOpen(true)}
@@ -195,7 +188,6 @@ export default function ApplicationDetailPage() {
         />
       )}
 
-      {/* Experience log prompt */}
       {showExpPrompt && (
         <ExperienceLogPrompt
           company={application.company}
@@ -204,7 +196,6 @@ export default function ApplicationDetailPage() {
         />
       )}
 
-      {/* Tabs */}
       <Tabs defaultValue="notes" className="space-y-4">
         {/* Five triggers do not fit a phone, and TabsList is `inline-flex
             w-fit` with no scroll container of its own — it simply overflowed.

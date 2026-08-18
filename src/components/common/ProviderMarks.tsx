@@ -1,15 +1,7 @@
-// src/components/common/ProviderMarks.tsx
-//
-// The brand marks the app draws, as inline SVG. They are not in
-// @/shared/display/users.ts with the provider labels because that file is a plain
-// data table and these are brand artwork with their own fixed fills; and they
-// are not lucide icons because lucide dropped its brand set — importing
-// `Github` or `Linkedin` from lucide-react is a compile error, not a fallback.
-//
-// One home for them because Step E made a third copy: the login page, the
-// register page, and the profile's Connected Accounts panel all draw the same
-// paths. Step G's landing page adds LinkedIn, which is not an OAuth provider —
-// hence "brand marks" rather than "provider marks" as the organising idea.
+// src/components/common/ProviderMarks.tsx — the brand marks the app draws, as inline
+// SVG. Not in @/shared/display/users.ts (a plain data table, these are artwork) and
+// not lucide, which has no brand set: importing `Github` from it is a compile error.
+// "Brand marks" rather than "provider marks" because LinkedIn is not an OAuth provider.
 
 export function GoogleMark({ className = 'w-4 h-4' }: { className?: string }) {
   return (

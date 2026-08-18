@@ -16,9 +16,8 @@ import NoteAttachmentChip from '@/components/notes/NoteAttachmentChip'
 
 
 export default function NotesPage() {
-  // Filtering is a query param rather than an Array.filter: the page is
-  // paginated, so filtering client-side would only ever search the pages
-  // already loaded.
+  // Filtering is a query param, not an Array.filter: the page is paginated, so
+  // client-side filtering would only ever search the pages already loaded.
   const [activeFilter, setActiveFilter] = useState<NoteFilterKey>('all')
 
   const {
@@ -60,15 +59,12 @@ export default function NotesPage() {
         ))}
       </div>
 
-      {/* Loading */}
       {isLoading && <ListSkeleton rows={4} />}
 
-      {/* Error */}
       {!isLoading && isError && (
         <ErrorState error={error} onRetry={() => refetch()} isRetrying={isFetching} />
       )}
 
-      {/* Empty */}
       {!isLoading && !isError && notes.length === 0 && (
         <div className="
           border-2 border-dashed border-border rounded-xl
@@ -83,7 +79,6 @@ export default function NotesPage() {
         </div>
       )}
 
-      {/* Notes list */}
       {!isLoading && !isError && notes.length > 0 && (
         <div className="space-y-3">
           {notes.map(item => {
@@ -92,9 +87,8 @@ export default function NotesPage() {
             const Icon = config.icon
 
             return (
-              // The link is an overlay behind the card rather than a wrapper
-              // around it, so the attachment chip can sit above it and open the
-              // preview without also navigating. See NoteAttachmentChip.
+              // The link is an overlay behind the card, not a wrapper, so the
+              // attachment chip can sit above it. See NoteAttachmentChip.
               <div
                 key={item.noteId}
                 className={`
@@ -115,7 +109,6 @@ export default function NotesPage() {
                 <div>
                   <div className="flex items-start gap-3">
 
-                    {/* Company logo */}
                     <div className="
                       w-9 h-9 rounded-lg bg-background/50
                       flex items-center justify-center
@@ -135,7 +128,6 @@ export default function NotesPage() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      {/* Top row */}
                       <div className="flex items-center justify-between gap-2 mb-1.5">
                         <div className="flex items-center gap-2">
                           <span className="text-foreground font-medium text-sm">
@@ -153,7 +145,6 @@ export default function NotesPage() {
                         </span>
                       </div>
 
-                      {/* Note content */}
                       <p className="
                         text-foreground/80 text-sm
                         line-clamp-3 leading-relaxed
@@ -184,7 +175,6 @@ export default function NotesPage() {
         </div>
       )}
 
-      {/* Load more */}
       {hasNextPage && (
         <div className="flex justify-center pt-1">
           <Button

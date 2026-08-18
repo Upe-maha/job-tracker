@@ -4,15 +4,9 @@
 import type { ReactNode } from 'react'
 import { cn } from '@/shared/utils'
 
-// The single content container. Pages previously picked their own width —
-// max-w-6xl, 4xl, 3xl, 2xl and one full-bleed — so moving between them shifted
-// the content box on every navigation. One width means the left edge of the
-// content never moves.
-//
-// Crucially this shell renders *immediately*, before any data resolves: the
-// body swaps between skeleton, error and content while the frame stays put.
-// The old pages returned a centered "Loading..." in place of the whole page,
-// which is why navigation felt like nothing had happened.
+// The single content container, so the left edge never moves between pages. It
+// renders immediately, before any data resolves — the body swaps between skeleton,
+// error and content while the frame stays put.
 export const CONTENT_WIDTH = 'max-w-[1200px]'
 
 export default function PageShell({

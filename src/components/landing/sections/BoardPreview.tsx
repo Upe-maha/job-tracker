@@ -3,14 +3,8 @@ import { APPLICATION_STATUS_META } from '@/shared/display'
 import { APPLICATION_STATUSES } from '@/shared/schemas/enums'
 import { cn } from '@/shared/utils'
 
-// A miniature of the real Kanban board, built from the same
-// APPLICATION_STATUS_META the board itself uses — so the preview and the
-// product cannot drift apart in colour, and adding a status colours this in
-// automatically rather than leaving a blank column.
-//
-// The companies are obviously invented, and that is fine: this illustrates a
-// layout, it does not claim to be anyone's data. Nothing here is presented as
-// real usage.
+// A miniature of the real board, built from the same APPLICATION_STATUS_META, so
+// preview and product cannot drift. The companies are obviously invented.
 const CARDS: Record<string, { company: string; role: string }[]> = {
   wishlist: [{ company: 'Northwind', role: 'Frontend Engineer' }],
   applied: [
@@ -22,12 +16,8 @@ const CARDS: Record<string, { company: string; role: string }[]> = {
   rejected: [],
 }
 
-// Below `sm` the last two columns are dropped rather than squeezed. Five
-// columns in 375px leaves each about 60px wide, which renders the company names
-// as illegible smears — three legible columns communicate "a board with stages"
-// far better than five unreadable ones, and this is an illustration rather than
-// data. The alternative, a horizontally scrolling strip, would fight the page's
-// own scroll under a thumb.
+// Below sm the last two columns are dropped rather than squeezed: five columns in
+// 375px renders the company names as illegible smears.
 const MOBILE_COLUMNS = 3
 
 export default function BoardPreview({ className }: { className?: string }) {

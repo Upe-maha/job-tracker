@@ -24,9 +24,8 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
   const config = NOTE_TYPE_META[note.type] ?? NOTE_TYPE_META.general
   const Icon = config.icon
 
-  // Both local: the page owns the mutation, so its isPending is out of reach
-  // here. onDelete's signature is unchanged — this is the same capability, now
-  // behind a confirmation rather than firing straight from the click.
+  // Both local: the page owns the mutation, so its isPending is out of reach. Same
+  // capability as before, now behind a confirmation rather than firing on click.
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -45,7 +44,6 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
       border rounded-xl p-4 space-y-3
       bg-card ${config.bg}
     `}>
-      {/* Header */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2 flex-wrap">
           <div className={`flex items-center gap-1.5 ${config.color}`}>
@@ -53,7 +51,6 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
             <span className="text-xs font-medium">{config.label}</span>
           </div>
 
-          {/* Round badge */}
           {note.interviewRound && (
             <span className="
               text-xs px-2 py-0.5 rounded-full border
@@ -63,7 +60,6 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
             </span>
           )}
 
-          {/* Outcome badge */}
           {note.outcome && (
             <span className={`
               text-xs px-2 py-0.5 rounded-full border capitalize
@@ -74,7 +70,6 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
           )}
         </div>
 
-        {/* Edit + delete */}
         <div className="flex items-center gap-2 shrink-0">
           <button
             onClick={() => onEdit(note)}
@@ -99,12 +94,10 @@ export default function NoteCard({ note, onEdit, onDelete }: NoteCardProps) {
         </div>
       </div>
 
-      {/* Content */}
       <p className="text-foreground text-sm leading-relaxed whitespace-pre-wrap">
         {note.content}
       </p>
 
-      {/* Experience log fields */}
       {note.type === 'experience_log' && (
         <div className="space-y-2 pt-1 border-t border-border">
           {note.whatWentWrong && (

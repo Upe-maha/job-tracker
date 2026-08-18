@@ -5,13 +5,8 @@ import Reveal from '../primitives/Reveal'
 import { GitHubMark, LinkedInMark } from '@/components/common/ProviderMarks'
 import { about } from '../content/copy'
 
-// Formula step 6. The copy in content/copy.ts is a marked PLACEHOLDER on
-// purpose: a plausible invented biography is worse than an obviously blank one,
-// because nobody notices it needs replacing. Both the paragraph and the
-// LinkedIn URL are the project owner's to write.
-//
-// Marks come from ProviderMarks rather than lucide, which dropped its brand set
-// — `import { Github } from 'lucide-react'` is a compile error, not a fallback.
+// Formula step 6. The copy is a marked PLACEHOLDER for the project owner. Brand
+// marks come from ProviderMarks — lucide has no GitHub icon, it is a build error.
 const MARKS: Record<string, ComponentType<{ className?: string }>> = {
   Github: GitHubMark,
   Linkedin: LinkedInMark,

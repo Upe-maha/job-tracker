@@ -75,18 +75,16 @@ const EMPTY_PROFILE: ProfileFormValues = {
 const inputClass = 'bg-background border-border text-foreground'
 const labelClass = 'text-muted-foreground text-xs'
 
-// The identity card mirrors the summary panel in the reference: portrait,
-// name, the one-line status beneath it, then a fact grid. Values track the
-// form live, so editing a field updates the summary as you type.
+// The identity card: portrait, name, one-line status, fact grid. Values track the form
+// live, so editing a field updates the summary as you type.
 const STATUS_BADGE: Record<string, string> = {
   actively_looking: 'bg-stage-offer text-stage-offer-fg border-stage-offer-fg/20',
   open: 'bg-stage-interview text-stage-interview-fg border-stage-interview-fg/20',
   not_looking: 'bg-muted text-muted-foreground border-border',
 }
 
-// A Fact whose value is a link when there is one to follow. Same shape and
-// spacing as Fact so the Contact panel's rows stay aligned whether or not a
-// field is filled in.
+// A Fact whose value is a link when there is one. Same shape and spacing as Fact, so
+// the Contact panel's rows stay aligned whether or not a field is filled in.
 function ProfileLink({
   label,
   href,
@@ -133,9 +131,8 @@ export default function ProfilePage() {
     defaultValues: EMPTY_PROFILE,
   })
 
-  // Hydrate from the server once loaded. reset() during render is RHF's
-  // supported way to do this; the previous useEffect+setState version is what
-  // the set-state-in-effect lint error pointed at.
+  // Hydrate from the server once loaded. reset() during render is RHF's supported way;
+  // the previous useEffect+setState version is what the lint rule pointed at.
   const loadedId = profile?._id ?? null
   const [hydratedId, setHydratedId] = useState<string | null>(null)
   if (profile && loadedId !== hydratedId) {
@@ -154,11 +151,9 @@ export default function ProfilePage() {
     setPhoto(profile.photo ?? '')
   }
 
-  // Step E. Connecting a provider leaves the app entirely, so its outcome comes
-  // back as a query param rather than a mutation result — a failure is a string
-  // returned from the signIn callback, which @auth/core treats as a redirect.
-  // Reported once per param, using the same render-time guard the hydration
-  // above uses rather than an effect.
+  // Step E. Connecting a provider leaves the app, so its outcome returns as a query
+  // param rather than a mutation result. Reported once per param, using the same
+  // render-time guard as the hydration above.
   const linked = searchParams.get('linked')
   const linkError = searchParams.get('error')
   const linkOutcome = linkError ?? linked
@@ -206,7 +201,6 @@ export default function ProfilePage() {
         <form onSubmit={form.handleSubmit(handleSave)}>
           <PageGrid>
 
-            {/* ── Identity ───────────────────────────────────────────── */}
             {/* Sticky so the summary stays in view while the longer edit
                 column scrolls past it. */}
             <aside className="md:col-span-4">
@@ -284,7 +278,6 @@ export default function ProfilePage() {
               </div>
             </aside>
 
-            {/* ── Edit ───────────────────────────────────────────────── */}
             <div className="md:col-span-8 space-y-6">
 
               <Panel title="Personal Information" icon={User}>

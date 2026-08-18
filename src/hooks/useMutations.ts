@@ -15,11 +15,9 @@ import type { PrepFileCreateInput } from '@/shared/schemas/prep-file'
 import type { ProfileUpdateInput } from '@/shared/schemas/user'
 import type { ApplicationStatus, IApplication, INote, OAuthProvider } from '@/types'
 
-// Anything that writes goes through here. Two things this buys that the 13
-// hand-rolled fetch calls did not: a failure is always surfaced (several call
-// sites ignored res.ok outright), and the set of keys a write invalidates is
-// stated once instead of being guessed at each call site — which is how
-// ['dashboard'] and ['notes'] ended up never being invalidated by anything.
+// Every write goes through here, so a failure is always surfaced and the keys a write
+// invalidates are stated once — which is how ['dashboard'] and ['notes'] used to be
+// invalidated by nothing at all.
 
 export function useInvalidators() {
   const qc = useQueryClient()
@@ -77,10 +75,8 @@ export function useDeleteApplication() {
   const invalidate = useInvalidators()
   return useMutation({
     mutationFn: (id: string) => apiSend('DELETE', `/api/applications/${id}`),
-    // The detail query has to be dropped, not just invalidated. Deleting from
-    // the detail page leaves useApplication(id) mounted, so invalidating
-    // ['applications'] refetches it, gets the 404, and flashes ErrorState's
-    // "We couldn't find that" before router.push lands.
+    // Dropped, not invalidated: invalidating leaves useApplication(id) mounted on the
+    // detail page, which refetches, 404s and flashes ErrorState before the push lands.
     onSuccess: (_data, id) => {
       qc.removeQueries({ queryKey: qk.applications.detail(id) })
       invalidate.applications()
@@ -217,10 +213,8 @@ export function useUpdateProfile() {
   })
 }
 
-// Step E. Two halves of connecting a provider, split because only the first is
-// an API call: this records intent (an account_link token in an httpOnly
-// cookie) and the caller then hands off to next-auth's signIn for the redirect.
-// No invalidation — the page is about to leave.
+// Step E. Records intent (an account_link token in an httpOnly cookie); the caller
+// then hands off to next-auth's signIn. No invalidation — the page is leaving.
 export function useStartLinkAccount() {
   return useMutation({
     mutationFn: () => apiSend<{ ok: true }>('POST', '/api/user/link-account', {}),
@@ -258,14 +252,12 @@ export function useResendVerification() {
   return useMutation({
     mutationFn: () => apiSend<{ message: string }>('POST', '/api/auth/resend-verification', {}),
     // No toast either way: the banner renders both outcomes inline and stays on
-    // screen, which is the whole point — a toast disappears, and a banner that
-    // looks unchanged afterwards is what got clicked four times.
+    // screen. A toast disappears, which is what got it clicked four times.
   })
 }
 
-// Used by the two pages that redeem a link. The token is the whole credential,
-// so these are plain mutations with no invalidation of their own — except
-// verify-email, whose caller invalidates ['profile'] to clear the banner.
+// Used by the two pages that redeem a link. The token is the whole credential, so
+// no invalidation — except verify-email, whose caller clears the banner.
 export function useVerifyEmail() {
   const invalidate = useInvalidators()
   return useMutation({

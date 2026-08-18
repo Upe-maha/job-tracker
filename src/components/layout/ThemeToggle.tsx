@@ -5,14 +5,8 @@ import { Moon, Sun } from 'lucide-react'
 import { useTheme } from '@/client/theme'
 import { Button } from '@/components/ui/button'
 
-// The icon shows the theme you are *in*, not the one you would switch to: a
-// moon while dark, a sun while light. Both conventions exist and neither is
-// wrong, but the state reading is the one people expect from a moon — and dark
-// being the default meant the app opened on a sun, which read as "you are in
-// light mode" to anyone using that convention.
-//
-// aria-label still describes the action, because that is what a button does
-// when you press it.
+// The icon shows the theme you are *in* — moon while dark, sun while light — so
+// dark-by-default no longer opens on a sun. aria-label describes the action.
 export default function ThemeToggle() {
   const { isDark, toggleTheme } = useTheme()
 

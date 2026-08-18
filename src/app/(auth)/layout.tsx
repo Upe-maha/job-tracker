@@ -2,14 +2,9 @@ import Link from 'next/link'
 import { ArrowLeft } from 'lucide-react'
 import { BRAND } from '@/components/landing/content/copy'
 
-// The way back out. Someone who followed "Sign in" from the landing page and
-// then decided to keep reading had no route back except the browser's Back
-// button — every auth page was a dead end.
-//
-// It lives in the layout rather than in login and register individually: the
-// same escape hatch is wanted on forgot-password and on the two token pages,
-// and six copies of one link is how they drift. The card stays vertically
-// centred because the link is a flex item in the same column, not an overlay.
+// The way back out: every auth page was a dead end for someone who followed "Sign in"
+// and then wanted to keep reading. In the layout rather than per page, because six
+// copies of one link is how they drift.
 export default function AuthLayout({
   children,
 }: {

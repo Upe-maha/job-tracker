@@ -8,16 +8,10 @@ import { MAX_UPLOAD_BYTES } from '@/shared/schemas/common'
 import { Button } from '@/components/ui/button'
 import type { INoteAttachment } from '@/types'
 
-// The note's optional PDF. Controlled by the form rather than owning its own
-// value, because the attachment is saved with the note through the existing
-// POST/PUT — there is no separate write path for it.
-//
-// Upload and persist are different events here, deliberately: the file reaches
-// Cloudinary as soon as it is picked, but the note only gains it on submit.
-// That is what keeps Cancel meaning "nothing changed". The abandoned asset it
-// can leave behind is R4's to collect — see md/step-f-notes-pdf.md; do not add
-// cleanup here, since only one of the three orphan paths could be handled from
-// this component and partial cleanup is worse than none.
+// The note's optional PDF, controlled by the form: it is saved with the note through
+// the existing POST/PUT, so there is no separate write path. Upload and persist are
+// deliberately different events, which is what keeps Cancel meaning "nothing changed";
+// the abandoned asset is R4's to collect — do not add partial cleanup here.
 export default function NoteAttachmentField({
   value,
   onChange,
@@ -42,9 +36,8 @@ export default function NoteAttachmentField({
       return
     }
 
-    // Matches the server's cap so an oversized file fails before the round
-    // trip. The route sniffs the magic bytes regardless — this is a courtesy,
-    // not a control.
+    // Matches the server's cap so an oversized file fails before the round trip. The
+    // route sniffs magic bytes regardless — this is a courtesy, not a control.
     if (file.size > MAX_UPLOAD_BYTES) {
       setError('File too large. Max 5MB.')
       return

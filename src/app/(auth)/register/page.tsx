@@ -35,9 +35,8 @@ export default function RegisterPage() {
   const [submittedEmail, setSubmittedEmail] = useState('')
   const [oauthLoading, setOauthLoading] = useState<OAuthProvider | ''>('')
 
-  // The same schema the route validates with, so the 6-character minimum the
-  // placeholder promises is now enforced before the network call rather than
-  // only server-side.
+  // The same schema the route validates with, so the 6-character minimum is enforced
+  // before the network call rather than only server-side.
   const form = useForm<RegisterFormValues>({
     resolver: standardSchemaResolver(registerFormSchema),
     defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
@@ -55,11 +54,9 @@ export default function RegisterPage() {
     try {
       const { confirmPassword: _confirmPassword, ...payload } = values
       await apiSend('POST', '/api/auth/register', payload)
-      // Step C: the route answers identically whether or not the address was
-      // already taken, so there is no longer a 409 to put on the email field
-      // and nothing here may hint at which happened. Staying on this page with
-      // a "check your inbox" panel is the only honest outcome — redirecting to
-      // /login?registered=true would assert an account was created.
+      // Step C: the route answers identically whether or not the address was taken, so
+      // nothing here may hint at which happened. Redirecting to /login?registered=true
+      // would assert an account was created.
       setSubmittedEmail(values.email)
     } catch (error) {
       form.setError('root', {
@@ -102,7 +99,6 @@ export default function RegisterPage() {
       </CardHeader>
 
       <CardContent>
-        {/* OAuth providers */}
         <div className="space-y-2">
           <Button
             type="button"
@@ -125,7 +121,6 @@ export default function RegisterPage() {
           </Button>
         </div>
 
-        {/* Divider */}
         <div className="flex items-center gap-3 my-4">
           <span className="h-px flex-1 bg-input" />
           <span className="text-muted-foreground text-xs">or</span>

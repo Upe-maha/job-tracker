@@ -5,17 +5,8 @@ import type { ReactNode } from 'react'
 import { useReveal } from '@/hooks/useReveal'
 import { cn } from '@/shared/utils'
 
-// Declarative wrapper over useReveal, so a section describes what should
-// reveal instead of wiring an observer itself.
-//
-// Always a <div>. A polymorphic `as` prop was tried and removed: with a union
-// of tags the ref type collapses to the intersection of every element type,
-// which no single ref can satisfy — and nothing here needs to reveal anything
-// but a block.
-//
-// `delay` staggers siblings, inline rather than as a class because the values
-// are per-item and arbitrary; a utility per delay would be a dozen classes
-// each holding one number.
+// Declarative wrapper over useReveal. Always a <div> — a polymorphic `as` prop
+// collapses the ref type to an intersection no single ref can satisfy.
 export default function Reveal({
   children,
   delay = 0,
@@ -31,9 +22,8 @@ export default function Reveal({
   return (
     <div
       ref={ref}
-      // .reveal carries the hidden state and the transition; under
-      // prefers-reduced-motion it resolves to the visible state outright, so
-      // nothing here can strand content invisible.
+      // .reveal holds the hidden state; prefers-reduced-motion resolves it to
+      // visible outright, so nothing here can strand content invisible.
       className={cn('reveal', isVisible && 'reveal-visible', className)}
       style={delay ? { transitionDelay: `${delay}ms` } : undefined}
     >

@@ -10,15 +10,10 @@ import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog'
 import PdfPreview from '@/components/common/PdfPreview'
 import { Button } from '@/components/ui/button'
 
-// Unlike the avatar, this persists the moment the upload returns rather than
-// waiting for "Save Profile". The card sits outside the form and carries its
-// own actions, so a CV that visibly uploaded and then silently wasn't saved is
-// the obvious trap — and there is no field on screen for the user to notice is
-// still unsaved.
-//
-// The resulting ['profile'] invalidation is safe next to the form: the page
-// hydrates on `loadedId !== hydratedId`, so a refetch of the same user does not
-// reset() over edits in progress beside it.
+// Unlike the avatar, this persists as soon as the upload returns: the card sits outside
+// the form with its own actions, and there is no field on screen to notice is unsaved.
+// The ['profile'] invalidation is safe beside the form, which hydrates on
+// `loadedId !== hydratedId` and so does not reset() over edits in progress.
 
 export default function ResumeCard({ resume }: { resume: string }) {
   const upload = useUpload()
@@ -41,9 +36,8 @@ export default function ResumeCard({ resume }: { resume: string }) {
       return
     }
 
-    // Matches the server's cap, so an oversized file fails here instead of
-    // after a full round trip. The route sniffs the bytes regardless — the
-    // type check above is a courtesy, not a control.
+    // Matches the server's cap so an oversized file fails before the round trip. The
+    // route sniffs the bytes regardless — the type check above is a courtesy.
     if (file.size > MAX_UPLOAD_BYTES) {
       setError('File too large. Max 5MB.')
       return

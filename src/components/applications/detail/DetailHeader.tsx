@@ -45,11 +45,9 @@ export default function DetailHeader({
   return (
     <div className="bg-card border border-border rounded-xl p-6">
 
-      {/* Top row — logo + info + link */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
 
         <div className="flex items-center gap-4">
-          {/* Company logo or initial */}
           <div className="
             w-14 h-14 rounded-xl bg-muted
             flex items-center justify-center shrink-0
@@ -69,7 +67,6 @@ export default function DetailHeader({
             )}
           </div>
 
-          {/* Company name + role + badges */}
           <div>
             <h1 className="text-foreground font-bold text-xl">
               {application.company}
@@ -105,7 +102,6 @@ export default function DetailHeader({
           </div>
         </div>
 
-        {/* Actions */}
         <div className="flex items-center gap-2">
           {application.jobUrl && (
             <a
@@ -146,7 +142,6 @@ export default function DetailHeader({
         </div>
       </div>
 
-      {/* Bottom row — details */}
       <div className="
         flex flex-wrap gap-x-6 gap-y-2
         mt-5 pt-5 border-t border-border
