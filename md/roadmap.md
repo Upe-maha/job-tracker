@@ -140,3 +140,14 @@ performance) has also landed:
         handled *together* there rather than one path at a time.
 - R5 — Vitest suite (schemas, security helpers, parseBody/parseQuery, OAuth email
         verification): complete. GitHub Actions CI: not started.
+
+## Follow-ups
+
+- **Make `scripts/responsive-check.mjs` runnable again.** Responsive browser verification was
+        not rerun during the 2026-08-18 restructure because Playwright is not installed and the
+        check requires an authenticated session cookie. Production build succeeded; browser-level
+        layout assertions remain unverified since Step H.
+        Needs: Playwright (a global copy via `PLAYWRIGHT_PATH`, or `npm i -D playwright`) and a
+        session cookie in `RESPONSIVE_CHECK_TOKEN`, taken by hand from a logged-in browser.
+        Deliberately its own task — adding a browser driver and session plumbing is new
+        infrastructure, and no goal of the restructure required it.

@@ -26,6 +26,8 @@ build` against the one you are checking — the rebuilt `.next` leaves the runni
 unstyled pages and every control fails), a session cookie in `RESPONSIVE_CHECK_TOKEN`, and Playwright
 resolved at runtime (`PLAYWRIGHT_PATH` for a global/npx copy, `CHROMIUM_PATH` for a system browser —
 Playwright is deliberately not a dependency). See the note at the top of the script.
+**It has not been run since Step H** — neither prerequisite is currently available, so any
+layout change since then is unverified at the browser level. See `md/roadmap.md` follow-ups.
 
 Tests live in `tests/`, not beside their subject, and the directory states how a file runs:
 `tests/unit/` (13 files, in-process) and `tests/integration/` (7 files, each booting a real `mongod`).
