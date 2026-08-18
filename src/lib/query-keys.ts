@@ -4,7 +4,7 @@
 // how ['dashboard'] and ['notes', filter] ended up with no invalidator at all
 // and how ['application', id] failed to match a prefix invalidation of
 // ['applications'].
-import type { NoteFilterKey } from '@/lib/display'
+import type { NoteFilterKey } from '@/shared/display'
 
 export const qk = {
   applications: {

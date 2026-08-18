@@ -4,7 +4,7 @@
 import NoteCard from '@/components/notes/NoteCard'
 import NotesTabShell from './NotesTabShell'
 import { INote } from '@/types'
-import type { NoteCreatePayload } from '@/lib/schemas/note'
+import type { NoteCreatePayload } from '@/shared/schemas/note'
 
 interface ExperienceTabProps {
   notes: INote[]

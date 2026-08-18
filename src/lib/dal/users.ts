@@ -1,8 +1,8 @@
 // src/lib/dal/users.ts
 import type mongoose from 'mongoose'
 import User from '@/models/User'
-import { isAllowedImageUrl } from '@/lib/security/sanitize'
-import type { OAuthProvider } from '@/lib/schemas/enums'
+import { isAllowedImageUrl } from '@/shared/security/sanitize'
+import type { OAuthProvider } from '@/shared/schemas/enums'
 
 // Kept free of next-auth imports on purpose: this is the security-critical
 // half of Step B, and it must be callable from a test without booting NextAuth.

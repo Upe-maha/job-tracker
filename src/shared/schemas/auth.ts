@@ -1,4 +1,4 @@
-// src/lib/schemas/auth.ts
+// src/shared/schemas/auth.ts
 import { z } from 'zod'
 import { email, password, text } from './common'
 

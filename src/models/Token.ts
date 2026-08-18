@@ -1,5 +1,5 @@
 import mongoose from 'mongoose'
-import { TOKEN_TYPES } from '@/lib/schemas/enums'
+import { TOKEN_TYPES } from '@/shared/schemas/enums'
 
 // Step C. A separate collection rather than an array on User: these expire, and
 // wanting a TTL index is the same reason RateLimit has its own collection.

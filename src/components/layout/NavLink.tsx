@@ -3,7 +3,7 @@
 
 import Link, { useLinkStatus } from 'next/link'
 import { Loader2, type LucideIcon } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 
 // useLinkStatus reports the pending state of *this* link's navigation, from

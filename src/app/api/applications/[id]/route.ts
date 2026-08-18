@@ -5,7 +5,7 @@ import Application from '@/models/Application'
 import { guard } from '@/lib/api/guard'
 import { parseBody, toObjectId } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
-import { applicationUpdateSchema } from '@/lib/schemas/application'
+import { applicationUpdateSchema } from '@/shared/schemas/application'
 
 // GET — fetch single application
 export async function GET(

@@ -5,7 +5,7 @@ import Application from '@/models/Application'
 import { guard } from '@/lib/api/guard'
 import { parseBody, toObjectId } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
-import { applicationStatusSchema } from '@/lib/schemas/application'
+import { applicationStatusSchema } from '@/shared/schemas/application'
 
 export async function PATCH(
   req: Request,

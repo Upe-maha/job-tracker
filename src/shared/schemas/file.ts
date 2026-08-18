@@ -1,4 +1,4 @@
-// src/lib/schemas/file.ts
+// src/shared/schemas/file.ts
 import { z } from 'zod'
 import { isCloudinaryUrl } from './common'
 

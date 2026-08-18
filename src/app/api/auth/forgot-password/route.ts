@@ -8,7 +8,7 @@ import { serverError } from '@/lib/api/respond'
 import { issueToken } from '@/lib/dal/tokens'
 import { sendMailSafe } from '@/lib/email/mailer'
 import { passwordReset } from '@/lib/email/templates'
-import { forgotPasswordSchema, PASSWORD_RESET_TTL_MS } from '@/lib/schemas/auth'
+import { forgotPasswordSchema, PASSWORD_RESET_TTL_MS } from '@/shared/schemas/auth'
 
 // The same answer whether or not the address has an account — anything else is
 // an account-enumeration oracle, and this endpoint is unauthenticated.

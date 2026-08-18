@@ -4,7 +4,7 @@ import { connectDB } from '@/lib/db'
 import { guard } from '@/lib/api/guard'
 import { fail, serverError } from '@/lib/api/respond'
 import { unlinkProviderFromUser } from '@/lib/dal/users'
-import { OAUTH_PROVIDERS, type OAuthProvider } from '@/lib/schemas/enums'
+import { OAUTH_PROVIDERS, type OAuthProvider } from '@/shared/schemas/enums'
 
 // Step E. Disconnects a linked provider.
 //

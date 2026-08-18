@@ -7,7 +7,7 @@ import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { consumeToken } from '@/lib/dal/tokens'
 import { restampSession } from '@/lib/security/sessionCookie'
-import { verifyTokenSchema } from '@/lib/schemas/auth'
+import { verifyTokenSchema } from '@/shared/schemas/auth'
 
 // The second half of the confirm-first password change. PUT /api/user/password
 // only stored the new hash on the token; this is where it lands on the user.

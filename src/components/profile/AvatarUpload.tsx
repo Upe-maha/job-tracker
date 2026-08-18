@@ -3,7 +3,7 @@
 
 import { useState, useRef } from 'react'
 import { useUpload } from '@/hooks/useMutations'
-import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
+import { MAX_UPLOAD_BYTES } from '@/shared/schemas/common'
 import { Camera, Loader2 } from 'lucide-react'
 
 interface AvatarUploadProps {

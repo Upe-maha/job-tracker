@@ -6,7 +6,7 @@ import { guard } from '@/lib/api/guard'
 import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { consumeToken } from '@/lib/dal/tokens'
-import { verifyTokenSchema } from '@/lib/schemas/auth'
+import { verifyTokenSchema } from '@/shared/schemas/auth'
 
 // Public: the link is clicked from an email client, which carries no session.
 // The token is the credential.

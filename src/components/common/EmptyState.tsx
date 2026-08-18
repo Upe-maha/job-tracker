@@ -1,7 +1,7 @@
 // src/components/common/EmptyState.tsx
 'use client'
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // Was defined three times byte-identically, in NotesTab, InterviewTab and
 // ExperienceTab. Not in components/ui/ — that directory is vendored shadcn.

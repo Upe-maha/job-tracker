@@ -1,5 +1,5 @@
 // src/components/landing/primitives/AuroraBackdrop.tsx
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // What the glass panel refracts. The reference achieves its mood with
 // full-bleed photography; this is the same job done with gradients, which is

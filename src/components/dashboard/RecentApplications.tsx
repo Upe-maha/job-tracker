@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { format } from 'date-fns'
 import { ArrowRight } from 'lucide-react'
 
-import { APPLICATION_STATUS_META } from '@/lib/display'
+import { APPLICATION_STATUS_META } from '@/shared/display'
 import type { IApplicationCard } from '@/types'
 
 // Matches the projection /api/dashboard returns for this widget — the shared

@@ -12,7 +12,7 @@ import bcrypt from 'bcryptjs'
 import { connectDB } from './db'
 import User from '@/models/User'
 import { checkRateLimit, clearRateLimit, getClientIP } from '@/lib/security/rateLimiter'
-import { LINK_ERROR, LOGIN_ERROR } from '@/lib/security/loginErrors'
+import { LINK_ERROR, LOGIN_ERROR } from '@/shared/security/loginErrors'
 import {
   fetchSessionUser,
   linkProviderToUser,
@@ -25,8 +25,8 @@ import {
   DEFAULT_IDLE_MS,
   REMEMBERED_IDLE_MS,
   sessionVerdict,
-} from '@/lib/security/sessionPolicy'
-import type { OAuthProvider } from '@/lib/schemas/enums'
+} from '@/shared/security/sessionPolicy'
+import type { OAuthProvider } from '@/shared/schemas/enums'
 
 const MAX_FAILED_ATTEMPTS = 5
 const LOCK_MS = 15 * 60 * 1000 // 15 minutes

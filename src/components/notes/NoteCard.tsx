@@ -11,7 +11,7 @@ import {
   INTERVIEW_ROUND_LABELS,
   NOTE_OUTCOME_BADGES,
   NOTE_TYPE_META,
-} from '@/lib/display'
+} from '@/shared/display'
 
 interface NoteCardProps {
   note: INote

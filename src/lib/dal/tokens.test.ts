@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('@/lib/db', () => ({ connectDB: vi.fn() }))
 
 import { generateToken, hashToken } from './tokens'
-import { verifyTokenSchema } from '@/lib/schemas/auth'
+import { verifyTokenSchema } from '@/shared/schemas/auth'
 
 describe('generateToken', () => {
   // 32 bytes as base64url is 43 characters with no padding, which is exactly

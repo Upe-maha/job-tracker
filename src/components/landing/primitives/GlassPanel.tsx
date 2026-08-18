@@ -1,6 +1,6 @@
 // src/components/landing/primitives/GlassPanel.tsx
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // The reference's frosted floating frame, defined once. The visual weight is
 // in the .glass-panel utility (globals.css) because backdrop-filter needs a

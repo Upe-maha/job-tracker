@@ -10,7 +10,7 @@
 // Server-only, like csrf.ts and rateLimiter.ts next door.
 import { encode, getToken } from 'next-auth/jwt'
 import type { NextResponse } from 'next/server'
-import { REMEMBERED_IDLE_MS } from './sessionPolicy'
+import { REMEMBERED_IDLE_MS } from '@/shared/security/sessionPolicy'
 
 // @auth/core derives the cookie name from whether secure cookies are in use,
 // and — importantly — uses that same name as the encryption **salt**

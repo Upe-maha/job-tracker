@@ -1,6 +1,6 @@
 
 import mongoose from 'mongoose'
-import { JOB_SEARCH_STATUSES, OAUTH_PROVIDERS } from '@/lib/schemas/enums'
+import { JOB_SEARCH_STATUSES, OAUTH_PROVIDERS } from '@/shared/schemas/enums'
 
 // One entry per linked OAuth provider. Embedded rather than a separate
 // collection, matching how notes/contacts/prepFiles hang off Application —

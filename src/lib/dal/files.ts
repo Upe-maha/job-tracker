@@ -2,7 +2,7 @@
 import type mongoose from 'mongoose'
 import User from '@/models/User'
 import Application from '@/models/Application'
-import { displayPdfName } from '@/lib/files'
+import { displayPdfName } from '@/shared/files'
 
 // Which stored file a user is allowed to read, and what to call it.
 //

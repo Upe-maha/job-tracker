@@ -1,4 +1,4 @@
-// src/lib/schemas/note.ts
+// src/shared/schemas/note.ts
 import { z } from 'zod'
 import { INTERVIEW_ROUNDS, NOTE_OUTCOMES, NOTE_TYPES } from './enums'
 import { isCloudinaryUrl, objectId, text } from './common'

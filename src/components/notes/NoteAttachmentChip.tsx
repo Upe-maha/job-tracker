@@ -3,7 +3,7 @@
 
 import { Paperclip } from 'lucide-react'
 import PdfPreview from '@/components/common/PdfPreview'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 import type { INoteAttachment } from '@/types'
 
 // The one way an attachment is offered for reading: on the note card and on

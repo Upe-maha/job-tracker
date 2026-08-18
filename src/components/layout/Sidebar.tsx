@@ -3,7 +3,7 @@
 
 import { usePathname } from 'next/navigation'
 import { NAV_ROUTES, isActiveRoute } from '@/lib/navigation'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import NavLink from './NavLink'
 import {

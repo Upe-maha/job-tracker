@@ -5,7 +5,7 @@ import { guard } from '@/lib/api/guard'
 import { parseBody, toObjectId } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { pullSubdocument, pushSubdocument } from '@/lib/dal/applications'
-import { contactCreateSchema, contactDeleteSchema } from '@/lib/schemas/contact'
+import { contactCreateSchema, contactDeleteSchema } from '@/shared/schemas/contact'
 import type { IContact } from '@/types'
 
 // POST — add a contact to the application

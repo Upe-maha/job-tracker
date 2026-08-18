@@ -2,7 +2,7 @@
 'use client'
 
 import type { ComponentType, ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // The card shape used across the dashboard: a titled bar divided from the body
 // by a rule, with room for actions on the right. Pages previously hand-rolled

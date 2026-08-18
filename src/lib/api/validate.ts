@@ -2,7 +2,7 @@
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
 import type { ZodType } from 'zod'
-import { sanitizeInput } from '@/lib/security/sanitize'
+import { sanitizeInput } from '@/shared/security/sanitize'
 import { fail } from './respond'
 
 const MAX_BODY_BYTES = 100 * 1024 // 100 KB

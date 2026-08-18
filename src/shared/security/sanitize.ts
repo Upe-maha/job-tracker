@@ -1,4 +1,4 @@
-// src/lib/security/sanitize.ts
+// src/shared/security/sanitize.ts
 
 const BLOCKED_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
 
@@ -82,7 +82,7 @@ export function isAllowedImageUrl(value: unknown): boolean {
   }
 }
 
-// Exported so the Zod password field in @/lib/schemas/common builds the same
+// Exported so the Zod password field in @/shared/schemas/common builds the same
 // bounds from one place instead of re-hardcoding 6 and 128.
 export const PASSWORD_MIN_LENGTH = 6
 export const PASSWORD_MAX_LENGTH = 128

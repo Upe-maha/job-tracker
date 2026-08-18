@@ -4,7 +4,7 @@
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { IApplication } from '@/types'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 import ApplicationCard from './ApplicationCard'
 import { Grip } from 'lucide-react'
 

@@ -7,7 +7,7 @@ import { guard } from '@/lib/api/guard'
 import { parseBody } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { consumeToken } from '@/lib/dal/tokens'
-import { resetPasswordSchema } from '@/lib/schemas/auth'
+import { resetPasswordSchema } from '@/shared/schemas/auth'
 
 export async function POST(req: Request) {
   const g = await guard(req, { auth: false, rateLimit: 'token' })

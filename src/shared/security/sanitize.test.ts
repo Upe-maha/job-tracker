@@ -1,4 +1,4 @@
-// src/lib/security/sanitize.test.ts
+// src/shared/security/sanitize.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   isAllowedImageUrl,

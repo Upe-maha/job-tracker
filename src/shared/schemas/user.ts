@@ -1,4 +1,4 @@
-// src/lib/schemas/user.ts
+// src/shared/schemas/user.ts
 import { z } from 'zod'
 import { JOB_SEARCH_STATUSES } from './enums'
 import {

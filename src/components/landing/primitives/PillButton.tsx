@@ -1,7 +1,7 @@
 // src/components/landing/primitives/PillButton.tsx
 import Link from 'next/link'
 import type { ComponentType, ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // The reference's pill control, in the three weights the page actually uses.
 //

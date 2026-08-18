@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/form'
 import { useResetPassword } from '@/hooks/useMutations'
 import { ApiError } from '@/lib/api-client'
-import { resetPasswordSchema, type ResetPasswordFormValues } from '@/lib/schemas/auth'
+import { resetPasswordSchema, type ResetPasswordFormValues } from '@/shared/schemas/auth'
 
 function ResetPassword() {
   const searchParams = useSearchParams()

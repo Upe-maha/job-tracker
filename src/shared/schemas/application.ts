@@ -1,4 +1,4 @@
-// src/lib/schemas/application.ts
+// src/shared/schemas/application.ts
 import { z } from 'zod'
 import { APPLICATION_STATUSES, JOB_TYPES, WORK_MODES } from './enums'
 import {

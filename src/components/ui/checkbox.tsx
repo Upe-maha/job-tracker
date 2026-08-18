@@ -4,7 +4,7 @@ import * as React from "react"
 import { Checkbox as CheckboxPrimitive } from "radix-ui"
 import { CheckIcon } from "lucide-react"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/utils"
 
 // Hand-written against the unified `radix-ui` package rather than generated:
 // the shadcn generator emits `@radix-ui/react-checkbox`, which is not a

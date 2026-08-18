@@ -18,7 +18,7 @@ import {
 import { SortableContext, verticalListSortingStrategy, arrayMove, sortableKeyboardCoordinates } from '@dnd-kit/sortable'
 
 import { IApplication, ApplicationStatus } from '@/types'
-import { APPLICATION_STATUS_OPTIONS } from '@/lib/display'
+import { APPLICATION_STATUS_OPTIONS } from '@/shared/display'
 import ApplicationCard from './ApplicationCard'
 import DraggableCard from './DraggableCard'
 import { useUpdateApplicationStatus } from '@/hooks/useMutations'

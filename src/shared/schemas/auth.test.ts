@@ -1,4 +1,4 @@
-// src/lib/schemas/auth.test.ts
+// src/shared/schemas/auth.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   forgotPasswordSchema,

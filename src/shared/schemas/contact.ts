@@ -1,4 +1,4 @@
-// src/lib/schemas/contact.ts
+// src/shared/schemas/contact.ts
 import { z } from 'zod'
 import { email, objectId, text } from './common'
 

@@ -6,7 +6,7 @@ import {
   EMAIL_VERIFY_TTL_MS,
   PASSWORD_CHANGE_TTL_MS,
   PASSWORD_RESET_TTL_MS,
-} from '@/lib/schemas/auth'
+} from '@/shared/schemas/auth'
 
 // Reuses the origin csrf.ts already trusts rather than introducing a second
 // source of truth for "where does this app live".

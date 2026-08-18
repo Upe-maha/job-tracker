@@ -15,8 +15,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { contactFormSchema, type ContactFormValues } from '@/lib/schemas/contact'
-import type { ContactCreatePayload } from '@/lib/schemas/contact'
+import { contactFormSchema, type ContactFormValues } from '@/shared/schemas/contact'
+import type { ContactCreatePayload } from '@/shared/schemas/contact'
 import { IContact } from '@/types'
 
 interface ContactsTabProps {

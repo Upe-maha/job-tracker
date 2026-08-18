@@ -1,8 +1,8 @@
-// src/lib/display/notes.ts
+// src/shared/display/notes.ts
 import { BookOpen, Brain, FileText, MessageSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { NOTE_TYPES } from '@/lib/schemas/enums'
-import type { InterviewRound, NoteOutcome, NoteType } from '@/lib/schemas/enums'
+import { NOTE_TYPES } from '@/shared/schemas/enums'
+import type { InterviewRound, NoteOutcome, NoteType } from '@/shared/schemas/enums'
 
 interface NoteTypeMeta {
   /** Full name — note cards, page headings. */

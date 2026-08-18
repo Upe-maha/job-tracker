@@ -1,4 +1,4 @@
-// src/lib/security/sessionPolicy.ts
+// src/shared/security/sessionPolicy.ts
 //
 // Every decision about whether a session is still alive, as one pure function.
 //

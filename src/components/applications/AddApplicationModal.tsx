@@ -11,7 +11,7 @@ import ApplicationForm from './ApplicationForm'
 import type {
   ApplicationFormOutput,
   ApplicationFormValues,
-} from '@/lib/schemas/application'
+} from '@/shared/schemas/application'
 import { useCreateApplication } from '@/hooks/useMutations'
 
 interface AddApplicationModalProps {

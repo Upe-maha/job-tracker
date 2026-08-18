@@ -24,13 +24,13 @@ import {
   applicationFormSchema,
   type ApplicationFormOutput,
   type ApplicationFormValues,
-} from '@/lib/schemas/application'
+} from '@/shared/schemas/application'
 import {
   APPLICATION_STATUS_OPTIONS,
   CURRENCIES,
   JOB_TYPE_OPTIONS,
   WORK_MODE_OPTIONS,
-} from '@/lib/display'
+} from '@/shared/display'
 
 // The field list shared by the add and edit modals. No Dialog wrapper — the
 // callers own that, and they differ in title, submit label and which mutation

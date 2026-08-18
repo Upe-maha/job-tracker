@@ -1,4 +1,4 @@
-// src/lib/security/loginErrors.ts
+// src/shared/security/loginErrors.ts
 //
 // Shared between src/lib/auth.ts (server, sets these as CredentialsSignin
 // error codes) and the login page (client, reads them back via signIn()'s

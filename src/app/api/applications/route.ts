@@ -8,7 +8,7 @@ import { serverError } from '@/lib/api/respond'
 import {
   applicationCreateSchema,
   applicationListQuerySchema,
-} from '@/lib/schemas/application'
+} from '@/shared/schemas/application'
 
 // GET — fetch all applications (with optional status filtering)
 export async function GET(req: NextRequest) {

@@ -2,7 +2,7 @@
 'use client'
 
 import { useDashboard } from '@/hooks/useQueries'
-import { APPLICATION_STATUS_OPTIONS } from '@/lib/display'
+import { APPLICATION_STATUS_OPTIONS } from '@/shared/display'
 import PageShell, { PageGrid } from '@/components/common/PageShell'
 import ErrorState from '@/components/common/ErrorState'
 import { AnalyticsSkeleton } from '@/components/common/Skeletons'

@@ -2,14 +2,14 @@
 import crypto from 'node:crypto'
 import mongoose from 'mongoose'
 import Token from '@/models/Token'
-import type { TokenType } from '@/lib/schemas/enums'
+import type { TokenType } from '@/shared/schemas/enums'
 
 // Kept free of next-auth and next/server imports, like the rest of the DAL —
 // that is what lets the integration test drive these against a real mongod
 // without booting NextAuth or building a Response.
 
 // 32 bytes of CSPRNG output. base64url so it survives a query string untouched;
-// the fixed 43-char length is what src/lib/schemas/auth.ts validates against.
+// the fixed 43-char length is what src/shared/schemas/auth.ts validates against.
 export function generateToken(): string {
   return crypto.randomBytes(32).toString('base64url')
 }

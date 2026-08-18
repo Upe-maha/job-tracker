@@ -4,7 +4,7 @@
 // so a copy edit never means reading JSX, and a layout change never means
 // stepping around prose.
 //
-// Deliberately NOT in @/lib/display: that directory holds Record<SomeEnum, Meta>
+// Deliberately NOT in @/shared/display: that directory holds Record<SomeEnum, Meta>
 // tables keyed off schemas/enums, where the compiler enforces that every enum
 // member has metadata. Free-form marketing copy has no enum behind it and would
 // blur what that directory is for.
@@ -174,7 +174,7 @@ export const footer = {
       ],
     },
   ],
-  // The one place the stack is listed for visitors; @/lib/display is for enum
+  // The one place the stack is listed for visitors; @/shared/display is for enum
   // metadata, and CLAUDE.md's stack section is for contributors.
   stack: [
     'Next.js 15',

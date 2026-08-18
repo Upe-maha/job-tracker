@@ -1,4 +1,4 @@
-// src/lib/files.ts
+// src/shared/files.ts
 //
 // Derivations over an uploaded file's delivery URL. Isomorphic and dependency
 // free: the upload route persists nothing but the URL, so anything shown about

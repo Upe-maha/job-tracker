@@ -1,7 +1,7 @@
 // src/components/landing/sections/BoardPreview.tsx
-import { APPLICATION_STATUS_META } from '@/lib/display'
-import { APPLICATION_STATUSES } from '@/lib/schemas/enums'
-import { cn } from '@/lib/utils'
+import { APPLICATION_STATUS_META } from '@/shared/display'
+import { APPLICATION_STATUSES } from '@/shared/schemas/enums'
+import { cn } from '@/shared/utils'
 
 // A miniature of the real Kanban board, built from the same
 // APPLICATION_STATUS_META the board itself uses — so the preview and the

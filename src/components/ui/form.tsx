@@ -12,7 +12,7 @@ import {
   type FieldValues,
 } from "react-hook-form"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/utils"
 import { Label } from "@/components/ui/label"
 
 // Vendored shadcn Form. Written against the unified `radix-ui` package to

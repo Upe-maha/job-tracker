@@ -4,7 +4,7 @@ import type { ComponentType } from 'react'
 import Section from '../primitives/Section'
 import Reveal from '../primitives/Reveal'
 import { solution } from '../content/copy'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // Formula step 3, and the reference's alternating grid: each row is a wide card
 // and a narrow one, mirrored on the next row, so the eye zig-zags down the page.

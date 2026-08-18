@@ -3,10 +3,10 @@
 
 import NoteCard from '@/components/notes/NoteCard'
 import NotesTabShell from './NotesTabShell'
-import { INTERVIEW_ROUNDS } from '@/lib/schemas/enums'
-import { INTERVIEW_ROUND_LABELS } from '@/lib/display'
+import { INTERVIEW_ROUNDS } from '@/shared/schemas/enums'
+import { INTERVIEW_ROUND_LABELS } from '@/shared/display'
 import { INote } from '@/types'
-import type { NoteCreatePayload } from '@/lib/schemas/note'
+import type { NoteCreatePayload } from '@/shared/schemas/note'
 
 interface InterviewTabProps {
   notes: INote[]

@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react'
 import { useReveal } from '@/hooks/useReveal'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // Declarative wrapper over useReveal, so a section describes what should
 // reveal instead of wiring an observer itself.

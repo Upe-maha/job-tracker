@@ -1,13 +1,13 @@
-// src/lib/display/applications.ts
+// src/shared/display/applications.ts
 //
 // Presentation metadata for application enums. Isomorphic — same import rule
-// as @/lib/schemas: no mongoose, no next/server, no @/lib/api or @/lib/dal.
+// as @/shared/schemas: no mongoose, no next/server, no @/lib/api or @/lib/dal.
 //
 // Typed as Record<Enum, Meta> on purpose: adding a status to
-// @/lib/schemas/enums becomes a compile error here until its label and colours
+// @/shared/schemas/enums becomes a compile error here until its label and colours
 // exist, instead of silently rendering an unstyled column.
-import { APPLICATION_STATUSES, JOB_TYPES, WORK_MODES } from '@/lib/schemas/enums'
-import type { ApplicationStatus, JobType, WorkMode } from '@/lib/schemas/enums'
+import { APPLICATION_STATUSES, JOB_TYPES, WORK_MODES } from '@/shared/schemas/enums'
+import type { ApplicationStatus, JobType, WorkMode } from '@/shared/schemas/enums'
 
 interface StatusMeta {
   label: string

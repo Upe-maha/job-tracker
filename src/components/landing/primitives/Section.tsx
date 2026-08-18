@@ -1,6 +1,6 @@
 // src/components/landing/primitives/Section.tsx
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // The page's one grid rhythm, stated once so no section has to re-improvise it.
 //

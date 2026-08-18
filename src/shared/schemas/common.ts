@@ -1,7 +1,7 @@
-// src/lib/schemas/common.ts
+// src/shared/schemas/common.ts
 //
 // Reusable field builders shared by every domain schema. These wrap the
-// existing helpers in @/lib/security/sanitize rather than reimplementing them
+// existing helpers in @/shared/security/sanitize rather than reimplementing them
 // in Zod, so the protocol allowlist, the 2048-char URL cap and the password
 // bounds keep living in exactly one place.
 //
@@ -15,7 +15,7 @@ import {
   PASSWORD_MAX_LENGTH,
   PASSWORD_MESSAGES,
   PASSWORD_MIN_LENGTH,
-} from '@/lib/security/sanitize'
+} from '@/shared/security/sanitize'
 
 // A trimmed string with explicit bounds. Trim runs before the length checks, so
 // '   ' is empty rather than three characters and a value is never rejected for

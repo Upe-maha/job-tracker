@@ -1,4 +1,4 @@
-// src/lib/security/sessionPolicy.test.ts
+// src/shared/security/sessionPolicy.test.ts
 //
 // The security boundary for Step I, and the one part of it a Node-only suite
 // can reach: every decision about whether a session is still alive lives in

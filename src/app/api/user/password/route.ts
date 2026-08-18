@@ -9,8 +9,8 @@ import { fail, serverError } from '@/lib/api/respond'
 import { issueToken } from '@/lib/dal/tokens'
 import { sendMail } from '@/lib/email/mailer'
 import { passwordChangeConfirm } from '@/lib/email/templates'
-import { PASSWORD_CHANGE_TTL_MS } from '@/lib/schemas/auth'
-import { passwordChangeSchema } from '@/lib/schemas/user'
+import { PASSWORD_CHANGE_TTL_MS } from '@/shared/schemas/auth'
+import { passwordChangeSchema } from '@/shared/schemas/user'
 
 export async function PUT(req: Request) {
   // This is an authenticated password oracle, so it gets the same 5/15min

@@ -6,7 +6,7 @@ import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import EmptyState from '@/components/common/EmptyState'
 import NoteModal from '@/components/notes/NoteModal'
-import type { NoteCreatePayload } from '@/lib/schemas/note'
+import type { NoteCreatePayload } from '@/shared/schemas/note'
 import type { NoteType } from '@/types'
 
 interface NotesTabShellProps {

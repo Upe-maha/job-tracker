@@ -3,7 +3,7 @@
 
 import type { ReactNode } from 'react'
 import { Download, ExternalLink } from 'lucide-react'
-import { displayPdfName, fileDownloadUrl, filePreviewUrl } from '@/lib/files'
+import { displayPdfName, fileDownloadUrl, filePreviewUrl } from '@/shared/files'
 import {
   Dialog,
   DialogContent,

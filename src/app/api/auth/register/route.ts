@@ -9,7 +9,7 @@ import { serverError } from '@/lib/api/respond'
 import { issueToken } from '@/lib/dal/tokens'
 import { sendMailSafe } from '@/lib/email/mailer'
 import { accountExists, verifyEmail } from '@/lib/email/templates'
-import { EMAIL_VERIFY_TTL_MS, registerSchema } from '@/lib/schemas/auth'
+import { EMAIL_VERIFY_TTL_MS, registerSchema } from '@/shared/schemas/auth'
 
 // One response for every outcome. Step A kept a clear 409 here and recorded the
 // enumeration oracle as a known debt that "Step C's email verification is the

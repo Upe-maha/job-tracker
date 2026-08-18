@@ -2,7 +2,7 @@
 import { randomBytes } from 'node:crypto'
 import { v2 as cloudinary } from 'cloudinary'
 import { guard } from '@/lib/api/guard'
-import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
+import { MAX_UPLOAD_BYTES } from '@/shared/schemas/common'
 import { fail, serverError } from '@/lib/api/respond'
 import { NextResponse } from 'next/server'
 

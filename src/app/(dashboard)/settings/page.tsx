@@ -18,7 +18,7 @@ import {
 import {
   passwordChangeFormSchema,
   type PasswordChangeFormValues,
-} from '@/lib/schemas/user'
+} from '@/shared/schemas/user'
 import { useChangePassword } from '@/hooks/useMutations'
 import { ApiError } from '@/lib/api-client'
 import PageShell from '@/components/common/PageShell'

@@ -28,9 +28,9 @@ import {
   useDeletePrepFile,
   useUpdateNote,
 } from '@/hooks/useMutations'
-import type { NoteCreatePayload, NoteFormValues } from '@/lib/schemas/note'
-import type { ContactCreatePayload } from '@/lib/schemas/contact'
-import type { PrepFileCreateInput } from '@/lib/schemas/prep-file'
+import type { NoteCreatePayload, NoteFormValues } from '@/shared/schemas/note'
+import type { ContactCreatePayload } from '@/shared/schemas/contact'
+import type { PrepFileCreateInput } from '@/shared/schemas/prep-file'
 import { ApplicationStatus, INote } from '@/types'
 import PageShell from '@/components/common/PageShell'
 import ErrorState from '@/components/common/ErrorState'

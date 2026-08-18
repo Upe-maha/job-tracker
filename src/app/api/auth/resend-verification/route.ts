@@ -7,7 +7,7 @@ import { fail, serverError } from '@/lib/api/respond'
 import { issueToken } from '@/lib/dal/tokens'
 import { sendMail } from '@/lib/email/mailer'
 import { verifyEmail } from '@/lib/email/templates'
-import { EMAIL_VERIFY_TTL_MS } from '@/lib/schemas/auth'
+import { EMAIL_VERIFY_TTL_MS } from '@/shared/schemas/auth'
 
 // Authenticated, so there is no address to enumerate here — the session decides
 // who gets the mail, and the request body is ignored entirely. That also means

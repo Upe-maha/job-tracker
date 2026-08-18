@@ -5,7 +5,7 @@ import { guard } from '@/lib/api/guard'
 import { parseQuery } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { resolveOwnedFile } from '@/lib/dal/files'
-import { fileProxyQuerySchema } from '@/lib/schemas/file'
+import { fileProxyQuerySchema } from '@/shared/schemas/file'
 
 // Serves an uploaded PDF through the app instead of linking at Cloudinary.
 //

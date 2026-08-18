@@ -2,7 +2,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 
 // The single content container. Pages previously picked their own width —
 // max-w-6xl, 4xl, 3xl, 2xl and one full-bleed — so moving between them shifted

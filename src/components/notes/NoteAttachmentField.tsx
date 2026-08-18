@@ -4,7 +4,7 @@
 import { useRef, useState } from 'react'
 import { FileText, Loader2, Paperclip, X } from 'lucide-react'
 import { useUpload } from '@/hooks/useMutations'
-import { MAX_UPLOAD_BYTES } from '@/lib/schemas/common'
+import { MAX_UPLOAD_BYTES } from '@/shared/schemas/common'
 import { Button } from '@/components/ui/button'
 import type { INoteAttachment } from '@/types'
 

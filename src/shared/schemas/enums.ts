@@ -1,4 +1,4 @@
-// src/lib/schemas/enums.ts
+// src/shared/schemas/enums.ts
 //
 // Single source of truth for every enumerated field in the app. Imported by the
 // Zod schemas next door, by the Mongoose models' `enum:` arrays, and re-exported
@@ -7,7 +7,7 @@
 //
 // Must stay free of server-only imports (mongoose, next/server, @/lib/api/*):
 // 'use client' forms import the schemas built on this file. Same rule as
-// src/lib/security/loginErrors.ts.
+// src/shared/security/loginErrors.ts.
 
 export const APPLICATION_STATUSES = [
   'wishlist',

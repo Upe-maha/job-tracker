@@ -17,9 +17,9 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
-import { loginSchema, type LoginFormValues } from '@/lib/schemas/auth'
-import type { OAuthProvider } from '@/lib/schemas/enums'
-import { loginErrorMessage, LOGIN_ERROR } from '@/lib/security/loginErrors'
+import { loginSchema, type LoginFormValues } from '@/shared/schemas/auth'
+import type { OAuthProvider } from '@/shared/schemas/enums'
+import { loginErrorMessage, LOGIN_ERROR } from '@/shared/security/loginErrors'
 import { GitHubMark, GoogleMark } from "@/components/common/ProviderMarks";
 import { Checkbox } from "@/components/ui/checkbox";
 

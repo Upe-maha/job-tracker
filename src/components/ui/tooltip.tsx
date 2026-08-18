@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/utils"
 
 // Vendored shadcn Tooltip, written against the unified `radix-ui` package to
 // match label.tsx / select.tsx / form.tsx — the generator emits

@@ -1,4 +1,4 @@
-// src/lib/schemas/common.test.ts
+// src/shared/schemas/common.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   cloudinaryUrl,

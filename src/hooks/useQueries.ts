@@ -4,7 +4,7 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { apiGet } from '@/lib/api-client'
 import { qk } from '@/lib/query-keys'
-import type { NoteFilterKey } from '@/lib/display'
+import type { NoteFilterKey } from '@/shared/display'
 import type {
   IApplication,
   IDashboardResponse,

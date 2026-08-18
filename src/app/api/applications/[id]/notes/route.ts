@@ -14,7 +14,7 @@ import {
   noteCreateSchema,
   noteDeleteSchema,
   noteUpdateSchema,
-} from '@/lib/schemas/note'
+} from '@/shared/schemas/note'
 import type { INote } from '@/types'
 
 // GET — fetch all notes for the application

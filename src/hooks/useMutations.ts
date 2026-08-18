@@ -8,11 +8,11 @@ import { qk } from '@/lib/query-keys'
 import type {
   ApplicationCreatePayload,
   ApplicationUpdateInput,
-} from '@/lib/schemas/application'
-import type { ContactCreatePayload } from '@/lib/schemas/contact'
-import type { NoteCreatePayload, NoteUpdatePayload } from '@/lib/schemas/note'
-import type { PrepFileCreateInput } from '@/lib/schemas/prep-file'
-import type { ProfileUpdateInput } from '@/lib/schemas/user'
+} from '@/shared/schemas/application'
+import type { ContactCreatePayload } from '@/shared/schemas/contact'
+import type { NoteCreatePayload, NoteUpdatePayload } from '@/shared/schemas/note'
+import type { PrepFileCreateInput } from '@/shared/schemas/prep-file'
+import type { ProfileUpdateInput } from '@/shared/schemas/user'
 import type { ApplicationStatus, IApplication, INote, OAuthProvider } from '@/types'
 
 // Anything that writes goes through here. Two things this buys that the 13

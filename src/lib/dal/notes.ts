@@ -1,7 +1,7 @@
 // src/lib/dal/notes.ts
 import mongoose from 'mongoose'
 import Application from '@/models/Application'
-import { NOTES_PAGE_SIZE } from '@/lib/schemas/note'
+import { NOTES_PAGE_SIZE } from '@/shared/schemas/note'
 import type { INoteFeedItem, NoteType } from '@/types'
 
 interface NotesFeedArgs {

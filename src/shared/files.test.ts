@@ -1,4 +1,4 @@
-// src/lib/files.test.ts
+// src/shared/files.test.ts
 import { describe, expect, it } from 'vitest'
 import { displayPdfName, fileDownloadUrl, fileNameFromUrl, filePreviewUrl } from './files'
 

@@ -14,7 +14,7 @@ import {
 import { Button } from '@/components/ui/button'
 import ConfirmDeleteDialog from '@/components/common/ConfirmDeleteDialog'
 import { IApplication } from '@/types'
-import { APPLICATION_STATUS_META } from '@/lib/display'
+import { APPLICATION_STATUS_META } from '@/shared/display'
 
 interface DetailHeaderProps {
   application: IApplication

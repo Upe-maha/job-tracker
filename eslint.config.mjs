@@ -15,6 +15,16 @@ const SERVER_ONLY = [
   { group: ["resend", "@/lib/email/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
 ];
 
+// The UI tiers sit above shared and server: both may import downward, neither
+// may be imported back. Without this, a schema is one autocomplete away from
+// depending on a React component and ceasing to be environment-neutral.
+const NO_UPWARD_IMPORTS = [
+  {
+    group: ["@/client", "@/client/*", "@/client/**", "@/components/*", "@/components/**", "@/hooks/*", "@/hooks/**"],
+    message: "Shared code is imported by the UI, never the other way round.",
+  },
+];
+
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -25,19 +35,17 @@ const eslintConfig = defineConfig([
   // handler and a 'use client' form, which is what lets one definition serve
   // both sides. A single mongoose import inside them breaks that silently.
   //
-  // Note src/lib/security/ is deliberately listed file by file rather than as
-  // a directory: sanitize.ts and loginErrors.ts are isomorphic (the schemas
-  // and the login page import them), while csrf.ts and rateLimiter.ts are
-  // server-only and legitimately reach for next/server and the DB.
+  // This used to be four globs, two of them naming individual files, because
+  // src/lib/security/ mixed isomorphic modules (sanitize, loginErrors) with
+  // server-only ones (csrf, rateLimiter). src/shared/ does not mix, so
+  // membership is decided by location and the list cannot fall out of date.
   {
-    files: [
-      "src/lib/schemas/**/*.ts",
-      "src/lib/display/**/*.ts",
-      "src/lib/security/sanitize.ts",
-      "src/lib/security/loginErrors.ts",
-    ],
+    files: ["src/shared/**/*.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", { patterns: SERVER_ONLY }],
+      "no-restricted-imports": [
+        "error",
+        { patterns: [...SERVER_ONLY, ...NO_UPWARD_IMPORTS] },
+      ],
     },
   },
 

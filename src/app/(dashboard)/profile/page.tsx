@@ -22,13 +22,13 @@ import {
 } from 'lucide-react'
 import { useProfile } from '@/hooks/useQueries'
 import { useUpdateProfile } from '@/hooks/useMutations'
-import { profileFormSchema, type ProfileFormValues } from '@/lib/schemas/user'
+import { profileFormSchema, type ProfileFormValues } from '@/shared/schemas/user'
 import {
   CURRENCIES,
   DEFAULT_CURRENCY,
   JOB_SEARCH_STATUS_LABELS,
   JOB_SEARCH_STATUS_OPTIONS,
-} from '@/lib/display'
+} from '@/shared/display'
 import {
   Form,
   FormControl,
@@ -56,8 +56,8 @@ import ResumeCard from '@/components/profile/ResumeCard'
 import PdfPreview from '@/components/common/PdfPreview'
 import ConnectedAccounts from '@/components/profile/ConnectedAccounts'
 import { GitHubMark } from '@/components/common/ProviderMarks'
-import { linkErrorMessage } from '@/lib/security/loginErrors'
-import { OAUTH_PROVIDER_LABELS } from '@/lib/display'
+import { linkErrorMessage } from '@/shared/security/loginErrors'
+import { OAUTH_PROVIDER_LABELS } from '@/shared/display'
 import type { OAuthProvider } from '@/types'
 
 const EMPTY_PROFILE: ProfileFormValues = {

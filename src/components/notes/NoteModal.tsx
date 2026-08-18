@@ -26,14 +26,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { noteFormSchema, type NoteFormValues } from '@/lib/schemas/note'
+import { noteFormSchema, type NoteFormValues } from '@/shared/schemas/note'
 import NoteAttachmentField from '@/components/notes/NoteAttachmentField'
 import {
   INTERVIEW_ROUND_LABELS,
   NOTE_OUTCOME_LABELS,
   NOTE_TYPE_META,
-} from '@/lib/display'
-import { INTERVIEW_ROUNDS, NOTE_OUTCOMES, NOTE_TYPES } from '@/lib/schemas/enums'
+} from '@/shared/display'
+import { INTERVIEW_ROUNDS, NOTE_OUTCOMES, NOTE_TYPES } from '@/shared/schemas/enums'
 import type { INote, NoteType } from '@/types'
 
 // Add and edit are the same modal. The type-driven field layout and

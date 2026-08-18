@@ -60,7 +60,7 @@
   --color-brand-hover: var(--brand-hover);
 
   /* Application stage tokens — named for the enum members in
-     @/lib/schemas/enums, so a new status is a compile error in
+     @/shared/schemas/enums, so a new status is a compile error in
      APPLICATION_STATUS_META until its colours exist here too. */
   --color-stage-wishlist: var(--stage-wishlist);
   --color-stage-wishlist-fg: var(--stage-wishlist-fg);

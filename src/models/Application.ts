@@ -7,9 +7,9 @@ import {
   NOTE_TYPES,
   PREP_FILE_TYPES,
   WORK_MODES,
-} from '@/lib/schemas/enums'
+} from '@/shared/schemas/enums'
 
-// Enum members come from @/lib/schemas/enums so the Zod schemas, these
+// Enum members come from @/shared/schemas/enums so the Zod schemas, these
 // `enum:` arrays and the TS unions in @/types cannot drift. The spread is
 // required: the source arrays are `as const`, and Mongoose's `enum` option
 // does not accept a readonly tuple.

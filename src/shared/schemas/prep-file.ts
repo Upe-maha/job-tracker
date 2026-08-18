@@ -1,8 +1,8 @@
-// src/lib/schemas/prep-file.ts
+// src/shared/schemas/prep-file.ts
 import { z } from 'zod'
 import { PREP_FILE_TYPES } from './enums'
 import { isCloudinaryUrl, objectId, text } from './common'
-import { isSafeUrl } from '@/lib/security/sanitize'
+import { isSafeUrl } from '@/shared/security/sanitize'
 
 const fields = {
   name: text('Name', { min: 1, max: 200 }),

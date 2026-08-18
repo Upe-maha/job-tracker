@@ -5,7 +5,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 import { INoteFeedItem } from '@/types'
-import { NOTE_TYPE_META } from '@/lib/display'
+import { NOTE_TYPE_META } from '@/shared/display'
 import NoteAttachmentChip from '@/components/notes/NoteAttachmentChip'
 
 interface NotesFeedProps {

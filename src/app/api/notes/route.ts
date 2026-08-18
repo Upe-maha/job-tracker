@@ -5,7 +5,7 @@ import { guard } from '@/lib/api/guard'
 import { parseQuery } from '@/lib/api/validate'
 import { serverError } from '@/lib/api/respond'
 import { fetchNotesFeed } from '@/lib/dal/notes'
-import { notesQuerySchema } from '@/lib/schemas/note'
+import { notesQuerySchema } from '@/shared/schemas/note'
 
 // GET — every note across the user's applications, paginated and filterable.
 // Distinct from the dashboard's notesFeed, which is a fixed 10-item widget

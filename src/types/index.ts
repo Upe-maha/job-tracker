@@ -1,12 +1,12 @@
 // This file describes the *wire* shapes — the JSON an API route returns, i.e.
 // a serialized Mongoose document (Dates as strings, plus _id/user/timestamps).
-// The Zod schemas in @/lib/schemas describe the opposite direction: what a
+// The Zod schemas in @/shared/schemas describe the opposite direction: what a
 // route *accepts*. Neither can be derived from the other, so input types come
 // from `z.infer` at the bottom of each schema file and output types are these
 // hand-written interfaces.
 //
 // The one thing both directions share is the enum members, which live in
-// @/lib/schemas/enums and are re-exported here so `@/types` stays the single
+// @/shared/schemas/enums and are re-exported here so `@/types` stays the single
 // import site for consumers.
 export type {
   ApplicationStatus,
@@ -18,7 +18,7 @@ export type {
   OAuthProvider,
   PrepFileType,
   WorkMode,
-} from '@/lib/schemas/enums'
+} from '@/shared/schemas/enums'
 
 import type {
   ApplicationStatus,
@@ -30,7 +30,7 @@ import type {
   OAuthProvider,
   PrepFileType,
   WorkMode,
-} from '@/lib/schemas/enums'
+} from '@/shared/schemas/enums'
 
 // ─── Note ─────────────────────────────────────────────
 // Step F. The url is the file's identity — it is what /api/files serves from

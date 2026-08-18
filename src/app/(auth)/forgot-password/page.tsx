@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/form'
 import { useForgotPassword } from '@/hooks/useMutations'
 import { ApiError } from '@/lib/api-client'
-import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/lib/schemas/auth'
+import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/shared/schemas/auth'
 
 export default function ForgotPasswordPage() {
   const [sentTo, setSentTo] = useState('')

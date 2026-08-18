@@ -1,4 +1,4 @@
-// src/lib/schemas/domain.test.ts
+// src/shared/schemas/domain.test.ts
 //
 // Covers the behaviours the route migration depends on. Each of these replaces
 // a hand-rolled check that the routes are about to delete, so a regression here

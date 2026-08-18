@@ -17,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { CONTENT_WIDTH } from '@/components/common/PageShell'
-import { cn } from '@/lib/utils'
+import { cn } from '@/shared/utils'
 import { useSidebar, SIDEBAR_WIDTH } from './SidebarContext'
 import ThemeToggle from './ThemeToggle'
 
