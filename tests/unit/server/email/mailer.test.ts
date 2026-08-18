@@ -1,4 +1,4 @@
-// src/server/email/mailer.test.ts
+// tests/unit/server/email/mailer.test.ts
 //
 // The transport's contract, pinned directly rather than by implication.
 //
@@ -33,7 +33,7 @@ const OK = { data: { id: 'test-email-id' }, error: null }
 // a key that a later case is trying to prove is missing.
 async function loadMailer() {
   vi.resetModules()
-  return import('./mailer')
+  return import('@/server/email/mailer')
 }
 
 beforeEach(() => {

@@ -1,10 +1,10 @@
-// src/shared/schemas/auth.test.ts
+// tests/unit/shared/schemas/auth.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
   verifyTokenSchema,
-} from './auth'
+} from '@/shared/schemas/auth'
 
 // A literal of the right shape — 43 base64url characters. Deliberately not
 // generateToken(): the schema layer may not import the DAL (eslint enforces it,

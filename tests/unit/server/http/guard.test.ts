@@ -1,4 +1,4 @@
-// src/server/http/guard.test.ts
+// tests/unit/server/http/guard.test.ts
 //
 // guard() is where the rate-limit tiers are actually enforced, so this file
 // tests the branch rather than the configuration. The failure modes it covers
@@ -32,7 +32,7 @@ import {
   refundRateLimit,
   type RateLimitType,
 } from '@/server/security/rateLimiter'
-import { guard } from './guard'
+import { guard } from '@/server/http/guard'
 
 const authMock = auth as unknown as Mock
 const checkMock = checkRateLimit as unknown as Mock

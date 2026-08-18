@@ -1,4 +1,4 @@
-// src/server/data/files.integration.test.ts
+// tests/integration/server/data/files.test.ts
 //
 // resolveOwnedFile is the only thing standing between /api/files and "any
 // signed-in user can stream any other user's CV" — every asset in the app lives
@@ -10,7 +10,7 @@ import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import User from '@/models/User'
 import Application from '@/models/Application'
-import { resolveOwnedFile } from './files'
+import { resolveOwnedFile } from '@/server/data/files'
 
 let mongod: MongoMemoryServer
 

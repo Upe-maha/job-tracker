@@ -1,4 +1,4 @@
-// src/server/data/tokens.integration.test.ts
+// tests/integration/server/data/tokens.test.ts
 //
 // The only DB-touching file in the suite, and it earns that on purpose:
 // expiry, type isolation and single use are properties of a MongoDB *query*,
@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import Token from '@/models/Token'
-import { consumeToken, generateToken, hashToken, issueToken } from './tokens'
+import { consumeToken, generateToken, hashToken, issueToken } from '@/server/data/tokens'
 
 let mongod: MongoMemoryServer
 

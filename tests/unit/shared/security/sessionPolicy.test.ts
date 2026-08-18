@@ -1,4 +1,4 @@
-// src/shared/security/sessionPolicy.test.ts
+// tests/unit/shared/security/sessionPolicy.test.ts
 //
 // The security boundary for Step I, and the one part of it a Node-only suite
 // can reach: every decision about whether a session is still alive lives in
@@ -11,7 +11,7 @@ import {
   REVALIDATE_EVERY_MS,
   normaliseClaims,
   sessionVerdict,
-} from './sessionPolicy'
+} from '@/shared/security/sessionPolicy'
 
 const NOW = Date.UTC(2026, 0, 15, 12, 0, 0)
 

@@ -1,4 +1,4 @@
-// src/server/security/rateLimiter.test.ts
+// tests/unit/server/security/rateLimiter.test.ts
 //
 // checkRateLimit needs Mongo and this suite is DB-free, so the enforcement half
 // is covered in src/server/http/guard.test.ts against a stubbed limiter. What's left
@@ -10,7 +10,7 @@ import { describe, expect, it, vi } from 'vitest'
 // MONGODB_URI. Nothing below calls a limiter function, so a stand-in is enough.
 vi.mock('@/server/db', () => ({ connectDB: vi.fn() }))
 
-import { RATE_LIMITS } from './rateLimiter'
+import { RATE_LIMITS } from '@/server/security/rateLimiter'
 
 const entries = Object.entries(RATE_LIMITS)
 

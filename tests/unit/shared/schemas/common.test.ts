@@ -1,4 +1,4 @@
-// src/shared/schemas/common.test.ts
+// tests/unit/shared/schemas/common.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   cloudinaryUrl,
@@ -12,7 +12,7 @@ import {
   password,
   safeUrl,
   text,
-} from './common'
+} from '@/shared/schemas/common'
 
 describe('text', () => {
   const name = text('Name', { min: 1, max: 5 })

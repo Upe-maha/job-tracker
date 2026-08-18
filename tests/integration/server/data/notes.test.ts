@@ -1,4 +1,4 @@
-// src/server/data/notes.integration.test.ts
+// tests/integration/server/data/notes.test.ts
 //
 // fetchNotesFeed is an aggregation, and its two known failure modes are both
 // properties of the pipeline rather than of any JS around it: $match does not
@@ -9,7 +9,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import Application from '@/models/Application'
-import { fetchNotesFeed } from './notes'
+import { fetchNotesFeed } from '@/server/data/notes'
 
 let mongod: MongoMemoryServer
 

@@ -1,4 +1,4 @@
-// src/app/api/auth/register/route.integration.test.ts
+// tests/integration/api/auth/register/route.test.ts
 //
 // Register must answer identically whether or not the address already has an
 // account. That is the enumeration fix Step A deferred to Step C
@@ -35,7 +35,7 @@ vi.mock('@/server/security/rateLimiter', async (importOriginal) => ({
 
 import User from '@/models/User'
 import Token from '@/models/Token'
-import { POST } from './route'
+import { POST } from '@/app/api/auth/register/route'
 
 let mongod: MongoMemoryServer
 const sendMock = emailsSend

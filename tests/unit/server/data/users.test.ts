@@ -1,4 +1,4 @@
-// src/server/data/users.test.ts
+// tests/unit/server/data/users.test.ts
 //
 // verifiedProviderEmail is the control that replaces NextAuth's default
 // OAuthAccountNotLinked block, so its failure mode is account takeover: anyone
@@ -6,7 +6,7 @@
 // It is pure apart from one fetch, which is why it lives in the DAL free of
 // next-auth imports — that is what makes this file possible.
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { verifiedProviderEmail } from './users'
+import { verifiedProviderEmail } from '@/server/data/users'
 
 afterEach(() => {
   vi.unstubAllGlobals()

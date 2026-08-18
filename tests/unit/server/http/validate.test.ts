@@ -1,7 +1,7 @@
-// src/server/http/validate.test.ts
+// tests/unit/server/http/validate.test.ts
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod'
-import { parseBody, parseQuery, toObjectId } from './validate'
+import { parseBody, parseQuery, toObjectId } from '@/server/http/validate'
 
 const schema = z.object({ name: z.string().min(1, { error: 'Name is required' }) })
 

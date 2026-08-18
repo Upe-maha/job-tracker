@@ -1,6 +1,6 @@
-// src/shared/files.test.ts
+// tests/unit/shared/files.test.ts
 import { describe, expect, it } from 'vitest'
-import { displayPdfName, fileDownloadUrl, fileNameFromUrl, filePreviewUrl } from './files'
+import { displayPdfName, fileDownloadUrl, fileNameFromUrl, filePreviewUrl } from '@/shared/files'
 
 const RAW = 'https://res.cloudinary.com/demo/raw/upload/v1700000000/job-tracker/resumes/ada-cv-3f9c1b2e'
 

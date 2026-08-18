@@ -1,4 +1,4 @@
-// src/app/api/auth/resend-verification/route.integration.test.ts
+// tests/integration/api/auth/resend-verification/route.test.ts
 //
 // The 'reset' budget bounds *outbound mail*, so the thing worth pinning is that
 // it is only spent when mail actually leaves. Both branches that send nothing —
@@ -29,7 +29,7 @@ import User from '@/models/User'
 import Token from '@/models/Token'
 import RateLimit from '@/models/RateLimit'
 import { RATE_LIMITS } from '@/server/security/rateLimiter'
-import { POST } from './route'
+import { POST } from '@/app/api/auth/resend-verification/route'
 
 let mongod: MongoMemoryServer
 

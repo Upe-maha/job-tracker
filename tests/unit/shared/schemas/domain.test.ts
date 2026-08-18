@@ -1,4 +1,4 @@
-// src/shared/schemas/domain.test.ts
+// tests/unit/shared/schemas/domain.test.ts
 //
 // Covers the behaviours the route migration depends on. Each of these replaces
 // a hand-rolled check that the routes are about to delete, so a regression here
@@ -8,17 +8,17 @@ import {
   applicationCreateSchema,
   applicationStatusSchema,
   applicationUpdateSchema,
-} from './application'
+} from '@/shared/schemas/application'
 import {
   noteCreateSchema,
   noteUpdateSchema,
   notesQuerySchema,
   NOTES_PAGE_SIZE,
-} from './note'
-import { contactCreateSchema } from './contact'
-import { prepFileCreateSchema } from './prep-file'
-import { passwordChangeSchema, profileUpdateSchema } from './user'
-import { loginSchema, registerSchema } from './auth'
+} from '@/shared/schemas/note'
+import { contactCreateSchema } from '@/shared/schemas/contact'
+import { prepFileCreateSchema } from '@/shared/schemas/prep-file'
+import { passwordChangeSchema, profileUpdateSchema } from '@/shared/schemas/user'
+import { loginSchema, registerSchema } from '@/shared/schemas/auth'
 
 const minimalApplication = { company: 'Acme', role: 'Engineer' }
 

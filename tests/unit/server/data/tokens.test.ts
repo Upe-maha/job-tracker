@@ -1,4 +1,4 @@
-// src/server/data/tokens.test.ts
+// tests/unit/server/data/tokens.test.ts
 //
 // The database-free half. Everything that depends on a query — expiry, type
 // isolation, single use — lives in tokens.integration.test.ts, which runs
@@ -8,7 +8,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/server/db', () => ({ connectDB: vi.fn() }))
 
-import { generateToken, hashToken } from './tokens'
+import { generateToken, hashToken } from '@/server/data/tokens'
 import { verifyTokenSchema } from '@/shared/schemas/auth'
 
 describe('generateToken', () => {

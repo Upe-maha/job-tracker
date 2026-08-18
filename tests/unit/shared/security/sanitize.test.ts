@@ -1,4 +1,4 @@
-// src/shared/security/sanitize.test.ts
+// tests/unit/shared/security/sanitize.test.ts
 import { describe, expect, it } from 'vitest'
 import {
   isAllowedImageUrl,
@@ -6,7 +6,7 @@ import {
   isValidEmail,
   sanitizeInput,
   validatePassword,
-} from './sanitize'
+} from '@/shared/security/sanitize'
 
 describe('sanitizeInput', () => {
   it('strips Mongo operator keys at any depth', () => {

@@ -1,4 +1,4 @@
-// src/server/data/applications.integration.test.ts
+// tests/integration/server/data/applications.test.ts
 //
 // Runs against a real mongod for the same reason tokens.integration.test.ts
 // does: ownership scoping and the positional-$ binding are properties of a
@@ -10,7 +10,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import mongoose from 'mongoose'
 import { MongoMemoryServer } from 'mongodb-memory-server'
 import Application from '@/models/Application'
-import { updateSubdocument } from './applications'
+import { updateSubdocument } from '@/server/data/applications'
 import type { INote } from '@/types'
 
 let mongod: MongoMemoryServer

@@ -1,4 +1,4 @@
-// src/server/data/users.integration.test.ts
+// tests/integration/server/data/users.test.ts
 //
 // Step E's linking helpers, against a real mongod for the same reason
 // tokens.integration.test.ts is: every property that matters here is a property
@@ -21,7 +21,7 @@ import {
   linkProviderToUser,
   resolveOAuthUser,
   unlinkProviderFromUser,
-} from './users'
+} from '@/server/data/users'
 
 let mongod: MongoMemoryServer
 

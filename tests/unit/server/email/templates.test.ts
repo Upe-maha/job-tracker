@@ -1,4 +1,4 @@
-// src/server/email/templates.test.ts
+// tests/unit/server/email/templates.test.ts
 //
 // Pure functions, so no transport is involved. What matters here is that the
 // link points at this app and carries the token intact — a template that drops
@@ -10,7 +10,7 @@ import {
   passwordChangeConfirm,
   passwordReset,
   verifyEmail,
-} from './templates'
+} from '@/server/email/templates'
 
 const ORIGINAL = process.env.NEXTAUTH_URL
 const TOKEN = 'abcdefghijklmnopqrstuvwxyz0123456789_-ABCDE'
