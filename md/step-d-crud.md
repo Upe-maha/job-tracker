@@ -37,7 +37,7 @@ part of this step rather than a follow-up.
    renders it. It now appears in the shared form and in the create schema. `httpsUrl` already accepts
    `''`, so a blank input clears it.
 3. **`updateSubdocument` gets a real-`mongod` test.** Same reasoning as
-   `tokens.integration.test.ts`: ownership scoping and the positional-`$` binding are properties of a
+   `tests/integration/server/data/tokens.test.ts`: ownership scoping and the positional-`$` binding are properties of a
    MongoDB *query*, and a mocked model can only assert the shape of the filter object — which passes
    just as happily when the semantics are wrong.
 4. **Note edit state lives in the detail page**, not in each of the three tabs. See below.

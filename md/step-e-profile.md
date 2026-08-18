@@ -58,7 +58,7 @@ what a Connect button means. The distinction is the whole of decision 3 below.
 
 ### Connecting GitHub — why not just call `signIn('github')`
 
-Calling `signIn('github')` from a signed-in page runs the same `signIn` callback in `src/lib/auth.ts`
+Calling `signIn('github')` from a signed-in page runs the same `signIn` callback in `src/server/auth.ts`
 as a fresh sign-in. That callback resolves the user by **provider-verified email**. If the GitHub
 account's primary email differs from the email on the job-tracker account — which is common, and is
 precisely the case a Connect button exists to serve — `resolveOAuthUser` finds or creates a
@@ -124,7 +124,7 @@ should be named as one if it is ever wanted.
 
 `resolveOAuthUser` keeps its existing behaviour and is not touched. The two functions are allowed to
 differ because they answer different questions: sign-in identifies a user from a provider-verified
-email; linking attaches a provider to an already-authenticated one. `src/lib/dal/users.test.ts` pins
+email; linking attaches a provider to an already-authenticated one. `tests/unit/server/data/users.test.ts` pins
 both, so a later attempt to unify them fails loudly rather than drifting.
 
 ### Disconnecting

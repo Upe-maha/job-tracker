@@ -103,7 +103,7 @@ database read per session per minute" is the typical case, not a guarantee.
 
 ## Shape
 
-`src/lib/security/sessionPolicy.ts` is pure — no imports beyond types — so it sits in the isomorphic
+`src/shared/security/sessionPolicy.ts` is pure — no imports beyond types — so it sits in the isomorphic
 tier next to `sanitize.ts` and `loginErrors.ts` and is directly testable by the Node-only Vitest
 suite. Unlike Steps G and H, this step's core logic *is* unit-testable, and that is where the
 verification weight sits rather than on a browser sweep.

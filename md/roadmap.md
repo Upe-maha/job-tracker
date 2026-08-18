@@ -82,7 +82,7 @@ Step I — Security — Session Management
         **session-scoped OAuth linking** — Connect/Disconnect a provider from the profile page,
         which is a different operation from Step B's sign-in linking and deliberately does not share
         its resolve-by-email path. New `account_link` token type, `linkProviderToUser` /
-        `unlinkProviderFromUser` in the DAL, and `src/lib/dal/users.integration.test.ts` pinning both
+        `unlinkProviderFromUser` in the DAL, and `tests/integration/server/data/users.test.ts` pinning both
         them and Step B's unchanged behaviour.
 
 - Step F: complete — see `md/step-f-notes-pdf.md`. One optional `{ url, name }` attachment per note,
@@ -91,7 +91,7 @@ Step I — Security — Session Management
         (Step D) already writes `notes.$.attachment`. The load-bearing change is a third branch in
         `resolveOwnedFile`: without it every attachment preview 404s, because `/api/files` serves
         nothing it cannot prove the caller owns. New `note-files` upload folder, one more projected
-        field in `fetchNotesFeed`, and `src/lib/dal/notes.integration.test.ts`.
+        field in `fetchNotesFeed`, and `tests/integration/server/data/notes.test.ts`.
 
 - Step G: complete — see `md/step-g-landing.md`. `/` was a developer placeholder *and* unreachable,
         since middleware redirected it for everyone; only the signed-out half of that redirect came
@@ -129,8 +129,8 @@ Step I — Security — Session Management
 Interleaved with the steps above, a separate refactoring pass (security follow-ups, then database
 performance) has also landed:
 - R1 — trusted-proxy client IP, security headers, external-URL validation: complete
-- R2 — paginated `/api/notes` + `lib/dal/`, dashboard aggregation/projection: complete
-- R3 — Zod wired end-to-end (routes + forms) and `lib/dal/` extended: complete.
+- R2 — paginated `/api/notes` + `server/data/`, dashboard aggregation/projection: complete
+- R3 — Zod wired end-to-end (routes + forms) and `server/data/` extended: complete.
         Server Actions + RSC page loads with React `cache()`: not started — the schemas
         and DAL are shaped so a Server Action can consume both unchanged.
 - R4 — Cloudinary lifecycle (`publicId`, signed delivery, upload rate limit): not started, overlaps Step D.

@@ -67,7 +67,7 @@ projecting `{ 'notes.$': 1 }`, returning the attachment's stored `name` as the f
 the same way the prep-file branch sanitises: it ends up in a `Content-Disposition` header.
 
 The ownership filter is the whole control. A missing `user:` on that query would serve any note's
-PDF to any signed-in caller, which is why `src/lib/dal/files.integration.test.ts` pins the
+PDF to any signed-in caller, which is why `tests/integration/server/data/files.test.ts` pins the
 cross-user refusal against a real `mongod` rather than a mocked model.
 
 ### Everything else

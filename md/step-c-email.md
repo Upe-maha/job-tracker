@@ -45,7 +45,7 @@ Two things in the codebase were already waiting on this step:
 
 ## Approach
 
-### Token storage (`src/models/Token.ts`, `src/lib/dal/tokens.ts`)
+### Token storage (`src/models/Token.ts`, `src/server/data/tokens.ts`)
 
 A separate collection rather than an embedded array — these expire, and a TTL index is the same
 reason `RateLimit` has its own collection.
@@ -91,7 +91,7 @@ selected unconditionally rather than behind an `if (type === 'password_change')`
 nothing to get wrong later, and the field is null for the other two types anyway. The route treats a
 missing hash as a server error, never as a write.
 
-### Mailer (`src/lib/email/`)
+### Mailer (`src/server/email/`)
 
 `mailer.ts` is server-only and holds the `Resend` client in a **module variable, not `globalThis`**.
 The nodemailer transport it replaced was cached on the global for the same reason `connectDB` is — a

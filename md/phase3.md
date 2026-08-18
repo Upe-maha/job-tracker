@@ -26,7 +26,7 @@ Extended NextAuth types to include custom user fields (id, photo) in session.
 Root page (`/`) automatically redirects to dashboard if logged in, otherwise to login.
 
 ## Key Components
-- `src/lib/auth.ts` — NextAuth configuration
+- `src/server/auth.ts` — NextAuth configuration
 - `src/middleware.ts` — Route protection
 - `src/app/api/auth/[...nextauth]/route.ts` — Auth API handler
 - `src/app/api/auth/register/route.ts` — Registration API

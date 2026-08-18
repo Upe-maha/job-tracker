@@ -14,7 +14,7 @@ using the same address.
 
 Two facts shape the entire design:
 
-1. **There is no NextAuth adapter.** `src/lib/auth.ts` is credentials-only with `strategy: 'jwt'`, and the
+1. **There is no NextAuth adapter.** `src/server/auth.ts` is credentials-only with `strategy: 'jwt'`, and the
    user document is owned entirely by the Mongoose `User` model (profile fields, preferences, and the
    Step A lockout state). Sessions are JWTs, so no session collection is needed.
 2. **`session.user.id` is load-bearing.** Every API route scopes queries by `user: g.session.user.id` —
@@ -65,7 +65,7 @@ Read out of `node_modules/@auth/core` at version 5.0.0-beta.32 / `@auth/core` as
   that endpoint. This is exactly why decision 2 does the lookup itself rather than trusting
   `profile.email`.
 - `providers/google.d.ts:16` — the Google profile carries `email_verified: boolean`.
-- `src/lib/auth.ts:56` already does `const hash = user?.password ?? DUMMY_HASH`, so an OAuth-only user
+- `src/server/auth.ts:56` already does `const hash = user?.password ?? DUMMY_HASH`, so an OAuth-only user
   attempting a password login compares against the dummy hash and receives the generic `credentials`
   error. Making `password` optional introduces no enumeration path and no crash.
 
@@ -80,7 +80,7 @@ Read out of `node_modules/@auth/core` at version 5.0.0-beta.32 / `@auth/core` as
 
 CLAUDE.md's rule applies: schema changes land in both the model and `src/types/index.ts`.
 
-### `signIn` callback (`src/lib/auth.ts`)
+### `signIn` callback (`src/server/auth.ts`)
 
 Short-circuit `account.provider === 'credentials'` — `authorize()` already did that work. Otherwise:
 
@@ -99,7 +99,7 @@ the credentials rate limit; the provider performs the authentication.
 
 `photo` is currently required to be `https://res.cloudinary.com` in `api/user/profile/route.ts`. Provider
 avatars come from `lh3.googleusercontent.com` and `avatars.githubusercontent.com`. Add a host allowlist
-next to `isSafeUrl` in `src/lib/security/sanitize.ts` (added in the Phase 1 URL-validation work) and use
+next to `isSafeUrl` in `src/shared/security/sanitize.ts` (added in the Phase 1 URL-validation work) and use
 it in both places. Document the allowlist in CLAUDE.md.
 
 ### Login page

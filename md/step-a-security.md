@@ -11,7 +11,7 @@ add OAuth, Resend email flows, a profile overhaul, PDF-in-notes, a landing page,
 and session management. Step A lays the security foundation the rest build on.
 
 The app currently has a security layer that exists on disk but is **entirely dead code**:
-`src/lib/security/rateLimiter.ts` and `src/lib/security/sanitize.ts` are imported by nothing, and
+`src/server/security/rateLimiter.ts` and `src/shared/security/sanitize.ts` are imported by nothing, and
 `rate-limiter-flexible` sits in `package.json` unused. Concretely, today:
 
 - **No endpoint is rate limited** — including `POST /api/auth/callback/credentials` and `/api/auth/register`.
@@ -79,7 +79,7 @@ if (!g.ok) return g.response
 reaper because every read compares `expiresAt` to `now`. Use the same `mongoose.models.X || model(...)`
 hot-reload guard as the other models.
 
-**`src/lib/security/rateLimiter.ts`** — rewrite **in place** (the in-memory `Map` and `setInterval` must not
+**`src/server/security/rateLimiter.ts`** — rewrite **in place** (the in-memory `Map` and `setInterval` must not
 survive). Keep `RATE_LIMITS` configs unchanged (login 5/15min, register 3/1h, reset 3/1h, api 100/1min).
 Exports: `getClientIP(req: Request)`, `checkRateLimit(id, type): Promise<{allowed, message?, retryAfter?, remaining}>`,
 `clearRateLimit(id, type)`, `rateLimitResponse(msg, retryAfter)`.
@@ -97,7 +97,7 @@ Wrap the second call in a `try/catch` for `err.code === 11000` and retry once �
 unique index can both attempt an insert. `clearRateLimit` is called on successful login so a legitimate
 user isn't penalised for earlier typos.
 
-**`src/lib/security/csrf.ts`** — `isSameOriginRequest(req)`, `csrfFailure()`. Order: GET/HEAD/OPTIONS → allow;
+**`src/server/security/csrf.ts`** — `isSameOriginRequest(req)`, `csrfFailure()`. Order: GET/HEAD/OPTIONS → allow;
 `Sec-Fetch-Site` present → require `same-origin`; else `Origin` present → compare against allowed set
 (`new URL(process.env.NEXTAUTH_URL).origin` plus host-derived); **neither header → allow** (standard OWASP
 fallback — a real browser always sends `Origin` cross-origin, and this keeps curl/non-browser clients working).
@@ -106,7 +106,7 @@ Lives in a **helper called per route, not middleware**. The matcher excludes `/a
 running the edge runtime on every API call and immediately carving `/api/auth` out again, because NextAuth
 already does its own double-submit CSRF and a naive Origin check would break sign-in.
 
-**`src/lib/api/validate.ts`**
+**`src/server/http/validate.ts`**
 - `readJsonBody(req)` — the **single choke point for sanitization**. Requires `application/json` → else 415
   (this alone kills the simple-request CSRF class on all 10 JSON routes); caps `content-length` ~100 KB → 413;
   catches parse errors → 400 (today they 500); rejects non-object roots; runs `sanitizeInput` before returning.
@@ -114,18 +114,18 @@ already does its own double-submit CSRF and a naive Origin check would break sig
   don't clobber.
 - `toObjectId(id)` — `mongoose.isValidObjectId` guard.
 
-**`src/lib/api/respond.ts`** — `fail(status, error)` and `serverError(scope, err)`, the latter logging once
+**`src/server/http/respond.ts`** — `fail(status, error)` and `serverError(scope, err)`, the latter logging once
 server-side and returning a **fixed** `500 {error:'Something went wrong'}`. No route hand-writes a 500 again,
 so no per-handler 500 string remains to fingerprint.
 
-**`src/lib/api/guard.ts`** — `guard(req, { auth=true, csrf=true, rateLimit='api'|false })` returning
+**`src/server/http/guard.ts`** — `guard(req, { auth=true, csrf=true, rateLimit='api'|false })` returning
 `{ok:true, session, ip} | {ok:false, response}`. Order **CSRF → auth → rate limit**: CSRF first because it's
 header-only and free; auth before rate limit so the key can be the **user id** on authenticated routes and
 the **IP** on public ones (otherwise a whole NAT shares one 100/min bucket). Fail **closed** on
 login/register/reset if Mongo is down; fail **open** on `'api'`.
 
-**`src/lib/security/loginErrors.ts`** — `LOGIN_ERROR` codes (`credentials`, `too_many_attempts`,
-`account_locked`) and `loginErrorMessage(code?)`. Must import nothing from `next-auth` or `@/lib/auth` — the
+**`src/shared/security/loginErrors.ts`** — `LOGIN_ERROR` codes (`credentials`, `too_many_attempts`,
+`account_locked`) and `loginErrorMessage(code?)`. Must import nothing from `next-auth` or `@/server/auth` — the
 login page is `'use client'`.
 
 **`src/middleware.ts`** (rename of `src/proxy.ts`, delete the original) — `export async function middleware`,
@@ -137,7 +137,7 @@ only; **keep** the `auth()` + `redirect` in `(dashboard)/layout.tsx` as the real
 
 ### Edits to existing files
 
-**`src/lib/security/sanitize.ts`** — delete every `.replace(/\$gt/gi,'')`-style line. The threat model is
+**`src/shared/security/sanitize.ts`** — delete every `.replace(/\$gt/gi,'')`-style line. The threat model is
 object *keys*, never string content; today the regex corrupts a job description containing `$gte` or a
 company named `$and`.
 
@@ -164,11 +164,11 @@ entity-encoding at the storage layer puts `&amp;#x27;` in the database.
 
 **`src/models/User.ts`** — `password` gains `select: false`; add `failedLoginAttempts` (default 0),
 `lockUntil` (default null), `passwordChangedAt` (default null). Exactly two call sites need `.select('+password')`:
-`src/lib/auth.ts` and `src/app/api/user/password/route.ts`. Mirror all four fields in `src/types/index.ts`.
+`src/server/auth.ts` and `src/app/api/user/password/route.ts`. Mirror all four fields in `src/types/index.ts`.
 `passwordChangedAt` is a **Step H enabler** — populate it now on every password change so Step H's
 invalidation check is a clean `token.iat < user.passwordChangedAt` instead of a column of nulls.
 
-**`src/lib/auth.ts`** — three `CredentialsSignin` subclasses carrying the `LOGIN_ERROR` codes, plus a
+**`src/server/auth.ts`** — three `CredentialsSignin` subclasses carrying the `LOGIN_ERROR` codes, plus a
 module-scope `DUMMY_HASH` (a pasted bcrypt cost-12 literal — do **not** compute at module load, that's
 ~250 ms on every cold start). `authorize(credentials, request)` in this exact order:
 
