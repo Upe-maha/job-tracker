@@ -3,7 +3,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/client/api-client'
 import { AuthCard } from './AuthCard'
 
 type Status = 'pending' | 'success' | 'error'

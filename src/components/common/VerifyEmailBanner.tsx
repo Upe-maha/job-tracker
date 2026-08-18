@@ -6,7 +6,7 @@ import { MailCheck, MailWarning, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useResendVerification } from '@/hooks/useMutations'
 import { useProfile } from '@/hooks/useQueries'
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/client/api-client'
 
 // Reads verification state from the existing ['profile'] query rather than the
 // session. Putting emailVerified in the JWT would mean touching Step B's

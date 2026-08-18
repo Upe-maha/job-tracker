@@ -110,13 +110,16 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // Client code reaches the database through /api, never directly.
+  // Client code reaches the database through /api, never directly. src/client
+  // is browser-oriented code -- api-client, query keys, the nav table, the
+  // theme context -- and the tier exists so that "a route handler must not
+  // import apiGet()" is a rule rather than a habit.
   //
   // Note *.{ts,tsx} rather than *.tsx: six .ts files under src/components (the
   // four barrels, landing/sections.ts, landing/content/copy.ts) sat outside
   // the old glob and were unguarded.
   {
-    files: ["src/components/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    files: ["src/components/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}", "src/client/**/*.{ts,tsx}"],
     rules: {
       "no-restricted-imports": ["error", { patterns: SERVER_ONLY }],
     },

@@ -3,8 +3,8 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
-import { ApiError, apiSend, apiUpload } from '@/lib/api-client'
-import { qk } from '@/lib/query-keys'
+import { ApiError, apiSend, apiUpload } from '@/client/api-client'
+import { qk } from '@/client/query-keys'
 import type {
   ApplicationCreatePayload,
   ApplicationUpdateInput,

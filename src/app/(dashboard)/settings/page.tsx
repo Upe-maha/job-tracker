@@ -20,7 +20,7 @@ import {
   type PasswordChangeFormValues,
 } from '@/shared/schemas/user'
 import { useChangePassword } from '@/hooks/useMutations'
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/client/api-client'
 import PageShell from '@/components/common/PageShell'
 
 const EMPTY: PasswordChangeFormValues = {

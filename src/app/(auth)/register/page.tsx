@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/form'
 import { registerFormSchema, type RegisterFormValues } from '@/shared/schemas/auth'
 import type { OAuthProvider } from '@/shared/schemas/enums'
-import { apiSend, ApiError } from '@/lib/api-client'
+import { apiSend, ApiError } from '@/client/api-client'
 import { GitHubMark, GoogleMark } from '@/components/common/ProviderMarks'
 
 const inputClass =

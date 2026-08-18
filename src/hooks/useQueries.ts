@@ -2,8 +2,8 @@
 'use client'
 
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
-import { apiGet } from '@/lib/api-client'
-import { qk } from '@/lib/query-keys'
+import { apiGet } from '@/client/api-client'
+import { qk } from '@/client/query-keys'
 import type { NoteFilterKey } from '@/shared/display'
 import type {
   IApplication,

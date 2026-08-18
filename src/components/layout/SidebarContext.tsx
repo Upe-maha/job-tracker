@@ -40,7 +40,7 @@ const SidebarCtx = createContext<SidebarValue>({
   setMobileOpen: () => {},
 })
 
-// Read through useSyncExternalStore, matching how @/lib/theme reads the
+// Read through useSyncExternalStore, matching how @/client/theme reads the
 // stored theme: localStorage is an external store, and copying it into state
 // inside an effect causes a cascading re-render on every mount.
 const listeners = new Set<() => void>()

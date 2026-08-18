@@ -1,4 +1,4 @@
-// src/lib/navigation.ts
+// src/client/navigation.ts
 //
 // One declaration site for every route's identity. The sidebar and the header
 // breadcrumb previously kept separate lists of the same six routes, so a new

@@ -18,7 +18,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useResetPassword } from '@/hooks/useMutations'
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/client/api-client'
 import { resetPasswordSchema, type ResetPasswordFormValues } from '@/shared/schemas/auth'
 
 function ResetPassword() {

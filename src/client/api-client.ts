@@ -1,4 +1,4 @@
-// src/lib/api-client.ts
+// src/client/api-client.ts
 //
 // The client half of the API contract. Every route answers a failure as
 // `{ error: string }` (see @/server/http/respond), so error handling belongs in

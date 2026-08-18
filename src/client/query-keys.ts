@@ -1,4 +1,4 @@
-// src/lib/query-keys.ts
+// src/client/query-keys.ts
 //
 // Every TanStack key in the app. Keys were previously written inline, which is
 // how ['dashboard'] and ['notes', filter] ended up with no invalidator at all

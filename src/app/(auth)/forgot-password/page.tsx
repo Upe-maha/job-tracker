@@ -17,7 +17,7 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { useForgotPassword } from '@/hooks/useMutations'
-import { ApiError } from '@/lib/api-client'
+import { ApiError } from '@/client/api-client'
 import { forgotPasswordSchema, type ForgotPasswordFormValues } from '@/shared/schemas/auth'
 
 export default function ForgotPasswordPage() {

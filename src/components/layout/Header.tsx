@@ -6,7 +6,7 @@ import { usePathname, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { Briefcase, ChevronRight, LogOut, Menu, Settings, User } from 'lucide-react'
 import { useProfile, useApplication } from '@/hooks/useQueries'
-import { buildCrumbs, matchRoute } from '@/lib/navigation'
+import { buildCrumbs, matchRoute } from '@/client/navigation'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,

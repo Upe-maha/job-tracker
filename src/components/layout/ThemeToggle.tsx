@@ -2,7 +2,7 @@
 'use client'
 
 import { Moon, Sun } from 'lucide-react'
-import { useTheme } from '@/lib/theme'
+import { useTheme } from '@/client/theme'
 import { Button } from '@/components/ui/button'
 
 // The icon shows the theme you are *in*, not the one you would switch to: a
