@@ -1,10 +1,10 @@
 // src/app/api/applications/[id]/prep-files/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { guard } from '@/lib/api/guard'
-import { parseBody, toObjectId } from '@/lib/api/validate'
-import { fail, serverError } from '@/lib/api/respond'
-import { pullSubdocument, pushSubdocument } from '@/lib/dal/applications'
+import { connectDB } from '@/server/db'
+import { guard } from '@/server/http/guard'
+import { parseBody, toObjectId } from '@/server/http/validate'
+import { fail, serverError } from '@/server/http/respond'
+import { pullSubdocument, pushSubdocument } from '@/server/data/applications'
 import { prepFileCreateSchema, prepFileDeleteSchema } from '@/shared/schemas/prep-file'
 import type { IPrepFile } from '@/types'
 

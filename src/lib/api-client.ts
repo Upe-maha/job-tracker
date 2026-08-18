@@ -1,7 +1,7 @@
 // src/lib/api-client.ts
 //
 // The client half of the API contract. Every route answers a failure as
-// `{ error: string }` (see @/lib/api/respond), so error handling belongs in
+// `{ error: string }` (see @/server/http/respond), so error handling belongs in
 // one place rather than being re-derived at each call site — several of which
 // previously ignored `res.ok` entirely and reported success on a 400.
 

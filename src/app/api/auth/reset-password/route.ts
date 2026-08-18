@@ -1,12 +1,12 @@
 // src/app/api/auth/reset-password/route.ts
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { connectDB } from '@/lib/db'
+import { connectDB } from '@/server/db'
 import User from '@/models/User'
-import { guard } from '@/lib/api/guard'
-import { parseBody } from '@/lib/api/validate'
-import { fail, serverError } from '@/lib/api/respond'
-import { consumeToken } from '@/lib/dal/tokens'
+import { guard } from '@/server/http/guard'
+import { parseBody } from '@/server/http/validate'
+import { fail, serverError } from '@/server/http/respond'
+import { consumeToken } from '@/server/data/tokens'
 import { resetPasswordSchema } from '@/shared/schemas/auth'
 
 export async function POST(req: Request) {

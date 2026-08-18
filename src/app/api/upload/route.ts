@@ -1,9 +1,9 @@
 // src/app/api/upload/route.ts
 import { randomBytes } from 'node:crypto'
 import { v2 as cloudinary } from 'cloudinary'
-import { guard } from '@/lib/api/guard'
+import { guard } from '@/server/http/guard'
 import { MAX_UPLOAD_BYTES } from '@/shared/schemas/common'
-import { fail, serverError } from '@/lib/api/respond'
+import { fail, serverError } from '@/server/http/respond'
 import { NextResponse } from 'next/server'
 
 cloudinary.config({

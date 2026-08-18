@@ -1,12 +1,12 @@
 // src/app/api/auth/resend-verification/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectDB } from '@/server/db'
 import User from '@/models/User'
-import { guard } from '@/lib/api/guard'
-import { fail, serverError } from '@/lib/api/respond'
-import { issueToken } from '@/lib/dal/tokens'
-import { sendMail } from '@/lib/email/mailer'
-import { verifyEmail } from '@/lib/email/templates'
+import { guard } from '@/server/http/guard'
+import { fail, serverError } from '@/server/http/respond'
+import { issueToken } from '@/server/data/tokens'
+import { sendMail } from '@/server/email/mailer'
+import { verifyEmail } from '@/server/email/templates'
 import { EMAIL_VERIFY_TTL_MS } from '@/shared/schemas/auth'
 
 // Authenticated, so there is no address to enumerate here — the session decides

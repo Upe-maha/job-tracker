@@ -1,9 +1,9 @@
 // src/app/api/user/accounts/[provider]/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { guard } from '@/lib/api/guard'
-import { fail, serverError } from '@/lib/api/respond'
-import { unlinkProviderFromUser } from '@/lib/dal/users'
+import { connectDB } from '@/server/db'
+import { guard } from '@/server/http/guard'
+import { fail, serverError } from '@/server/http/respond'
+import { unlinkProviderFromUser } from '@/server/data/users'
 import { OAUTH_PROVIDERS, type OAuthProvider } from '@/shared/schemas/enums'
 
 // Step E. Disconnects a linked provider.

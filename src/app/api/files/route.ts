@@ -1,10 +1,10 @@
 // src/app/api/files/route.ts
 import type { NextRequest } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { guard } from '@/lib/api/guard'
-import { parseQuery } from '@/lib/api/validate'
-import { fail, serverError } from '@/lib/api/respond'
-import { resolveOwnedFile } from '@/lib/dal/files'
+import { connectDB } from '@/server/db'
+import { guard } from '@/server/http/guard'
+import { parseQuery } from '@/server/http/validate'
+import { fail, serverError } from '@/server/http/respond'
+import { resolveOwnedFile } from '@/server/data/files'
 import { fileProxyQuerySchema } from '@/shared/schemas/file'
 
 // Serves an uploaded PDF through the app instead of linking at Cloudinary.

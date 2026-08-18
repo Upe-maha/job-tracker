@@ -1,10 +1,10 @@
 // src/app/api/notes/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { guard } from '@/lib/api/guard'
-import { parseQuery } from '@/lib/api/validate'
-import { serverError } from '@/lib/api/respond'
-import { fetchNotesFeed } from '@/lib/dal/notes'
+import { connectDB } from '@/server/db'
+import { guard } from '@/server/http/guard'
+import { parseQuery } from '@/server/http/validate'
+import { serverError } from '@/server/http/respond'
+import { fetchNotesFeed } from '@/server/data/notes'
 import { notesQuerySchema } from '@/shared/schemas/note'
 
 // GET — every note across the user's applications, paginated and filterable.

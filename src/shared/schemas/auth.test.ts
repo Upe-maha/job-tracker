@@ -10,7 +10,7 @@ import {
 // generateToken(): the schema layer may not import the DAL (eslint enforces it,
 // since these schemas are also imported by 'use client' forms). The check that
 // the real issuer still produces something this schema accepts lives in
-// src/lib/dal/tokens.test.ts, which is allowed to depend in that direction.
+// src/server/data/tokens.test.ts, which is allowed to depend in that direction.
 const VALID = 'abcdefghijklmnopqrstuvwxyz0123456789_-ABCDE'
 
 describe('verifyTokenSchema', () => {

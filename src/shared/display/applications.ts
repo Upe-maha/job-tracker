@@ -1,7 +1,7 @@
 // src/shared/display/applications.ts
 //
 // Presentation metadata for application enums. Isomorphic — same import rule
-// as @/shared/schemas: no mongoose, no next/server, no @/lib/api or @/lib/dal.
+// as @/shared/schemas: no mongoose, no next/server, no @/server/http or @/server/data.
 //
 // Typed as Record<Enum, Meta> on purpose: adding a status to
 // @/shared/schemas/enums becomes a compile error here until its label and colours

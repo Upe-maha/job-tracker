@@ -1,8 +1,8 @@
 // src/shared/security/loginErrors.ts
 //
-// Shared between src/lib/auth.ts (server, sets these as CredentialsSignin
+// Shared between src/server/auth.ts (server, sets these as CredentialsSignin
 // error codes) and the login page (client, reads them back via signIn()'s
-// result.code). Must stay free of server-only imports (next-auth, @/lib/auth)
+// result.code). Must stay free of server-only imports (next-auth, @/server/auth)
 // since the login page is 'use client'.
 
 export const LOGIN_ERROR = {

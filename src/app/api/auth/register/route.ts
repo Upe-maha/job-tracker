@@ -1,14 +1,14 @@
 // src/app/api/auth/register/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectDB } from '@/server/db'
 import User from '@/models/User'
 import bcrypt from 'bcryptjs'
-import { guard } from '@/lib/api/guard'
-import { parseBody } from '@/lib/api/validate'
-import { serverError } from '@/lib/api/respond'
-import { issueToken } from '@/lib/dal/tokens'
-import { sendMailSafe } from '@/lib/email/mailer'
-import { accountExists, verifyEmail } from '@/lib/email/templates'
+import { guard } from '@/server/http/guard'
+import { parseBody } from '@/server/http/validate'
+import { serverError } from '@/server/http/respond'
+import { issueToken } from '@/server/data/tokens'
+import { sendMailSafe } from '@/server/email/mailer'
+import { accountExists, verifyEmail } from '@/server/email/templates'
 import { EMAIL_VERIFY_TTL_MS, registerSchema } from '@/shared/schemas/auth'
 
 // One response for every outcome. Step A kept a clear 409 here and recorded the

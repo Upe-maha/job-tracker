@@ -1,16 +1,16 @@
 // src/app/api/user/link-account/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
-import { guard } from '@/lib/api/guard'
-import { serverError } from '@/lib/api/respond'
-import { issueToken } from '@/lib/dal/tokens'
-import { accountLinkCookie, ACCOUNT_LINK_TTL_MS } from '@/lib/security/linkIntent'
+import { connectDB } from '@/server/db'
+import { guard } from '@/server/http/guard'
+import { serverError } from '@/server/http/respond'
+import { issueToken } from '@/server/data/tokens'
+import { accountLinkCookie, ACCOUNT_LINK_TTL_MS } from '@/server/security/linkIntent'
 
 // Step E, step 1 of connecting a provider to the signed-in account.
 //
 // All this does is record intent: an account_link token issued to *this* user,
 // handed back in an httpOnly cookie. The client then starts the normal OAuth
-// round trip, and the signIn callback in @/lib/auth reads the cookie to learn
+// round trip, and the signIn callback in @/server/auth reads the cookie to learn
 // which user the resulting provider account belongs to — instead of resolving
 // one from the provider's email, which is what would silently swap the session
 // when the two addresses differ.

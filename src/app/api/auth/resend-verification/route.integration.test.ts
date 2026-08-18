@@ -11,10 +11,10 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 
 const SESSION_USER_ID = new mongoose.Types.ObjectId()
 
-vi.mock('@/lib/auth', () => ({
+vi.mock('@/server/auth', () => ({
   auth: vi.fn(async () => ({ user: { id: SESSION_USER_ID.toString() } })),
 }))
-vi.mock('@/lib/db', () => ({ connectDB: vi.fn() }))
+vi.mock('@/server/db', () => ({ connectDB: vi.fn() }))
 
 // Failing the SDK rather than stubbing sendMail, so the route's real error path
 // runs — that is the behaviour under test.
@@ -28,7 +28,7 @@ vi.mock('resend', () => ({
 import User from '@/models/User'
 import Token from '@/models/Token'
 import RateLimit from '@/models/RateLimit'
-import { RATE_LIMITS } from '@/lib/security/rateLimiter'
+import { RATE_LIMITS } from '@/server/security/rateLimiter'
 import { POST } from './route'
 
 let mongod: MongoMemoryServer

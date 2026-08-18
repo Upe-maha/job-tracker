@@ -13,10 +13,10 @@ import { MongoMemoryServer } from 'mongodb-memory-server'
 // The route's collaborators, stubbed at the edges: no session (register is
 // public), no mail provider, and a connectDB that is a no-op because this file
 // owns the mongoose connection itself.
-vi.mock('@/lib/auth', () => ({ auth: vi.fn().mockResolvedValue(null) }))
-vi.mock('@/lib/db', () => ({ connectDB: vi.fn() }))
+vi.mock('@/server/auth', () => ({ auth: vi.fn().mockResolvedValue(null) }))
+vi.mock('@/server/db', () => ({ connectDB: vi.fn() }))
 
-// The Resend SDK is stubbed, not @/lib/email/mailer at the module. The
+// The Resend SDK is stubbed, not @/server/email/mailer at the module. The
 // difference matters: the property under test is that *sendMailSafe* swallows a
 // delivery failure, so mocking sendMailSafe itself would assert nothing — it
 // would just be the mock's behaviour. Failing at the SDK is the real scenario,
@@ -28,8 +28,8 @@ vi.mock('resend', () => ({
   },
 }))
 // guard() would otherwise spend the 3/hour register budget on the fourth test.
-vi.mock('@/lib/security/rateLimiter', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/lib/security/rateLimiter')>()),
+vi.mock('@/server/security/rateLimiter', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/server/security/rateLimiter')>()),
   checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 3 }),
 }))
 

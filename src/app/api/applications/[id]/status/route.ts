@@ -1,10 +1,10 @@
 // src/app/api/applications/[id]/status/route.ts
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectDB } from '@/server/db'
 import Application from '@/models/Application'
-import { guard } from '@/lib/api/guard'
-import { parseBody, toObjectId } from '@/lib/api/validate'
-import { fail, serverError } from '@/lib/api/respond'
+import { guard } from '@/server/http/guard'
+import { parseBody, toObjectId } from '@/server/http/validate'
+import { fail, serverError } from '@/server/http/respond'
 import { applicationStatusSchema } from '@/shared/schemas/application'
 
 export async function PATCH(

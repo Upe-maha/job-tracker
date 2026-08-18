@@ -1,7 +1,7 @@
 // src/app/api/auth/session-ended/route.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { SESSION_COOKIE_NAMES } from '@/lib/security/sessionCookie'
+import { SESSION_COOKIE_NAMES } from '@/server/security/sessionCookie'
 
 // Where a session goes to die.
 //

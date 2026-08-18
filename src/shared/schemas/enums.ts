@@ -5,7 +5,7 @@
 // as unions from @/types — so adding a status is a one-line change instead of a
 // five-file hunt.
 //
-// Must stay free of server-only imports (mongoose, next/server, @/lib/api/*):
+// Must stay free of server-only imports (mongoose, next/server, @/server/http/*):
 // 'use client' forms import the schemas built on this file. Same rule as
 // src/shared/security/loginErrors.ts.
 

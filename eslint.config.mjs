@@ -4,15 +4,23 @@ import nextTs from "eslint-config-next/typescript";
 
 // Server-only modules. Importing any of these from an isomorphic or client
 // file either breaks the build or silently ships Mongoose to the browser.
+//
+// src/server is banned as a whole directory rather than as a list of its
+// subpaths. The list was the hole: it named dal, db, api and email, so
+// @/lib/auth, @/lib/security/csrf and @/lib/security/rateLimiter were
+// importable from a 'use client' file with no complaint. A directory cannot
+// fall out of date as new modules land beside the old ones.
+//
+// Both "*" and "**" are listed because ESLint matches these gitignore-style,
+// where a single * does not cross a slash.
 const SERVER_ONLY = [
-  { group: ["mongoose"], message: "Server-only. Keep this layer importable from a 'use client' file." },
-  { group: ["next/server"], message: "Server-only. Keep this layer importable from a 'use client' file." },
-  { group: ["@/lib/db", "@/models/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
-  { group: ["@/lib/api/*", "@/lib/dal/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
-  // The Resend SDK carries the API key and has no business in a bundle.
-  // templates.ts is pure, but it is grouped with the mailer so there is one
-  // answer to "may I import from lib/email here" rather than a per-file one.
-  { group: ["resend", "@/lib/email/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
+  { group: ["mongoose", "@/models/*"], message: "Server-only. Keep this layer importable from a 'use client' file." },
+  { group: ["next/server", "next/headers"], message: "Server-only. Keep this layer importable from a 'use client' file." },
+  { group: ["@/server", "@/server/*", "@/server/**"], message: "src/server never ships to the browser. Reach it through /api." },
+  // The Resend SDK carries the API key and has no business in a bundle. It is
+  // named separately so the transport cannot be smuggled past the @/server ban
+  // by importing the SDK directly.
+  { group: ["resend"], message: "Server-only. Mail is sent by a route, not by a component." },
 ];
 
 // The UI tiers sit above shared and server: both may import downward, neither
@@ -58,7 +66,7 @@ const eslintConfig = defineConfig([
         "error",
         {
           patterns: [
-            { group: ["next/server", "@/lib/api/*", "@/lib/dal/*", "@/lib/db"], message: "Models declare schema and indexes only." },
+            { group: ["next/server", "@/server/*", "@/server/**", "@/client/*", "@/client/**"], message: "Models declare schema and indexes only." },
           ],
         },
       ],
@@ -69,13 +77,33 @@ const eslintConfig = defineConfig([
   // a test without booting NextAuth, and what would let a Server Action reuse
   // it unchanged.
   {
-    files: ["src/lib/dal/**/*.ts"],
+    files: ["src/server/data/**/*.ts"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
-            { group: ["next/server", "@/lib/api/*"], message: "The DAL returns data, never a Response." },
+            { group: ["next/server", "next/headers", "@/server/http/*", "@/server/auth"], message: "The DAL returns data, never a Response." },
+          ],
+        },
+      ],
+    },
+  },
+
+  // The server tier is the bottom of the stack: it imports downward only. A
+  // route handler reaching for apiGet() would have the server fetch itself,
+  // and a TanStack query key belongs to the browser, not to Mongoose.
+  {
+    files: ["src/server/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@/client", "@/client/*", "@/client/**", "@/components/*", "@/components/**", "@/hooks/*", "@/hooks/**"],
+              message: "src/server is the bottom of the stack. It imports downward only.",
+            },
           ],
         },
       ],
@@ -83,15 +111,34 @@ const eslintConfig = defineConfig([
   },
 
   // Client code reaches the database through /api, never directly.
+  //
+  // Note *.{ts,tsx} rather than *.tsx: six .ts files under src/components (the
+  // four barrels, landing/sections.ts, landing/content/copy.ts) sat outside
+  // the old glob and were unguarded.
   {
-    files: ["src/components/**/*.tsx", "src/app/**/page.tsx", "src/app/**/layout.tsx", "src/hooks/**/*.ts"],
+    files: ["src/components/**/*.{ts,tsx}", "src/hooks/**/*.{ts,tsx}"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: SERVER_ONLY }],
+    },
+  },
+
+  // App Router pages, layouts and loading boundaries are a composition layer,
+  // so this enumerates rather than banning @/server wholesale: a server
+  // component legitimately calls auth(), and (dashboard)/layout.tsx's
+  // auth() + redirect() is the real enforcement for every dashboard route --
+  // middleware.ts only handles the redirect UX. Everything else under
+  // src/server is listed, which keeps adding a new server subdirectory a
+  // deliberate decision rather than an accident.
+  {
+    files: ["src/app/**/page.tsx", "src/app/**/layout.tsx", "src/app/**/loading.tsx"],
     rules: {
       "no-restricted-imports": [
         "error",
         {
           patterns: [
-            { group: ["mongoose", "@/models/*", "@/lib/dal/*", "@/lib/db"], message: "Client code talks to /api, not to Mongoose." },
-            { group: ["resend", "@/lib/email/*"], message: "Mail is sent by a route, not by a component." },
+            { group: ["mongoose", "@/models/*", "@/server/db", "@/server/data/*", "@/server/data/**"], message: "Page and layout code talks to /api, not to Mongoose." },
+            { group: ["resend", "@/server/email/*", "@/server/email/**"], message: "Mail is sent by a route, not by a page." },
+            { group: ["@/server/http/*", "@/server/security/*"], message: "guard()/respond() are for route handlers. A page uses auth() and redirect()." },
           ],
         },
       ],

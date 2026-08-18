@@ -1,11 +1,11 @@
 // src/app/api/dashboard/route.ts
 import mongoose from 'mongoose'
 import { NextResponse } from 'next/server'
-import { connectDB } from '@/lib/db'
+import { connectDB } from '@/server/db'
 import Application from '@/models/Application'
-import { guard } from '@/lib/api/guard'
-import { serverError } from '@/lib/api/respond'
-import { fetchNotesFeed } from '@/lib/dal/notes'
+import { guard } from '@/server/http/guard'
+import { serverError } from '@/server/http/respond'
+import { fetchNotesFeed } from '@/server/data/notes'
 import type { ApplicationStatus } from '@/types'
 
 const NOTES_FEED_LIMIT = 10

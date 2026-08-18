@@ -1,6 +1,6 @@
 // src/app/(dashboard)/layout.tsx
 import { redirect } from 'next/navigation'
-import { auth } from '@/lib/auth'
+import { auth } from '@/server/auth'
 import { Sidebar, Header } from '@/components/layout'
 import { SidebarProvider } from '@/components/layout/SidebarContext'
 import SidebarDrawer from '@/components/layout/SidebarDrawer'
