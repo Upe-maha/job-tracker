@@ -5,7 +5,7 @@ import { guard } from '@/lib/api/guard'
 import { parseBody, toObjectId } from '@/lib/api/validate'
 import { fail, serverError } from '@/lib/api/respond'
 import { pullSubdocument, pushSubdocument } from '@/lib/dal/applications'
-import { prepFileCreateSchema, prepFileDeleteSchema } from '@/lib/schemas/prepFile'
+import { prepFileCreateSchema, prepFileDeleteSchema } from '@/lib/schemas/prep-file'
 import type { IPrepFile } from '@/types'
 
 // POST — add a prep file (uploaded PDF or plain link) to the application

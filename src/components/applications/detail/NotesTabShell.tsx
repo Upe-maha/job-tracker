@@ -1,4 +1,4 @@
-// src/components/applications/detail/NoteTabShell.tsx
+// src/components/applications/detail/NotesTabShell.tsx
 'use client'
 
 import { useState, type ReactNode } from 'react'
@@ -9,7 +9,7 @@ import NoteModal from '@/components/notes/NoteModal'
 import type { NoteCreatePayload } from '@/lib/schemas/note'
 import type { NoteType } from '@/types'
 
-interface NoteTabShellProps {
+interface NotesTabShellProps {
   description: string
   addLabel: string
   emptyMessage: string
@@ -28,7 +28,7 @@ interface NoteTabShellProps {
 // InterviewTab groups its notes by round and ExperienceTab shows a summary
 // card, so the list itself stays with each tab rather than being generalised
 // into a prop-driven renderer.
-export default function NoteTabShell({
+export default function NotesTabShell({
   description,
   addLabel,
   emptyMessage,
@@ -38,7 +38,7 @@ export default function NoteTabShell({
   children,
   header,
   addButtonClass = 'bg-primary hover:bg-primary/90 text-primary-foreground',
-}: NoteTabShellProps) {
+}: NotesTabShellProps) {
   const [modalOpen, setModalOpen] = useState(false)
 
   return (

@@ -11,7 +11,7 @@ import type {
 } from '@/lib/schemas/application'
 import type { ContactCreatePayload } from '@/lib/schemas/contact'
 import type { NoteCreatePayload, NoteUpdatePayload } from '@/lib/schemas/note'
-import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
+import type { PrepFileCreateInput } from '@/lib/schemas/prep-file'
 import type { ProfileUpdateInput } from '@/lib/schemas/user'
 import type { ApplicationStatus, IApplication, INote, OAuthProvider } from '@/types'
 

@@ -2,7 +2,7 @@
 'use client'
 
 import NoteCard from '@/components/notes/NoteCard'
-import NoteTabShell from './NoteTabShell'
+import NotesTabShell from './NotesTabShell'
 import { INTERVIEW_ROUNDS } from '@/lib/schemas/enums'
 import { INTERVIEW_ROUND_LABELS } from '@/lib/display'
 import { INote } from '@/types'
@@ -30,7 +30,7 @@ export default function InterviewTab({
   )
 
   return (
-    <NoteTabShell
+    <NotesTabShell
       description="Questions asked and personal experiences per round"
       addLabel="Add Note"
       emptyMessage="No interview notes yet. Add questions or experiences."
@@ -68,6 +68,6 @@ export default function InterviewTab({
           )
         })}
       </div>
-    </NoteTabShell>
+    </NotesTabShell>
   )
 }

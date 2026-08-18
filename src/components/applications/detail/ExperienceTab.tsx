@@ -2,7 +2,7 @@
 'use client'
 
 import NoteCard from '@/components/notes/NoteCard'
-import NoteTabShell from './NoteTabShell'
+import NotesTabShell from './NotesTabShell'
 import { INote } from '@/types'
 import type { NoteCreatePayload } from '@/lib/schemas/note'
 
@@ -22,7 +22,7 @@ export default function ExperienceTab({
   const experienceLogs = notes.filter(n => n.type === 'experience_log')
 
   return (
-    <NoteTabShell
+    <NotesTabShell
       description="Reflections and lessons for future reference"
       addLabel="Add Log"
       emptyMessage="No experience logs yet. Log what happened for future reference."
@@ -41,6 +41,6 @@ export default function ExperienceTab({
           />
         ))}
       </div>
-    </NoteTabShell>
+    </NotesTabShell>
   )
 }

@@ -2,7 +2,7 @@
 'use client'
 
 import NoteCard from '@/components/notes/NoteCard'
-import NoteTabShell from './NoteTabShell'
+import NotesTabShell from './NotesTabShell'
 import { INote } from '@/types'
 import type { NoteCreatePayload } from '@/lib/schemas/note'
 
@@ -22,7 +22,7 @@ export default function NotesTab({
   const generalNotes = notes.filter(n => n.type === 'general')
 
   return (
-    <NoteTabShell
+    <NotesTabShell
       description="General notes about this application"
       addLabel="Add Note"
       emptyMessage="No notes yet. Add your first note."
@@ -40,6 +40,6 @@ export default function NotesTab({
           />
         ))}
       </div>
-    </NoteTabShell>
+    </NotesTabShell>
   )
 }

@@ -1,4 +1,4 @@
-// src/lib/schemas/prepFile.ts
+// src/lib/schemas/prep-file.ts
 import { z } from 'zod'
 import { PREP_FILE_TYPES } from './enums'
 import { isCloudinaryUrl, objectId, text } from './common'

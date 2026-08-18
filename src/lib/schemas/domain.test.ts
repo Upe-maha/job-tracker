@@ -16,7 +16,7 @@ import {
   NOTES_PAGE_SIZE,
 } from './note'
 import { contactCreateSchema } from './contact'
-import { prepFileCreateSchema } from './prepFile'
+import { prepFileCreateSchema } from './prep-file'
 import { passwordChangeSchema, profileUpdateSchema } from './user'
 import { loginSchema, registerSchema } from './auth'
 

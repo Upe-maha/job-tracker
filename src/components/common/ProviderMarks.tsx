@@ -1,7 +1,7 @@
 // src/components/common/ProviderMarks.tsx
 //
 // The brand marks the app draws, as inline SVG. They are not in
-// @/lib/display/user.ts with the provider labels because that file is a plain
+// @/lib/display/users.ts with the provider labels because that file is a plain
 // data table and these are brand artwork with their own fixed fills; and they
 // are not lucide icons because lucide dropped its brand set — importing
 // `Github` or `Linkedin` from lucide-react is a compile error, not a fallback.

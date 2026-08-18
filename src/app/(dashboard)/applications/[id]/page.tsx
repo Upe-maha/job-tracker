@@ -30,7 +30,7 @@ import {
 } from '@/hooks/useMutations'
 import type { NoteCreatePayload, NoteFormValues } from '@/lib/schemas/note'
 import type { ContactCreatePayload } from '@/lib/schemas/contact'
-import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
+import type { PrepFileCreateInput } from '@/lib/schemas/prep-file'
 import { ApplicationStatus, INote } from '@/types'
 import PageShell from '@/components/common/PageShell'
 import ErrorState from '@/components/common/ErrorState'

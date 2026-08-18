@@ -6,4 +6,4 @@
 // import mongoose, next/server, @/lib/api/* or @/lib/dal/*.
 export * from './applications'
 export * from './notes'
-export * from './user'
+export * from './users'

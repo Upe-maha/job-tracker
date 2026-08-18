@@ -1,4 +1,4 @@
-// src/lib/display/user.ts
+// src/lib/display/users.ts
 import { JOB_SEARCH_STATUSES } from '@/lib/schemas/enums'
 import type { JobSearchStatus, OAuthProvider } from '@/lib/schemas/enums'
 

@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { format } from 'date-fns'
 import { IPrepFile } from '@/types'
-import type { PrepFileCreateInput } from '@/lib/schemas/prepFile'
+import type { PrepFileCreateInput } from '@/lib/schemas/prep-file'
 import { useUpload } from '@/hooks/useMutations'
 import PdfPreview from '@/components/common/PdfPreview'
 
